@@ -192,7 +192,7 @@ When no transport protocol is specified the default `dns://` is assumed.
 - Twitter: [@corednsio](https://twitter.com/corednsio)
 - Github: <https://github.com/coredns/coredns>
 - Mailing list/group: <coredns-discuss@googlegroups.com>
-
+- Slack: #coredns on <https://slack.cncf.io>
 
 ## Deployment
 
