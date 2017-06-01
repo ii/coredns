@@ -22,6 +22,16 @@ compile:
     expire_in: 4 weeks
     paths:
       - build/
+      
+build-e2e:
+  stage: build
+  variables:
+    COREDNS_DOCKER_REGISTRY: "${CI_REGISTRY_IMAGE}"
+    COREDNS_DOCKER_IMAGE_TAG: "${CI_COMMIT_REF_SLUG}.job.${CI_JOB_ID}"
+  script:
+    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+    - docker build -t "$CI_REGISTRY_IMAGE/coredns-e2e:$COREDNS_DOCKER_IMAGE_TAG" ./e2e/
+    - docker push "$CI_REGISTRY_IMAGE/coredns-e2e:$COREDNS_DOCKER_IMAGE_TAG"
 
 tar:
   stage: package
@@ -36,6 +46,9 @@ tar:
     expire_in: 4 weeks
     paths:
       - release/
+      
+
+
 
 container:
   stage: package
@@ -70,13 +83,3 @@ release:
     paths:
       - release.properties
       - release/
-
-build-e2e:
-  stage: build-e2e
-  variables:
-    COREDNS_DOCKER_REGISTRY: "${CI_REGISTRY_IMAGE}"
-    COREDNS_DOCKER_IMAGE_TAG: "${CI_COMMIT_REF_SLUG}.job.${CI_JOB_ID}"
-  script:
-    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker build -t "$CI_REGISTRY_IMAGE/coredns-e2e:$COREDNS_DOCKER_IMAGE_TAG" ./e2e/
-    - docker push "$CI_REGISTRY_IMAGE/coredns-e2e:$COREDNS_DOCKER_IMAGE_TAG"
