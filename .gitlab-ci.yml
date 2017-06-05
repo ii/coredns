@@ -74,7 +74,7 @@ release:
   stage: release
   image: golang:1.8.1
   script:
-    - echo combining pipeline artifacts into a release 
+    - cat release.env
   dependencies:
     - container
     - tar
