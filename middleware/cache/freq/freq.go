@@ -25,6 +25,7 @@ func (f *Freq) Update(d time.Duration, now time.Time) int {
 		f.hits = 1
 		return f.hits
 	}
+	f.last = now
 	f.hits++
 	return f.hits
 }
