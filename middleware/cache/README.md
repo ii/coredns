@@ -35,7 +35,7 @@ cache [TTL] [ZONES...] {
   number of packets we cache before we start evicting (LRU). **TTL** overrides the cache maximum TTL.
   There is a third category (`error`) but those responses are never cached.
 * `prefetch`, will prefetch popular items when there are about to be expunged from the cache.
-  Popular means **AMOUNT** queries seen within **DURATION**, which defaults to a 1m.
+  Popular means **AMOUNT** queries seen within **DURATION**, which defaults to 1m.
 
 The minimum TTL allowed on resource records is 5 seconds.
 
