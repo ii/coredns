@@ -36,7 +36,7 @@ type shard struct {
 }
 
 func New(size int) *Cache {
-	ssize = size / shardSize
+	ssize := size / shardSize
 	if ssize < 512 {
 		ssize = 512
 	}

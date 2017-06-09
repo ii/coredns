@@ -23,7 +23,7 @@ func TestCacheSet(t *testing.T) {
 	c := cache.New(defaultCap)
 	m := testMsg()
 	state := request.Request{Req: m}
-	k := key(m.Answer) // calculate *before* we add the sig
+	k := hash(m.Answer) // calculate *before* we add the sig
 	d := New([]string{"miek.nl."}, []*DNSKEY{dnskey}, nil, c)
 	m = d.Sign(state, "miek.nl.", time.Now().UTC())
 
