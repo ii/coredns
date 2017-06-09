@@ -36,14 +36,16 @@ type shard struct {
 }
 
 func New(size int) *Cache {
-	c := &Cache{}
+	ssize = size / shardSize
+	if ssize < 512 {
+		ssize = 512
+	}
 
-	// Each shard's size should be size / 256 - we should probably return an error
-	// if this becomes too small. Now we allocate 256 * size
+	c := &Cache{}
 
 	// Initialize all the shards
 	for i := 0; i < shardSize; i++ {
-		c.shards[i] = newShard(size)
+		c.shards[i] = newShard(ssize)
 	}
 	return c
 }
