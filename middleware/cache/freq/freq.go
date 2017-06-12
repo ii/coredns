@@ -2,16 +2,22 @@
 // here. So the Freq type should be added next to the thing it is tracking.
 package freq
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type Freq struct {
 	// Last time we saw a query for this element.
 	last time.Time
 	// Number of this in the last time slice.
 	hits int
+
+	sync.RWMutex
 }
 
-func NewFreq(t time.Time) *Freq {
+// New returns a new initialized Freq.
+func New(t time.Time) *Freq {
 	return &Freq{last: t, hits: 0}
 }
 
@@ -20,6 +26,8 @@ func NewFreq(t time.Time) *Freq {
 // we reset hits to 1. It returns the number of hits.
 func (f *Freq) Update(d time.Duration, now time.Time) int {
 	earliest := now.Add(-1 * d)
+	f.Lock()
+	defer f.Unlock()
 	if f.last.Before(earliest) {
 		f.last = now
 		f.hits = 1
@@ -31,10 +39,16 @@ func (f *Freq) Update(d time.Duration, now time.Time) int {
 }
 
 // Hits returns the number of hits that we have seen, according to the updates we have done to f.
-func (f *Freq) Hits() int { return f.hits }
+func (f *Freq) Hits() int {
+	f.RLock()
+	defer f.RUnlock()
+	return f.hits
+}
 
 // Reset resets f to time t and hits to 0.
 func (f *Freq) Reset(t time.Time) {
+	f.Lock()
+	defer f.Unlock()
 	f.last = t
 	f.hits = 0
 }

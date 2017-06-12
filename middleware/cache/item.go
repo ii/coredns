@@ -3,6 +3,7 @@ package cache
 import (
 	"time"
 
+	"github.com/coredns/coredns/middleware/cache/freq"
 	"github.com/coredns/coredns/middleware/pkg/response"
 	"github.com/miekg/dns"
 )
@@ -18,6 +19,8 @@ type item struct {
 
 	origTTL uint32
 	stored  time.Time
+
+	*freq.Freq
 }
 
 func newItem(m *dns.Msg, d time.Duration) *item {
@@ -43,6 +46,8 @@ func newItem(m *dns.Msg, d time.Duration) *item {
 	i.origTTL = uint32(d.Seconds())
 	i.stored = time.Now().UTC()
 
+	i.Freq = new(freq.Freq)
+
 	return i
 }
 
@@ -67,9 +72,11 @@ func (i *item) toMsg(m *dns.Msg) *dns.Msg {
 	return m1
 }
 
-func (i *item) expired(now time.Time) bool {
+func (i *item) ttl(now time.Time) int {
+	println(i.origTTL)
+	println(int(now.UTC().Sub(i.stored).Seconds()))
 	ttl := int(i.origTTL) - int(now.UTC().Sub(i.stored).Seconds())
-	return ttl < 0
+	return ttl
 }
 
 // setMsgTTL sets the ttl on all RRs in all sections. If ttl is smaller than minTTL

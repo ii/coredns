@@ -10,14 +10,12 @@ cache [TTL] [ZONES...]
 
 * **TTL** max TTL in seconds. If not specified, the maximum TTL will be used which is 3600 for
     noerror responses and 1800 for denial of existence ones.
-    A set TTL of 300 *cache 300* would cache the record up to 300 seconds.
-    Smaller record provided TTLs will take precedence.
+    Setting a TTL of 300 *cache 300* would cache the record up to 300 seconds.
 * **ZONES** zones it should cache for. If empty, the zones from the configuration block are used.
 
 Each element in the cache is cached according to its TTL (with **TTL** as the max).
 For the negative cache, the SOA's MinTTL value is used. A cache can contain up to 10,000 items by
-default. A TTL of zero is not allowed. No cache invalidation triggered by other middlewares is available.
-Therefore even reloaded items might still be cached for the duration of the TTL.
+default. A TTL of zero is not allowed.
 
 If you want more control:
 
@@ -25,7 +23,7 @@ If you want more control:
 cache [TTL] [ZONES...] {
     success CAPACITY [TTL]
     denial CAPACITY [TTL]
-    prefetch AMOUNT [DURATION]
+    prefetch AMOUNT [DURATION] [MINTTL]
 }
 ~~~
 

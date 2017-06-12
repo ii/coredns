@@ -27,6 +27,10 @@ type Cache struct {
 	pcache *cache.Cache
 	pcap   int
 	pttl   time.Duration
+
+	// Prefetch.
+	prefetch int
+	duration time.Duration
 }
 
 // Return key under which we store the item, -1 will be returned if we don't store the
@@ -49,7 +53,6 @@ var one = []byte("1")
 var zero = []byte("0")
 
 func hash(qname string, qtype uint16, do bool) uint32 {
-	// Layering violation because we look into the cache impl.
 	h := fnv.New32()
 
 	if do {
