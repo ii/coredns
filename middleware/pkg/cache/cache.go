@@ -18,7 +18,6 @@ func Hash(what []byte) uint32 {
 // Cache is cache.
 type Cache struct {
 	shards [shardSize]*shard
-	// TODO(miek): onEvictFunc
 }
 
 // shard is a cache with random eviction.
