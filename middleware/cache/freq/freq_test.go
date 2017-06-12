@@ -7,7 +7,7 @@ import (
 
 func TestFreqUpdate(t *testing.T) {
 	now := time.Now().UTC()
-	f := NewFreq(now)
+	f := New(now)
 	window := 1 * time.Minute
 
 	f.Update(window, time.Now().UTC())
@@ -22,10 +22,10 @@ func TestFreqUpdate(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
-	f := NewFreq(time.Now().UTC())
+	f := New(time.Now().UTC())
 	f.Update(1*time.Minute, time.Now().UTC())
 	hitsCheck(t, f, 1)
-	f.Reset(time.Now().UTC())
+	f.Reset(time.Now().UTC(), 0)
 	hitsCheck(t, f, 0)
 }
 
