@@ -15,7 +15,7 @@ func TestFreqUpdate(t *testing.T) {
 	f.Update(window, time.Now().UTC())
 	hitsCheck(t, f, 3)
 
-	f.Reset(now)
+	f.Reset(now, 0)
 	history := time.Now().UTC().Add(-3 * time.Minute)
 	f.Update(window, history)
 	hitsCheck(t, f, 1)

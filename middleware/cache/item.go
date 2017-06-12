@@ -73,8 +73,6 @@ func (i *item) toMsg(m *dns.Msg) *dns.Msg {
 }
 
 func (i *item) ttl(now time.Time) int {
-	println(i.origTTL)
-	println(int(now.UTC().Sub(i.stored).Seconds()))
 	ttl := int(i.origTTL) - int(now.UTC().Sub(i.stored).Seconds())
 	return ttl
 }

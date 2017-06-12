@@ -151,7 +151,7 @@ func newTestCache(ttl time.Duration) (*Cache, *ResponseWriter) {
 	c.pcache = cache.New(c.pcap)
 	c.ncache = cache.New(c.ncap)
 
-	crr := &ResponseWriter{nil, c}
+	crr := &ResponseWriter{ResponseWriter: nil, Cache: c}
 	return c, crr
 }
 
@@ -176,7 +176,8 @@ func TestCache(t *testing.T) {
 		name := middleware.Name(m.Question[0].Name).Normalize()
 		qtype := m.Question[0].Qtype
 
-		i, ok, _ := c.get(name, qtype, do)
+		i, _ := c.get(time.Now().UTC(), name, qtype, do)
+		ok := i != nil
 
 		if ok != tc.shouldCache {
 			t.Errorf("cached message that should not have been cached: %s", name)

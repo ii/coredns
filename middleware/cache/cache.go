@@ -80,10 +80,12 @@ func hash(qname string, qtype uint16, do bool) uint32 {
 type ResponseWriter struct {
 	dns.ResponseWriter
 	*Cache
+
+	prefetch bool // When true write nothing back to the client.
 }
 
 // WriteMsg implements the dns.ResponseWriter interface.
-func (c *ResponseWriter) WriteMsg(res *dns.Msg) error {
+func (w *ResponseWriter) WriteMsg(res *dns.Msg) error {
 	do := false
 	mt, opt := response.Typify(res, time.Now().UTC())
 	if opt != nil {
@@ -93,9 +95,9 @@ func (c *ResponseWriter) WriteMsg(res *dns.Msg) error {
 	// key returns empty string for anything we don't want to cache.
 	key := key(res, mt, do)
 
-	duration := c.pttl
+	duration := w.pttl
 	if mt == response.NameError || mt == response.NoData {
-		duration = c.nttl
+		duration = w.nttl
 	}
 
 	msgTTL := minMsgTTL(res, mt)
@@ -104,18 +106,21 @@ func (c *ResponseWriter) WriteMsg(res *dns.Msg) error {
 	}
 
 	if key != -1 {
-		c.set(res, key, mt, duration)
+		w.set(res, key, mt, duration)
 
-		cacheSize.WithLabelValues(Success).Set(float64(c.pcache.Len()))
-		cacheSize.WithLabelValues(Denial).Set(float64(c.ncache.Len()))
+		cacheSize.WithLabelValues(Success).Set(float64(w.pcache.Len()))
+		cacheSize.WithLabelValues(Denial).Set(float64(w.ncache.Len()))
 	}
 
 	setMsgTTL(res, uint32(duration.Seconds()))
+	if w.prefetch {
+		return nil
+	}
 
-	return c.ResponseWriter.WriteMsg(res)
+	return w.ResponseWriter.WriteMsg(res)
 }
 
-func (c *ResponseWriter) set(m *dns.Msg, key int, mt response.Type, duration time.Duration) {
+func (w *ResponseWriter) set(m *dns.Msg, key int, mt response.Type, duration time.Duration) {
 	if key == -1 {
 		log.Printf("[ERROR] Caching called with empty cache key")
 		return
@@ -124,11 +129,11 @@ func (c *ResponseWriter) set(m *dns.Msg, key int, mt response.Type, duration tim
 	switch mt {
 	case response.NoError, response.Delegation:
 		i := newItem(m, duration)
-		c.pcache.Add(uint32(key), i)
+		w.pcache.Add(uint32(key), i)
 
 	case response.NameError, response.NoData:
 		i := newItem(m, duration)
-		c.ncache.Add(uint32(key), i)
+		w.ncache.Add(uint32(key), i)
 
 	case response.OtherError:
 		// don't cache these
@@ -138,9 +143,12 @@ func (c *ResponseWriter) set(m *dns.Msg, key int, mt response.Type, duration tim
 }
 
 // Write implements the dns.ResponseWriter interface.
-func (c *ResponseWriter) Write(buf []byte) (int, error) {
+func (w *ResponseWriter) Write(buf []byte) (int, error) {
 	log.Printf("[WARNING] Caching called with Write: not caching reply")
-	n, err := c.ResponseWriter.Write(buf)
+	if w.prefetch {
+		return 0, nil
+	}
+	n, err := w.ResponseWriter.Write(buf)
 	return n, err
 }
 
@@ -148,7 +156,8 @@ const (
 	maxTTL  = 1 * time.Hour
 	maxNTTL = 30 * time.Minute
 
-	minTTL = 5 // seconds
+	minTTL         = 5   // seconds
+	minTTLPrefetch = 180 // seconds
 
 	defaultCap = 10000 // default capacity of the cache.
 

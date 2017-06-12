@@ -35,15 +35,23 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 		i.Freq.Update(c.duration, now)
 
-		println("TTL:", ttl)
-		println("FRQ:", i.Freq.Hits(), ttl)
-		// Do we need to prefetch?
-		// responsewriter prefetch only
+		if c.prefetch > 0 && ttl < minTTLPrefetch {
+			println("PREFETCH")
+			// When prefetching we loose the item i, and with it the frequency
+			// that we've gathered sofar. See we copy the frequence info back
+			// into the new item that was stored in the cache.
+			prr := &ResponseWriter{ResponseWriter: w, Cache: c, prefetch: true}
+			middleware.NextOrFailure(c.Name(), c.Next, ctx, prr, r)
+
+			if i1, _ := c.get(now, qname, qtype, do); i1 != nil {
+				i1.Freq.Reset(now, i.Freq.Hits())
+			}
+		}
 
 		return dns.RcodeSuccess, nil
 	}
 
-	crr := &ResponseWriter{w, c}
+	crr := &ResponseWriter{ResponseWriter: w, Cache: c}
 	return middleware.NextOrFailure(c.Name(), c.Next, ctx, crr, r)
 }
 

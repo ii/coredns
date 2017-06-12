@@ -45,10 +45,10 @@ func (f *Freq) Hits() int {
 	return f.hits
 }
 
-// Reset resets f to time t and hits to 0.
-func (f *Freq) Reset(t time.Time) {
+// Reset resets f to time t and hits to hits.
+func (f *Freq) Reset(t time.Time, hits int) {
 	f.Lock()
 	defer f.Unlock()
 	f.last = t
-	f.hits = 0
+	f.hits = hits
 }

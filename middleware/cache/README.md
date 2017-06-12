@@ -23,7 +23,7 @@ If you want more control:
 cache [TTL] [ZONES...] {
     success CAPACITY [TTL]
     denial CAPACITY [TTL]
-    prefetch AMOUNT [DURATION] [MINTTL]
+    prefetch AMOUNT [DURATION]
 }
 ~~~
 
@@ -34,7 +34,8 @@ cache [TTL] [ZONES...] {
   number of packets we cache before we start evicting (LRU). **TTL** overrides the cache maximum TTL.
   There is a third category (`error`) but those responses are never cached.
 * `prefetch`, will prefetch popular items when they are about to be expunged from the cache.
-  Popular means **AMOUNT** queries have been seen no gaps of **DURATION** or more between them. **DURATION** defaults to 1m.
+  Popular means **AMOUNT** queries have been seen no gaps of **DURATION** or more between them.
+  **DURATION** defaults to 1m. Prefetching will happen when the TTL drops below 180s.
 
 The minimum TTL allowed on resource records is 5 seconds.
 

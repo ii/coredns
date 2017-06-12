@@ -38,7 +38,7 @@ func setup(c *caddy.Controller) error {
 
 func cacheParse(c *caddy.Controller) (*Cache, error) {
 
-	ca := &Cache{pcap: defaultCap, ncap: defaultCap, pttl: maxTTL, nttl: maxNTTL, prefetch: 10, duration: 1 * time.Minute}
+	ca := &Cache{pcap: defaultCap, ncap: defaultCap, pttl: maxTTL, nttl: maxNTTL, prefetch: 0, duration: 1 * time.Minute}
 
 	for c.Next() {
 		// cache [ttl] [zones..]
@@ -109,6 +109,29 @@ func cacheParse(c *caddy.Controller) (*Cache, error) {
 					}
 					ca.nttl = time.Duration(nttl) * time.Second
 				}
+			case "prefetch":
+				args := c.RemainingArgs()
+				if len(args) == 0 || len(args) > 2 {
+					return nil, c.ArgErr()
+				}
+				amount, err := strconv.Atoi(args[0])
+				if err != nil {
+					return nil, err
+				}
+				if amount < 0 {
+					return nil, fmt.Errorf("prefetch amount should be positive: %d", amount)
+				}
+				ca.prefetch = amount
+
+				ca.duration = 1 * time.Minute
+				if len(args) == 2 {
+					dur, err := time.ParseDuration(args[1])
+					if err != nil {
+						return nil, err
+					}
+					ca.duration = dur
+				}
+
 			default:
 				return nil, c.ArgErr()
 			}
