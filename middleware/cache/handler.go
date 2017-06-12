@@ -36,7 +36,6 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		i.Freq.Update(c.duration, now)
 
 		if c.prefetch > 0 && ttl < minTTLPrefetch {
-			println("PREFETCH")
 			// When prefetching we loose the item i, and with it the frequency
 			// that we've gathered sofar. See we copy the frequence info back
 			// into the new item that was stored in the cache.
