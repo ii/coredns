@@ -5,16 +5,11 @@ import (
 	"log"
 	"testing"
 
-	"github.com/coredns/coredns/core/dnsserver"
-
 	"github.com/mholt/caddy"
 )
 
 func TestDebug(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
-
-	// Predefined error substrings
-	parseErrContent := "Parse error:"
 
 	tests := []struct {
 		input     string
@@ -33,7 +28,6 @@ func TestDebug(t *testing.T) {
 	for i, test := range tests {
 		c := caddy.NewTestController("dns", test.input)
 		err := setup(c)
-		cfg := dnsserver.GetConfig(c)
 
 		if test.shouldErr && err == nil {
 			t.Errorf("Test %d: Expected error but found %s for input %s", i, err, test.input)
