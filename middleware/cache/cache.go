@@ -29,8 +29,9 @@ type Cache struct {
 	pttl   time.Duration
 
 	// Prefetch.
-	prefetch int
-	duration time.Duration
+	prefetch   int
+	duration   time.Duration
+	percentage int
 }
 
 // Return key under which we store the item, -1 will be returned if we don't store the
@@ -156,8 +157,7 @@ const (
 	maxTTL  = 1 * time.Hour
 	maxNTTL = 30 * time.Minute
 
-	minTTL         = 5   // seconds
-	minTTLPrefetch = 180 // seconds
+	minTTL = 5 // seconds
 
 	defaultCap = 10000 // default capacity of the cache.
 

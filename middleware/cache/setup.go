@@ -111,7 +111,7 @@ func cacheParse(c *caddy.Controller) (*Cache, error) {
 				}
 			case "prefetch":
 				args := c.RemainingArgs()
-				if len(args) == 0 || len(args) > 2 {
+				if len(args) == 0 || len(args) > 3 {
 					return nil, c.ArgErr()
 				}
 				amount, err := strconv.Atoi(args[0])
@@ -124,12 +124,29 @@ func cacheParse(c *caddy.Controller) (*Cache, error) {
 				ca.prefetch = amount
 
 				ca.duration = 1 * time.Minute
-				if len(args) == 2 {
+				ca.percentage = 10
+				if len(args) > 1 {
 					dur, err := time.ParseDuration(args[1])
 					if err != nil {
 						return nil, err
 					}
 					ca.duration = dur
+				}
+				if len(args) > 2 {
+					pct := args[2]
+					if x := pct[len(pct)-1]; x != '%' {
+						return nil, fmt.Errorf("last character of percentage should be `%%`, but is: %q", x)
+					}
+					pct = pct[:len(pct)-1]
+
+					num, err := strconv.Atoi(pct)
+					if err != nil {
+						return nil, err
+					}
+					if num < 10 || num > 90 {
+						return nil, fmt.Errorf("percentage should fall in range [10, 90]: %d", num)
+					}
+					ca.percentage = num
 				}
 
 			default:

@@ -23,7 +23,7 @@ If you want more control:
 cache [TTL] [ZONES...] {
     success CAPACITY [TTL]
     denial CAPACITY [TTL]
-    prefetch AMOUNT [DURATION]
+    prefetch AMOUNT [[DURATION] [PERCENTAGE%]]
 }
 ~~~
 
@@ -35,7 +35,9 @@ cache [TTL] [ZONES...] {
   There is a third category (`error`) but those responses are never cached.
 * `prefetch`, will prefetch popular items when they are about to be expunged from the cache.
   Popular means **AMOUNT** queries have been seen no gaps of **DURATION** or more between them.
-  **DURATION** defaults to 1m. Prefetching will happen when the TTL drops below 180s.
+  **DURATION** defaults to 1m. Prefetching will happen when the TTL drops below **PERCENTAGE**,
+  which defaults to `10%`. Values should be in the range `[10%, 90%]`. Note the percent sign is
+  mandatory. **PERCENTAGE** is treated as an `int`.
 
 The minimum TTL allowed on resource records is 5 seconds.
 

@@ -26,7 +26,5 @@ func TestPrefetch(t *testing.T) {
 	c.Next = test.NextHandler(dns.RcodeSuccess, nil)
 
 	rec := dnsrecorder.New(&test.ResponseWriter{})
-	code, _ := c.ServeDNS(ctx, rec, req)
-	println(code)
-
+	c.ServeDNS(ctx, rec, req)
 }

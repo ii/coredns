@@ -35,7 +35,12 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 		i.Freq.Update(c.duration, now)
 
-		if c.prefetch > 0 && ttl < minTTLPrefetch { // TODO(miek): should be some percentage of TTL (like 20% reached).
+		pct := 100
+		if i.origTTL != 0 { // you'll never know
+			pct = int(float64(ttl) / float64(i.origTTL) * 100)
+		}
+
+		if c.prefetch > 0 && i.Freq.Hits() > c.prefetch && pct < c.percentage {
 			// When prefetching we loose the item i, and with it the frequency
 			// that we've gathered sofar. See we copy the frequence info back
 			// into the new item that was stored in the cache.
