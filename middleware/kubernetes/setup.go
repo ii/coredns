@@ -185,17 +185,15 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 							zone: args[1],
 						})
 						continue
-					} else {
-						return nil, fmt.Errorf("Incorrect number of arguments for federation. Got %v, expect 2.", len(args))
 					}
-					return nil, c.ArgErr()
+					return nil, fmt.Errorf("incorrect number of arguments for federation, got %v, expected 2", len(args))
 
 				}
 			}
 			return k8s, nil
 		}
 	}
-	return nil, errors.New("Kubernetes setup called without keyword 'kubernetes' in Corefile")
+	return nil, errors.New("kubernetes setup called without keyword 'kubernetes' in Corefile")
 }
 
 const (
