@@ -41,7 +41,7 @@ func (t *trace) OnStartup() error {
 		case "zipkin":
 			err = t.setupZipkin()
 		default:
-			err = fmt.Errorf("Unknown endpoint type: %s", t.EndpointType)
+			err = fmt.Errorf("unknown endpoint type: %s", t.EndpointType)
 		}
 	})
 	return err
