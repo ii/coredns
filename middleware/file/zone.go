@@ -2,6 +2,7 @@ package file
 
 import (
 	"fmt"
+	"net"
 	"path"
 	"strings"
 	"sync"
@@ -113,9 +114,18 @@ func (z *Zone) Insert(r dns.RR) error {
 func (z *Zone) Delete(r dns.RR) { z.Tree.Delete(r) }
 
 // TransferAllowed checks if incoming request for transferring the zone is allowed according to the ACLs.
-func (z *Zone) TransferAllowed(req request.Request) bool {
+func (z *Zone) TransferAllowed(state request.Request) bool {
 	for _, t := range z.TransferTo {
 		if t == "*" {
+			return true
+		}
+		// If remote IP matches we accept.
+		remote := state.IP()
+		to, _, err := net.SplitHostPort(t)
+		if err != nil {
+			continue
+		}
+		if to == remote {
 			return true
 		}
 	}
