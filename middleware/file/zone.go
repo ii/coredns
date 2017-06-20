@@ -56,12 +56,12 @@ func NewZone(name, file string) *Zone {
 	return z
 }
 
-// Copy copies a zone *without* copying the zone's content. It is not a deep copy.
 func (z *Zone) Copy() *Zone {
 	z1 := NewZone(z.origin, z.file)
 	z1.TransferTo = z.TransferTo
 	z1.TransferFrom = z.TransferFrom
 	z1.Expired = z.Expired
+
 	z1.Apex = z.Apex
 	return z1
 }

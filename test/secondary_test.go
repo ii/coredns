@@ -47,6 +47,10 @@ func TestEmptySecondaryZone(t *testing.T) {
 }
 
 func TestSecondaryZoneTransfer(t *testing.T) {
+	// This test uses fixed ports, because a) we need to know the listening ports
+	// beforehand otherwise we can't make the config (could potentially reload
+	// after the fact?) and b) random ports create a mismatch between udp and tcp
+	// which means the nofity will be sent to the wrong port.
 	log.SetOutput(ioutil.Discard)
 
 	name, rm, err := test.TempFile(".", exampleCom)
@@ -84,15 +88,26 @@ func TestSecondaryZoneTransfer(t *testing.T) {
 	defer sec.Stop()
 
 	m := new(dns.Msg)
-	m.SetQuestion("example.com.", dns.TypeSOA)
+	m.SetQuestion("cname.example.com.", dns.TypeCNAME)
 
 	r, err := dns.Exchange(m, "127.0.0.1:32054")
 	if err != nil {
 		t.Fatalf("Expected to receive reply, but didn't: %s", err)
 	}
-	if r.Answer[0].(*dns.SOA).Serial != 2017042730 {
-		t.Fatalf("Expected serial of %d, got %d", 2017042730, r.Answer[0].(*dns.SOA).Serial)
+	if r.Answer[0].(*dns.CNAME).Target != "a.miek.nl." {
+		t.Fatalf("Expected target of %s, got %s", "a.miek.nl.", r.Answer[0].(*dns.CNAME).Target)
 	}
+
+	/*
+		m.SetQuestion("example.com.", dns.TypeSOA)
+		r, err = dns.Exchange(m, "127.0.0.1:32054")
+		if err != nil {
+			t.Fatalf("Expected to receive reply, but didn't: %s", err)
+		}
+		if r.Answer[0].(*dns.SOA).Serial != 2017042730 {
+			t.Fatalf("Expected serial of %d, got %d", 2017042730, r.Answer[0].(*dns.SOA).Serial)
+		}
+	*/
 }
 
 const exampleCom = `
