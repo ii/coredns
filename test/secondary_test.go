@@ -53,32 +53,35 @@ func TestSecondaryZoneTransfer(t *testing.T) {
 	// which means the nofity will be sent to the wrong port.
 	log.SetOutput(ioutil.Discard)
 
-	name, rm, err := test.TempFile(".", exampleCom)
-	if err != nil {
-		t.Fatalf("failed to create zone: %s", err)
-	}
-	defer rm()
+	corefile := ""
+	/*
+				name, rm, err := test.TempFile(".", exampleCom)
+				if err != nil {
+					t.Fatalf("failed to create zone: %s", err)
+				}
+				defer rm()
 
-	corefile := `example.com:32054 {
-       file ` + name + ` {
-	       transfer to 127.0.0.1:32053
-       }
-}
-`
+				corefile := `example.com:32054 {
+			       file ` + name + ` {
+				       transfer to 127.0.0.1:32053
+			       }
+			}
+			`
 
-	prim, err := CoreDNSServer(corefile)
-	if err != nil {
-		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
-	}
+		prim, err := CoreDNSServer(corefile)
+		if err != nil {
+			t.Fatalf("Could not get CoreDNS serving instance: %s", err)
+		}
 
-	defer prim.Stop()
+		defer prim.Stop()
+	*/
 
 	corefile = `example.com:32053 {
-	secondary {
-		transfer from 127.0.0.1:32054
-       }
-}
-`
+				secondary {
+					transfer from 127.0.0.1:32054
+			       }
+			}
+			`
 
 	sec, err := CoreDNSServer(corefile)
 	if err != nil {
@@ -98,16 +101,14 @@ func TestSecondaryZoneTransfer(t *testing.T) {
 		t.Fatalf("Expected target of %s, got %s", "a.miek.nl.", r.Answer[0].(*dns.CNAME).Target)
 	}
 
-	/*
-		m.SetQuestion("example.com.", dns.TypeSOA)
-		r, err = dns.Exchange(m, "127.0.0.1:32054")
-		if err != nil {
-			t.Fatalf("Expected to receive reply, but didn't: %s", err)
-		}
-		if r.Answer[0].(*dns.SOA).Serial != 2017042730 {
-			t.Fatalf("Expected serial of %d, got %d", 2017042730, r.Answer[0].(*dns.SOA).Serial)
-		}
-	*/
+	m.SetQuestion("example.com.", dns.TypeSOA)
+	r, err = dns.Exchange(m, "127.0.0.1:32054")
+	if err != nil {
+		t.Fatalf("Expected to receive reply, but didn't: %s", err)
+	}
+	if r.Answer[0].(*dns.SOA).Serial != 2017042730 {
+		t.Fatalf("Expected serial of %d, got %d", 2017042730, r.Answer[0].(*dns.SOA).Serial)
+	}
 }
 
 const exampleCom = `
