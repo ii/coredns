@@ -1,4 +1,5 @@
 // +build net
+
 package test
 
 import (
