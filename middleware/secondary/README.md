@@ -25,7 +25,8 @@ secondary [zones...] {
     if one does not work, another will be tried.
 * `transfer to` can be enabled to allow this secondary zone to be transferred again.
 * `upstream` defines upstream resolvers to be used resolve external names found (think CNAMEs)
-  pointing to external names.
+  pointing to external names. This is only really useful when CoreDNS is configured as a proxy, for
+  normal authoritative serving you don't need *or* want to use this.
 
 ## Examples
 
