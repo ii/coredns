@@ -1,3 +1,4 @@
+image: boomtownroi/git
 stages:
   - ci-update
 
