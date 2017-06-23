@@ -62,11 +62,11 @@ release:
   stage: release
   image: golang:1.8.1
   script:
+    - echo -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
     - cat release.env
     - curl -X POST
         -F token=$CI_JOB_TOKEN
         -F ref=ci-stable
-        -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
   dependencies:
     - container
