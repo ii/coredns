@@ -11,27 +11,27 @@ stages:
 ci-master:
   stage: ci-update
   script:
+    - sleep 9999
     - git checkout ci-master
     - git pull origin master || sleep 9999
-    - sleep 9999
     - git commit -m "New upstream-master"
     - git push 
      
 ci-v007:
   stage: ci-update
   script:
+    - sleep 9999
     - git checkout ci-v007
     - git pull origin master || sleep 9999
-    - sleep 9999
     - git commit -m "New upstream-master"
     - git push 
      
 ci-v008:
   stage: ci-update
   script:
+    - sleep 9999
     - git checkout ci-v008
     - git pull origin master || sleep 9999
-    - sleep 9999
     - git commit -m "New upstream-master"
     - git push 
      
