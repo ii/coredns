@@ -14,7 +14,7 @@ ci-master:
     - git checkout ci-master
     - git pull origin ci-master
     - git pull origin master
-    - git commit -m "auto-merge of upstream master into ci-master"
+    - git commit -m "auto-merge of upstream master into ci-master" || true
     - git remote rm rw || true
     - git remote add rw "https://bot:${BOT_PERSONAL_ACCESS_TOKEN@gitlab.cncf.ci/coredns/coredns.git"
     - git push rw ci-master || true
@@ -25,7 +25,7 @@ ci-v008:
     - git checkout ci-v008
     - git pull origin ci-v008
     - git pull origin v008
-    - git commit -m "auto-merge of upstream v008 into ci-v008"
+    - git commit -m "auto-merge of upstream v008 into ci-v008" || true
     - git remote rm rw || true
     - git remote add rw "https://bot:${BOT_PERSONAL_ACCESS_TOKEN@gitlab.cncf.ci/coredns/coredns.git"
     - git push rw ci-v008 || true
