@@ -108,6 +108,19 @@ kubernetes coredns.local {
 	#
 	cidrs 10.0.0.0/24 10.0.10.0/25
 
+	# upstream <address> [<address>] ...
+	#
+	# Defines upstream resolvers used for resolving services that point to
+	# external hosts (External Services).  <address> can be an ip, an ip:port, or
+	# a path to a file structured like resolv.conf.
+	upstream 12.34.56.78:53
+	
+	# federation <federation-name> <federation-domain>
+	#
+	# Defines federation membership.  One line for each federation membership.
+	# Each line consists of the name of the federation, and the domain.
+	federation myfed foo.example.com
+	
 	# fallthrough
 	#
 	# If a query for a record in the cluster zone results in NXDOMAIN,

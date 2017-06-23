@@ -9,6 +9,8 @@ import (
 
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware/proxy"
 
 	"github.com/mholt/caddy"
 	unversionedapi "k8s.io/client-go/1.5/pkg/api/unversioned"
@@ -53,7 +55,7 @@ func setup(c *caddy.Controller) error {
 func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 	k8s := &Kubernetes{
 		ResyncPeriod:   defaultResyncPeriod,
-		interfaceAddrs: &InterfaceAddrs{},
+		interfaceAddrs: &interfaceAddrs{},
 		PodMode:        PodModeDisabled,
 	}
 
@@ -94,7 +96,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 						for _, cidrStr := range args {
 							_, cidr, err := net.ParseCIDR(cidrStr)
 							if err != nil {
-								return nil, errors.New("Invalid cidr: " + cidrStr)
+								return nil, fmt.Errorf("invalid cidr: %s", cidrStr)
 							}
 							k8s.ReverseCidrs = append(k8s.ReverseCidrs, *cidr)
 
@@ -109,7 +111,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 						case PodModeDisabled, PodModeInsecure, PodModeVerified:
 							k8s.PodMode = args[0]
 						default:
-							return nil, errors.New("Value for pods must be one of: disabled, verified, insecure")
+							return nil, fmt.Errorf("wrong value for pods: %s,  must be one of: disabled, verified, insecure", args[0])
 						}
 						continue
 					}
@@ -140,7 +142,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 					if len(args) > 0 {
 						rp, err := time.ParseDuration(args[0])
 						if err != nil {
-							return nil, fmt.Errorf("Unable to parse resync duration value. Value provided was '%v'. Example valid values: '15s', '5m', '1h'. Error was: %v", args[0], err)
+							return nil, fmt.Errorf("unable to parse resync duration value: '%v': %v", args[0], err)
 						}
 						k8s.ResyncPeriod = rp
 						continue
@@ -152,7 +154,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 						labelSelectorString := strings.Join(args, " ")
 						ls, err := unversionedapi.ParseToLabelSelector(labelSelectorString)
 						if err != nil {
-							return nil, fmt.Errorf("Unable to parse label selector. Value provided was '%v'. Error was: %v", labelSelectorString, err)
+							return nil, fmt.Errorf("unable to parse label selector value: '%v': %v", labelSelectorString, err)
 						}
 						k8s.LabelSelector = ls
 						continue
@@ -165,12 +167,33 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 						continue
 					}
 					return nil, c.ArgErr()
+				case "upstream":
+					args := c.RemainingArgs()
+					if len(args) == 0 {
+						return nil, c.ArgErr()
+					}
+					ups, err := dnsutil.ParseHostPortOrFile(args...)
+					if err != nil {
+						return nil, err
+					}
+					k8s.Proxy = proxy.NewLookup(ups)
+				case "federation": // name zone
+					args := c.RemainingArgs()
+					if len(args) == 2 {
+						k8s.Federations = append(k8s.Federations, Federation{
+							name: args[0],
+							zone: args[1],
+						})
+						continue
+					}
+					return nil, fmt.Errorf("incorrect number of arguments for federation, got %v, expected 2", len(args))
+
 				}
 			}
 			return k8s, nil
 		}
 	}
-	return nil, errors.New("Kubernetes setup called without keyword 'kubernetes' in Corefile")
+	return nil, errors.New("kubernetes setup called without keyword 'kubernetes' in Corefile")
 }
 
 const (

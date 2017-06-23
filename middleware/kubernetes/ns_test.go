@@ -55,13 +55,9 @@ func TestIsDefaultNS(t *testing.T) {
 
 type APIConnTest struct{}
 
-func (APIConnTest) Run() {
-	return
-}
-
-func (APIConnTest) Stop() error {
-	return nil
-}
+func (APIConnTest) Run()                          { return }
+func (APIConnTest) Stop() error                   { return nil }
+func (APIConnTest) PodIndex(string) []interface{} { return nil }
 
 func (APIConnTest) ServiceList() []*api.Service {
 	svc := api.Service{
@@ -76,10 +72,6 @@ func (APIConnTest) ServiceList() []*api.Service {
 
 	return []*api.Service{&svc}
 
-}
-
-func (APIConnTest) PodIndex(string) []interface{} {
-	return nil
 }
 
 func (APIConnTest) EndpointsList() api.EndpointsList {
@@ -104,9 +96,11 @@ func (APIConnTest) EndpointsList() api.EndpointsList {
 	}
 }
 
-type InterfaceAddrsTest struct{}
+func (APIConnTest) GetNodeByName(name string) (api.Node, error) { return api.Node{}, nil }
 
-func (i InterfaceAddrsTest) InterfaceAddrs() ([]net.Addr, error) {
+type interfaceAddrsTest struct{}
+
+func (i interfaceAddrsTest) interfaceAddrs() ([]net.Addr, error) {
 	_, ipnet, _ := net.ParseCIDR("172.0.40.10/32")
 	return []net.Addr{ipnet}, nil
 }
@@ -116,10 +110,10 @@ func TestDoCoreDNSRecord(t *testing.T) {
 	corednsRecord = dns.A{}
 	k := Kubernetes{Zones: []string{"inter.webs.test"}}
 
-	k.interfaceAddrs = &InterfaceAddrsTest{}
+	k.interfaceAddrs = &interfaceAddrsTest{}
 	k.APIConn = &APIConnTest{}
 
-	cdr := k.CoreDNSRecord()
+	cdr := k.coreDNSRecord()
 
 	expected := "10.0.0.111"
 

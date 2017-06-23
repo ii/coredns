@@ -10,22 +10,22 @@ import (
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
-const DefaultNSName = "ns.dns."
+const defaultNSName = "ns.dns."
 
 var corednsRecord dns.A
 
-type InterfaceAddrser interface {
-	InterfaceAddrs() ([]net.Addr, error)
+type interfaceAddrser interface {
+	interfaceAddrs() ([]net.Addr, error)
 }
 
-type InterfaceAddrs struct{}
+type interfaceAddrs struct{}
 
-func (i InterfaceAddrs) InterfaceAddrs() ([]net.Addr, error) {
+func (i interfaceAddrs) interfaceAddrs() ([]net.Addr, error) {
 	return net.InterfaceAddrs()
 }
 
 func (k *Kubernetes) recordsForNS(r recordRequest, svcs *[]msg.Service) error {
-	ns := k.CoreDNSRecord()
+	ns := k.coreDNSRecord()
 	s := msg.Service{
 		Host: ns.A.String(),
 		Key:  msg.Path(strings.Join([]string{ns.Hdr.Name, r.zone}, "."), "coredns")}
@@ -37,19 +37,19 @@ func (k *Kubernetes) recordsForNS(r recordRequest, svcs *[]msg.Service) error {
 // ns.dns.[zone] -> dns service ip. This A record is needed to legitimize
 // the SOA response in middleware.NS(), which is hardcoded at ns.dns.[zone].
 func (k *Kubernetes) defaultNSMsg(r recordRequest) msg.Service {
-	ns := k.CoreDNSRecord()
+	ns := k.coreDNSRecord()
 	s := msg.Service{
-		Key:  msg.Path(strings.Join([]string{DefaultNSName, r.zone}, "."), "coredns"),
+		Key:  msg.Path(strings.Join([]string{defaultNSName, r.zone}, "."), "coredns"),
 		Host: ns.A.String(),
 	}
 	return s
 }
 
 func isDefaultNS(name string, r recordRequest) bool {
-	return strings.Index(name, DefaultNSName) == 0 && strings.Index(name, r.zone) == len(DefaultNSName)
+	return strings.Index(name, defaultNSName) == 0 && strings.Index(name, r.zone) == len(defaultNSName)
 }
 
-func (k *Kubernetes) CoreDNSRecord() dns.A {
+func (k *Kubernetes) coreDNSRecord() dns.A {
 	var localIP net.IP
 	var svcName string
 	var svcNamespace string
@@ -57,7 +57,7 @@ func (k *Kubernetes) CoreDNSRecord() dns.A {
 
 	if len(corednsRecord.Hdr.Name) == 0 || corednsRecord.A == nil {
 		// get local Pod IP
-		addrs, _ := k.interfaceAddrs.InterfaceAddrs()
+		addrs, _ := k.interfaceAddrs.interfaceAddrs()
 
 		for _, addr := range addrs {
 			ip, _, _ := net.ParseCIDR(addr.String())
@@ -87,7 +87,7 @@ func (k *Kubernetes) CoreDNSRecord() dns.A {
 		}
 
 		if len(svcName) == 0 {
-			corednsRecord.Hdr.Name = DefaultNSName
+			corednsRecord.Hdr.Name = defaultNSName
 			corednsRecord.A = localIP
 			return corednsRecord
 		}
