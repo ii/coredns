@@ -17,7 +17,7 @@ ci-master:
     - git commit -m "auto-merge of upstream master into ci-master"
     - git remote rm rw || true
     - git remote add rw "https://bot:${BOT_PERSONAL_ACCESS_TOKEN@gitlab.cncf.ci/coredns/coredns.git"
-    - git push rw ci-master
+    - git push rw ci-master || true
      
 ci-v008:
   stage: ci-update
@@ -28,4 +28,4 @@ ci-v008:
     - git commit -m "auto-merge of upstream v008 into ci-v008"
     - git remote rm rw || true
     - git remote add rw "https://bot:${BOT_PERSONAL_ACCESS_TOKEN@gitlab.cncf.ci/coredns/coredns.git"
-    - git push rw ci-v008
+    - git push rw ci-v008 || true
