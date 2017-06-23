@@ -1,4 +1,10 @@
 image: boomtownroi/git
+variables:
+  GIT_AUTHOR_NAME: bot.cncf.ci
+  GIT_AUTHOR_EMAIL: pod@ii.coop
+  GIT_COMMITTER_NAME: bot.cncf.ci
+  GIT_COMMITTER_EMAIL: pod@ii.coop
+
 stages:
   - ci-update
 
