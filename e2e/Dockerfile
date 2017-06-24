@@ -27,10 +27,6 @@ RUN apt-get update && \
 
 WORKDIR /coredns
 
-#Copy Files
-
-COPY files/entrypoint.sh /coredns
-
 RUN for i in `seq 1 20000`; do echo "$i.example.org A" >> /coredns/dns.txt ;done;
 
 CMD ["/bin/bash"]
