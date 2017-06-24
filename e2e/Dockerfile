@@ -27,11 +27,6 @@ RUN apt-get update && \
 
 WORKDIR /coredns
 
-#Install Kubectl
-RUN wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/$ARC/kubectl && \
-chmod +x /usr/local/bin/kubectl
-
-
 #Copy Files
 
 COPY files/entrypoint.sh /coredns
