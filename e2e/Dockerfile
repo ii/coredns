@@ -25,8 +25,6 @@ RUN apt-get update && \
     apt-get clean -y && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /dnsperf-src-$DNSPERF_VER-1
-    
-RUN for i in `seq 1 20000`; do echo "$i.example.org A" >> /coredns/dns.txt ;done;
 
 WORKDIR /coredns
 
@@ -38,5 +36,7 @@ chmod +x /usr/local/bin/kubectl
 #Copy Files
 
 COPY files/entrypoint.sh /coredns
+
+RUN for i in `seq 1 20000`; do echo "$i.example.org A" >> /coredns/dns.txt ;done;
 
 CMD ["/bin/bash"]
