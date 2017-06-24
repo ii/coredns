@@ -1,7 +1,6 @@
 FROM buildpack-deps:jessie
 MAINTAINER "Denver Williams <denver@ii.coop>"
-ENV KUBECTL_VERSION=v1.5.2
-ENV ARC=amd64
+
 ENV DNSPERF_VER="2.1.0.0"
 # Install Deps
 
