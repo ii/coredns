@@ -1,7 +1,6 @@
 FROM buildpack-deps:jessie
 MAINTAINER "Denver Williams <denver@ii.coop>"
-ENV KUBECTL_VERSION=v1.5.2
-ENV ARC=amd64
+
 ENV DNSPERF_VER="2.1.0.0"
 # Install Deps
 
@@ -27,15 +26,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /dnsperf-src-$DNSPERF_VER-1
 
 WORKDIR /coredns
-
-#Install Kubectl
-RUN wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/$ARC/kubectl && \
-chmod +x /usr/local/bin/kubectl
-
-
-#Copy Files
-
-COPY files/entrypoint.sh /coredns
 
 RUN for i in `seq 1 20000`; do echo "$i.example.org A" >> /coredns/dns.txt ;done;
 
