@@ -1,0 +1,127 @@
+---
+# Source: coredns/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns2-coredns
+data:
+  Corefile: |-
+    .:53 {
+        cache 30
+        errors
+        health
+        kubernetes cluster.local {
+          cidrs 10.0.0.0/24
+        }
+        log stdout
+        file /etc/coredns/example.db example.org
+        proxy . /etc/resolv.conf
+    }
+  example.db: |
+    ; example.org test file
+    example.org.            IN      SOA     sns.dns.icann.org. noc.dns.icann.org. 2015082541 7200 3600 1209600 3600
+    example.org.            IN      NS      b.iana-servers.net.
+    example.org.            IN      NS      a.iana-servers.net.
+    example.org.            IN      A       127.0.0.1
+    a.b.c.w.example.org.    IN      TXT     "Not a wildcard"
+    cname.example.org.      IN      CNAME   www.example.net.
+    *.example.org.          IN      A       10.0.0.10
+
+    service.example.org.    IN      SRV     8080 10 10 example.org.
+
+---
+# Source: coredns/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns2-coredns
+  labels:
+    heritage: "Tiller"
+    release: "coredns2"
+    chart: "coredns-0.2.0"
+    k8s-app: "coredns"
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "CoreDNS"
+  annotations:
+spec:
+  selector:
+    k8s-app: "coredns"
+  clusterIP: 10.0.0.10
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+  type: ClusterIP
+
+---
+# Source: coredns/templates/deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: coredns2-coredns
+  labels:
+    heritage: "Tiller"
+    release: "coredns2"
+    chart: "coredns-0.2.0"
+    k8s-app: "coredns"
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "CoreDNS"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: "coredns"
+  template:
+    metadata:
+      labels:
+        k8s-app: "coredns"
+        release: "coredns2"
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+        scheduler.alpha.kubernetes.io/tolerations: '[{"key":"CriticalAddonsOnly", "operator":"Exists"}]'
+    spec:
+      containers:
+      - name: "coredns"
+        image: "coredns/coredns:latest"
+        imagePullPolicy: IfNotPresent
+        args: [ "-conf", "/etc/coredns/Corefile" ]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+      dnsPolicy: Default
+      volumes:
+        - name: config-volume
+          configMap:
+            name: coredns2-coredns
+            items:
+            - key: Corefile
+              path: Corefile
+            - key: example.db
+              path: example.db

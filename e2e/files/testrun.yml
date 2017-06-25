@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: coredns
+spec:
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      name: coredns
+    spec:
+      containers:
+      - name: coredns
+        image: registry.cncf.ci/coredns/coredns/coredns-e2e:ci-v007.job.8039 
+        command: ["bash", "-c", "dnsperf -d /coredns/dns.txt -s 10.0.0.10 -c 30 -v"]
+      restartPolicy: "Never"
