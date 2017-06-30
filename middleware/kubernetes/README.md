@@ -19,7 +19,7 @@ kubernetes ZONE [ZONE...] {
 	fallthrough
 }
 ```
--
+
 ### resyncperiod
 
 	resyncperiod PERIOD
@@ -31,7 +31,7 @@ Example:
 	kubernetes cluster.local. {
 		resyncperiod 15m
 	}
--
+
 ### endpoint
 
 	endpoint URL
@@ -43,7 +43,7 @@ Example:
 	kubernetes cluster.local. {
 		endpoint http://k8s-endpoint:8080
 	}
--
+
 ### tls
 
 	tls CERT-FILE KEY-FILE CACERT-FILE
@@ -69,7 +69,7 @@ Example:
 	kubernetes cluster.local. {
 		namespaces demo default
 	}
--
+
 ### labels
 
 	labels EXPRESSION [,EXPRESSION...]
@@ -83,7 +83,7 @@ The following example only exposes objects labeled as "application=nginx" in the
 	kubernetes cluster.local. {
 		labels environment in (staging, qa),application=nginx
 	}
--
+
 ### pods
 
 	pods POD-MODE
@@ -103,7 +103,7 @@ Example:
 	kubernetes cluster.local. {
 		pods verified
 	}
--
+
 ### cidrs
 
 	cidrs CIDR [CIDR...]
@@ -115,7 +115,7 @@ Example:
 	kubernetes cluster.local. {
 		cidrs 10.0.0.0/24 10.0.10.0/25
 	}
--
+
 ### upstream
 
 	upstream ADDRESS [ADDRESS...]
@@ -127,7 +127,7 @@ Example:
 	kubernetes cluster.local. {
 		upstream 12.34.56.78:5053
 	}
--
+
 ### federation
 
 	federation NAME DOMAIN
@@ -137,7 +137,7 @@ Defines federation membership.  One line for each federation membership. Each li
 Example:
 
 	federation myfed foo.example.com
--
+
 ### autopath
 
 	autopath [NDOTS [RESPONSE [RESOLV-CONF]]
@@ -184,7 +184,7 @@ Example:
 	kubernetes cluster.local. {
 		autopath 0 NXDOMAIN /etc/resolv.conf
 	}
--
+
 ### fallthrough
 
 If a query for a record in the cluster zone results in NXDOMAIN, normally that is what the response will be. However, if you specify this option, the query will instead be passed on down the middleware chain, which can include another middleware to handle the query.
