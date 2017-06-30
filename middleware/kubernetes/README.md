@@ -140,7 +140,6 @@ specified).
 
   Example:
 
- 
   ```
  	kubernetes cluster.local. {
 		federation myfed foo.example.com
@@ -152,7 +151,7 @@ specified).
   Enables server side search path lookups for pods.  When enabled, the kubernetes middleware will identify search path queries from pods and perform the remaining lookups in the path on the pod's behalf.  The search path used mimics the resolv.conf search path deployed to pods by the "cluster-first" dns-policy. E.g.
 
   ```
- search ns1.svc.cluster.local svc.cluster.local cluster.local foo.com
+  search ns1.svc.cluster.local svc.cluster.local cluster.local foo.com
   ```
 
   If no domains in the path produce an answer, a lookup on the bare question will be attempted.	
