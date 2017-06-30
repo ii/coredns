@@ -1,23 +1,25 @@
 # kubernetes
 
-The *kubernetes* middleware enables the reading zone data from a Kubernetes cluster.  It implements the [Kubernetes DNS-Based Service Discovery Specification](https://github.com/kubernetes/dns/blob/master/docs/specification.md).
+The *kubernetes* middleware enables the reading zone data from a Kubernetes cluster.  It implements the [Kubernetes DNS-Based Service Discovery Specification](https://github.com/kubernetes/dns/blob/master/docs/specification.md). 
+
+CoreDNS running the kubernetes middleware can be used as a replacement of kube-dns in a kubernetes cluster.  See the [deployment](https://github.com/coredns/deployment) repository for details on [how to deploy CoreDNS in Kubernetes](https://github.com/coredns/deployment/tree/master/kubernetes).
 
 ## Syntax
 
 ```
-kubernetes ZONE [ZONE...] {
-	resyncperiod PERIOD
-	endpoint URL
-	tls CERT-FILE KEY-FILE CACERT-FILE
-	namespaces NAMESPACE [NAMESPACE...]
-	labels EXPRESSION [,EXPRESSION...]
-	pods POD-MODE
-	cidrs CIDR [CIDR...]
-	upstream ADDRESS [ADDRESS...]
-	federation NAME DOMAIN
-	autopath [NDOTS [RESPONSE [RESOLV-CONF]]
-	fallthrough
-}
+kubernetes ZONE [ZONE...] [{
+	[resyncperiod PERIOD]
+	[endpoint URL
+	[tls CERT-FILE KEY-FILE CACERT-FILE]]
+	[namespaces NAMESPACE [NAMESPACE...]]
+	[labels EXPRESSION [,EXPRESSION...]]
+	[pods POD-MODE]
+	[cidrs CIDR [CIDR...]]
+	[upstream ADDRESS [ADDRESS...]]
+	[federation NAME DOMAIN]
+	[autopath [NDOTS [RESPONSE [RESOLV-CONF]]]
+	[fallthrough]
+}]
 ```
 
 ### resyncperiod
@@ -94,7 +96,7 @@ Valid values for **POD-MODE**:
 
 * `disabled`: Default. Do not process pod requests, always returning `NXDOMAIN`
 
-* `insecure`: Always return an A record with IP from request (without checking k8s).  This option is is vulnerable to abuse if used maliciously in conjunction with wildcard SSL certs.
+* `insecure`: Always return an A record with IP from request (without checking k8s).  This option is is vulnerable to abuse if used maliciously in conjunction with wildcard SSL certs.  This option is provided for backward compatibility with kube-dns.
 	            
 * `verified`: Return an A record if there exists a pod in same namespace with matching IP.  This option requires substantially more memory than in insecure mode, since it will maintain a watch on all pods.
 	 
@@ -192,8 +194,11 @@ If a query for a record in the cluster zone results in NXDOMAIN, normally that i
 
 ## Examples
 
+**Example 1:** This minimal configuration with no options other then zone will... Handle all queries in the `cluster.local` zone. Connect to Kubernetes in-cluster. It will not provide PTR records for services, or A records for pods.
 
-**Example 1:** Handle all queries in the `cluster.local` zone. Connect to Kubernetes in-cluster. Handle all `PTR` requests in the `10.0.0.0/16` cidr block. Verify the existence of pods when answering pod requests.  Resolve upstream records against `10.102.3.10`. Enable the autopath feature.
+	kubernetes cluster.local
+
+**Example 2:** Handle all queries in the `cluster.local` zone. Connect to Kubernetes in-cluster. Handle all `PTR` requests in the `10.0.0.0/16` cidr block. Verify the existence of pods when answering pod requests.  Resolve upstream records against `10.102.3.10`. Enable the autopath feature.
 
 	kubernetes cluster.local {
 		cidrs 10.0.0.0/16
@@ -244,7 +249,3 @@ Some query labels accept a wildcard value to match any value.  If a label is a v
    * e.g. `_http.*.service.ns.svc.`
  * multiple wild cards are allowed in a single query.
    * e.g. `A` Request `*.*.svc.zone.` or `SRV` request `*.*.*.*.svc.zone.`
-
-## Deployment in Kubernetes
-
-See the [deployment](https://github.com/coredns/deployment) repository for details on [how to deploy CoreDNS in Kubernetes](https://github.com/coredns/deployment/tree/master/kubernetes).
