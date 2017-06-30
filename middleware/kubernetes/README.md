@@ -24,143 +24,142 @@ kubernetes ZONE [ZONE...] [{
 
 * **resyncperiod PERIOD**
 	
- The Kubernetes data API resynchronization period. Default is 5m. Example values: 60s, 5m, 1h
+  The Kubernetes data API resynchronization period. Default is 5m. Example values: 60s, 5m, 1h
 
- Example:
+  Example:
 
- ```
+  ```
 	kubernetes cluster.local. {
 		resyncperiod 15m
 	}
- ```
+  ```
 
 * **endpoint URL**
 	
- Use **URL** for a remote k8s API endpoint.  If omitted, it will connect to k8s in-cluster using the cluster service account. 
+  Use **URL** for a remote k8s API endpoint.  If omitted, it will connect to k8s in-cluster using the cluster service account. 
 
- Example:
+  Example:
 
- ```
+  ```
 	kubernetes cluster.local. {
 		endpoint http://k8s-endpoint:8080
 	}
- ```
+  ```
 
 * **tls CERT-FILE KEY-FILE CACERT-FILE**
 
- The TLS cert, key and the CA cert file names for remote k8s connection. This option is ignored if connecting in-cluster (i.e. endpoint is not
+  The TLS cert, key and the CA cert file names for remote k8s connection. This option is ignored if connecting in-cluster (i.e. endpoint is not
 specified).
 
- Example:
+  Example:
  
- ```
+  ```
 	kubernetes cluster.local. {
 		endpoint https://k8s-endpoint:8443
 		tls cert key cacert
 	}
- ```
+  ```
 
 * **namespaces NAMESPACE [NAMESPACE...]**
 
- Only expose the k8s namespaces listed.  If this option is omitted all namespaces are exposed
+  Only expose the k8s namespaces listed.  If this option is omitted all namespaces are exposed
 
- Example:
+  Example:
  
- ```
+  ```
 	kubernetes cluster.local. {
 		namespaces demo default
 	}
- ```
+  ```
 
 * **labels EXPRESSION [,EXPRESSION...]**
 	
- Only expose the records for Kubernetes objects that match this label selector. The label selector syntax is described in the  [Kubernetes User Guide - Labels](http://kubernetes.io/docs/user-guide/labels/).
+  Only expose the records for Kubernetes objects that match this label selector. The label selector syntax is described in the  [Kubernetes User Guide - Labels](http://kubernetes.io/docs/user-guide/labels/).
 
- Example:
+  Example:
 
- The following example only exposes objects labeled as "application=nginx" in the "staging" or "qa" environments.
+  The following example only exposes objects labeled as "application=nginx" in the "staging" or "qa" environments.
 
- ```
+  ```
 	kubernetes cluster.local. {
 		labels environment in (staging, qa),application=nginx
 	}
- ```
+  ```
  
 * **pods POD-MODE**
 
- Set the mode for handling IP-based pod A records, e.g. `1-2-3-4.ns.pod.cluster.local. in A 1.2.3.4`.  This option is provided to facilitate use of SSL certs when connecting directly to pods.
+  Set the mode for handling IP-based pod A records, e.g. `1-2-3-4.ns.pod.cluster.local. in A 1.2.3.4`.  This option is provided to facilitate use of SSL certs when connecting directly to pods.
 
- Valid values for **POD-MODE**:
+  Valid values for **POD-MODE**:
 
- * `disabled`: Default. Do not process pod requests, always returning `NXDOMAIN`
+  * `disabled`: Default. Do not process pod requests, always returning `NXDOMAIN`
 
- * `insecure`: Always return an A record with IP from request (without checking k8s).  This option is is vulnerable to abuse if used maliciously in conjunction with wildcard SSL certs.  This option is provided for backward compatibility with kube-dns.
+  * `insecure`: Always return an A record with IP from request (without checking k8s).  This option is is vulnerable to abuse if used maliciously in conjunction with wildcard SSL certs.  This option is provided for backward compatibility with kube-dns.
 	            
- * `verified`: Return an A record if there exists a pod in same namespace with matching IP.  This option requires substantially more memory than in insecure mode, since it will maintain a watch on all pods.
+  * `verified`: Return an A record if there exists a pod in same namespace with matching IP.  This option requires substantially more memory than in insecure mode, since it will maintain a watch on all pods.
 	 
- Example:
+  Example:
 
   
- ```
+  ```
 	kubernetes cluster.local. {
 		pods verified
 	}
- ```
+  ```
 
 * **cidrs CIDR [CIDR...]**
 	
- Expose cidr ranges to reverse lookups.  Include any number of space delimited cidrs, and/or multiple cidrs options on separate lines. The Kubernetes middleware will respond to PTR requests for ip addresses that fall within these ranges.
+  Expose cidr ranges to reverse lookups.  Include any number of space delimited cidrs, and/or multiple cidrs options on separate lines. The Kubernetes middleware will respond to PTR requests for ip addresses that fall within these ranges.
 
- Example:
+  Example:
  
  
- ```
+  ```
 	kubernetes cluster.local. {
 		cidrs 10.0.0.0/24 10.0.10.0/25
 	}
  
- ```
+  ```
 
 * **upstream ADDRESS [ADDRESS...]**
 
- Defines upstream resolvers used for resolving services that point to external hosts (External Services).  **ADDRESS** can be an ip, an ip:port, or a path to a file structured like resolv.conf.
+  Defines upstream resolvers used for resolving services that point to external hosts (External Services).  **ADDRESS** can be an ip, an ip:port, or a path to a file structured like resolv.conf.
 	
  Example:
-
  
- ```
+  ```
 	kubernetes cluster.local. {
 		upstream 12.34.56.78:5053
 	}
  
- ```
+  ```
  
 * **federation NAME DOMAIN**
 
- Defines federation membership.  One line for each federation membership. Each line consists of the name of the federation, and the domain.
+  Defines federation membership.  One line for each federation membership. Each line consists of the name of the federation, and the domain.
 
- Example:
+  Example:
 
  
- ```
+  ```
  	kubernetes cluster.local. {
 		federation myfed foo.example.com
 	}
- ```
+  ```
 
 * **autopath [NDOTS [RESPONSE [RESOLV-CONF]]**
 
- Enables server side search path lookups for pods.  When enabled, the kubernetes middleware will identify search path queries from pods and perform the remaining lookups in the path on the pod's behalf.  The search path used mimics the resolv.conf search path deployed to pods by the "cluster-first" dns-policy. E.g.
+  Enables server side search path lookups for pods.  When enabled, the kubernetes middleware will identify search path queries from pods and perform the remaining lookups in the path on the pod's behalf.  The search path used mimics the resolv.conf search path deployed to pods by the "cluster-first" dns-policy. E.g.
 
- ```
+  ```
  search ns1.svc.cluster.local svc.cluster.local cluster.local foo.com
- ```
+  ```
 
- If no domains in the path produce an answer, a lookup on the bare question will be attempted.	
+  If no domains in the path produce an answer, a lookup on the bare question will be attempted.	
 
- A successful response will contain a question section with the original question, and an answer section containing the record for the question that actually had an answer.  This means that the question and answer will not match. For example:
+  A successful response will contain a question section with the original question, and an answer section containing the record for the question that actually had an answer.  This means that the question and answer will not match. For example:
 
- ```
+  ```
     # host -v -t a google.com
     Trying "google.com.default.svc.cluster.local"
     ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 50957
@@ -171,39 +170,39 @@ specified).
 
     ;; ANSWER SECTION:
     google.com.		175	IN	A	216.58.194.206
- ```
+  ```
 
- **Fully Qualified Queries:** There is a known limitation of the autopath feature involving fully qualified queries. When the kubernetes middleware receives a query from a client, it cannot tell the difference between a query that was fully qualified by the user, and one that was expanded by the first search path on the client side.
+  **Fully Qualified Queries:** There is a known limitation of the autopath feature involving fully qualified queries. When the kubernetes middleware receives a query from a client, it cannot tell the difference between a query that was fully qualified by the user, and one that was expanded by the first search path on the client side.
 
- This means that the kubernetes middleware with autopath enabled will perform a server-side path search for the query `google.com.default.svc.cluster.local.` as if the client had queried just `google.com`.  In other words, a query for `google.com.default.svc.cluster.local.` will produce the IP address for `google.com` as seen below.
+  This means that the kubernetes middleware with autopath enabled will perform a server-side path search for the query `google.com.default.svc.cluster.local.` as if the client had queried just `google.com`.  In other words, a query for `google.com.default.svc.cluster.local.` will produce the IP address for `google.com` as seen below.
 
- ```
+  ```
 	# host -t a google.com
 	google.com has address 216.58.194.206
 	
 	# host -t a google.com.default.svc.cluster.local.
 	google.com has address 216.58.194.206
- ```
+  ```
  
- **NDOTS** (default: `0`) This provides an adjustable threshold to prevent server side lookups from triggering. If the number of dots before the first search domain is less than this number, then the search path will not executed on the server side.  When autopath is enabled with default settings, the search path is always conducted when the query is in the first search domain `<pod-namespace>.svc.<zone>.`.
+  **NDOTS** (default: `0`) This provides an adjustable threshold to prevent server side lookups from triggering. If the number of dots before the first search domain is less than this number, then the search path will not executed on the server side.  When autopath is enabled with default settings, the search path is always conducted when the query is in the first search domain `<pod-namespace>.svc.<zone>.`.
 	
- **RESPONSE** (default: `SERVFAIL`) This option causes the kubernetes middleware to return the given response instead of NXDOMAIN when the all searches in the path produce no results. Valid values: `NXDOMAIN`, `SERVFAIL` or `NOERROR`. Setting this to `SERVFAIL` or `NOERROR` should prevent the client from fruitlessly continuing the client side searches in the path after the server already checked them.
+  **RESPONSE** (default: `SERVFAIL`) This option causes the kubernetes middleware to return the given response instead of NXDOMAIN when the all searches in the path produce no results. Valid values: `NXDOMAIN`, `SERVFAIL` or `NOERROR`. Setting this to `SERVFAIL` or `NOERROR` should prevent the client from fruitlessly continuing the client side searches in the path after the server already checked them.
 
- **RESOLV-CONF** (default: `/etc/resolv.conf`) If specified, the kubernetes middleware uses this file to get the host's search domains. The kubernetes middleware performs a lookup on these domains if the in-cluster search domains in the path fail to produce an answer. If not specified, the values will be read from the local resolv.conf file (i.e the resolv.conf file in the pod containing CoreDNS).  In practice, this option should only need to be used if running CoreDNS outside of the cluster and the search path in /etc/resolv.conf does not match the cluster's "default" dns-policiy.
+  **RESOLV-CONF** (default: `/etc/resolv.conf`) If specified, the kubernetes middleware uses this file to get the host's search domains. The kubernetes middleware performs a lookup on these domains if the in-cluster search domains in the path fail to produce an answer. If not specified, the values will be read from the local resolv.conf file (i.e the resolv.conf file in the pod containing CoreDNS).  In practice, this option should only need to be used if running CoreDNS outside of the cluster and the search path in /etc/resolv.conf does not match the cluster's "default" dns-policiy.
 
- Enabling autopath requires more memory, since it needs to maintain a watch on all pods. If autopath and `pods verified` mode are both enabled, they will share the same watch. Enabling both options should have an equivalent memory impact of just one.
+  Enabling autopath requires more memory, since it needs to maintain a watch on all pods. If autopath and `pods verified` mode are both enabled, they will share the same watch. Enabling both options should have an equivalent memory impact of just one.
 
- Example:
+  Example:
  
- ```
+  ```
 	kubernetes cluster.local. {
 		autopath 0 NXDOMAIN /etc/resolv.conf
 	}
- ```
+  ```
 
 * **fallthrough**
 
- If a query for a record in the cluster zone results in NXDOMAIN, normally that is what the response will be. However, if you specify this option, the query will instead be passed on down the middleware chain, which can include another middleware to handle the query.
+  If a query for a record in the cluster zone results in NXDOMAIN, normally that is what the response will be. However, if you specify this option, the query will instead be passed on down the middleware chain, which can include another middleware to handle the query.
 
 
 ## Examples
