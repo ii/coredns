@@ -22,7 +22,7 @@ kubernetes ZONE [ZONE...] [{
 }]
 ```
 
-* *resyncperiod* **DURATION**
+* `resyncperiod` **DURATION**
 	
   The Kubernetes data API resynchronization period. Default is 5m. Example values: 60s, 5m, 1h
 
@@ -34,7 +34,7 @@ kubernetes ZONE [ZONE...] [{
 	}
   ```
 
-* *endpoint* **URL**
+* `endpoint` **URL**
 	
   Use **URL** for a remote k8s API endpoint.  If omitted, it will connect to k8s in-cluster using the cluster service account. 
 
@@ -46,7 +46,7 @@ kubernetes ZONE [ZONE...] [{
 	}
   ```
 
-* *tls* **CERT-FILE KEY-FILE CACERT-FILE**
+* `tls` **CERT-FILE KEY-FILE CACERT-FILE**
 
   The TLS cert, key and the CA cert file names for remote k8s connection. This option is ignored if connecting in-cluster (i.e. endpoint is not
 specified).
@@ -60,7 +60,7 @@ specified).
 	}
   ```
 
-* *namespaces* **NAMESPACE [NAMESPACE...]**
+* `namespaces` **NAMESPACE [NAMESPACE...]**
 
   Only expose the k8s namespaces listed.  If this option is omitted all namespaces are exposed
 
@@ -72,7 +72,7 @@ specified).
 	}
   ```
 
-* *labels* **EXPRESSION**
+* `labels` **EXPRESSION**
 	
   Only expose the records for Kubernetes objects that match this label selector. The label selector syntax is described in the  [Kubernetes User Guide - Labels](http://kubernetes.io/docs/user-guide/labels/).
 
@@ -86,7 +86,7 @@ specified).
 	}
   ```
  
-* *pods* **POD-MODE**
+* `pods` **POD-MODE**
 
   Set the mode for handling IP-based pod A records, e.g. `1-2-3-4.ns.pod.cluster.local. in A 1.2.3.4`.  This option is provided to facilitate use of SSL certs when connecting directly to pods.
 
@@ -107,7 +107,7 @@ specified).
 	}
   ```
 
-* *cidrs* **CIDR [CIDR...]**
+* `cidrs` **CIDR [CIDR...]**
 	
   Expose cidr ranges to reverse lookups.  Include any number of space delimited cidrs, and/or multiple cidrs options on separate lines. The Kubernetes middleware will respond to PTR requests for ip addresses that fall within these ranges.
 
@@ -121,7 +121,7 @@ specified).
  
   ```
 
-* *upstream* **ADDRESS [ADDRESS...]**
+* `upstream` **ADDRESS [ADDRESS...]**
 
   Defines upstream resolvers used for resolving services that point to external hosts (External Services).  **ADDRESS** can be an ip, an ip:port, or a path to a file structured like resolv.conf.
 	
@@ -134,7 +134,7 @@ specified).
  
    ```
  
-* *federation* **NAME DOMAIN**
+* `federation` **NAME DOMAIN**
 
   Defines federation membership.  One line for each federation membership. Each line consists of the name of the federation, and the domain.
 
@@ -146,7 +146,7 @@ specified).
 	}
   ```
 
-* *autopath* **[NDOTS [RESPONSE [RESOLV-CONF]]**
+* `autopath` **[NDOTS [RESPONSE [RESOLV-CONF]]**
 
   Enables server side search path lookups for pods.  When enabled, the kubernetes middleware will identify search path queries from pods and perform the remaining lookups in the path on the pod's behalf.  The search path used mimics the resolv.conf search path deployed to pods by the "cluster-first" dns-policy. E.g.
 
@@ -199,7 +199,7 @@ specified).
 	}
   ```
 
-* *fallthrough*
+* `fallthrough`
 
   If a query for a record in the cluster zone results in NXDOMAIN, normally that is what the response will be. However, if you specify this option, the query will instead be passed on down the middleware chain, which can include another middleware to handle the query.
 
