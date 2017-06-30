@@ -206,7 +206,7 @@ specified).
 
 ## Examples
 
-**Example 1:** This minimal configuration with no options other then zone will... Handle all queries in the `cluster.local` zone. Connect to Kubernetes in-cluster. It will not provide PTR records for services, or A records for pods.
+**Example 1:** This is a minimal configuration with no options other than zone. It will handle all queries in the `cluster.local` zone and connect to Kubernetes in-cluster, but it will not provide PTR records for services, or A records for pods.
 
 	kubernetes cluster.local
 
