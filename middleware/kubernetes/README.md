@@ -57,7 +57,7 @@ Example:
 		endpoint https://k8s-endpoint:8443
 		tls cert key cacert
 	}
--
+
 ### namespaces
 
 	namespaces NAMESPACE [NAMESPACE...]
