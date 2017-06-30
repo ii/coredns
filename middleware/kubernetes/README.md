@@ -125,14 +125,14 @@ specified).
 
   Defines upstream resolvers used for resolving services that point to external hosts (External Services).  **ADDRESS** can be an ip, an ip:port, or a path to a file structured like resolv.conf.
 	
- Example:
+  Example:
  
-  ```
+   ```
 	kubernetes cluster.local. {
 		upstream 12.34.56.78:5053
 	}
  
-  ```
+   ```
  
 * **federation NAME DOMAIN**
 
