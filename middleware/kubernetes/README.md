@@ -12,7 +12,7 @@ kubernetes ZONE [ZONE...] [{
 	[endpoint URL
 	[tls CERT-FILE KEY-FILE CACERT-FILE]]
 	[namespaces NAMESPACE [NAMESPACE...]]
-	[labels EXPRESSION [,EXPRESSION...]]
+	[labels EXPRESSION]
 	[pods POD-MODE]
 	[cidrs CIDR [CIDR...]]
 	[upstream ADDRESS [ADDRESS...]]
@@ -72,7 +72,7 @@ specified).
 	}
   ```
 
-* *labels* **EXPRESSION [,EXPRESSION...]**
+* *labels* **EXPRESSION**
 	
   Only expose the records for Kubernetes objects that match this label selector. The label selector syntax is described in the  [Kubernetes User Guide - Labels](http://kubernetes.io/docs/user-guide/labels/).
 
