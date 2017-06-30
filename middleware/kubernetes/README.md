@@ -82,8 +82,8 @@ kubernetes [ZONES...] {
 	 namespace with matching IP.  This option requires
 	 substantially more memory than in insecure mode, since it
 	 will maintain a watch on all pods.
-* `cidr`, Expose **CIDR** ranges to reverse lookups. Include any number of space delimited **CIDR**s,
-  and or multiple **CIDR**s options on separate lines.
+* `cidr`, Expose **CIDR** ranges to reverse lookups. Include any number of space delimited **CIDR**,
+  and or multiple **CIDR** options on separate lines.
   The kubernetes middleware will respond to PTR requests for IP addresses that fall within these ranges.
 * `upstream`, defines upstream resolvers used for resolving services that point to
   external hosts (External Services). **ADDRESS** can be an IP, an IP:port, or
@@ -95,7 +95,7 @@ kubernetes [ZONES...] {
   what the response will be. However, if you specify this option, the query will instead be passed
   on down the middleware chain, which can include another middleware to handle the query.
 * `autopath`, Enables server side search path lookups for pods.  When enabled, CoreDNS will identify
-  search path queries from pods and perform the remaining lookups in the path on the pod's behalf. 
+  search path queries from pods and perform the remaining lookups in the path on the pod's behalf.
   The search path used mimics the `resolv.conf` search path deployed to pods. E.g.
 
    ~~~
