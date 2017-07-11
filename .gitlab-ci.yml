@@ -64,7 +64,7 @@ release:
     - cat release.env
     - curl -X POST
         -F token=$CI_JOB_TOKEN
-        -F ref=ci-master
+        -F ref=ci-master-v0.1.0
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME -- vars not support with CI_JOB_TOKEN yet -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
   dependencies:
