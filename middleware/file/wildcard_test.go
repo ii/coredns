@@ -218,6 +218,11 @@ var apexWildcardTestCases = []test.Case{
 		Answer: []dns.RR{test.A(`foo.example.org. 3600	IN	A 127.0.0.54`)},
 		Ns: []dns.RR{test.NS(`example.org. 3600 IN NS b.iana-servers.net.`)},
 	},
+	{
+		Qname: "bar.example.org.", Qtype: dns.TypeA,
+		Answer: []dns.RR{test.A(`bar.example.org. 3600	IN	A 127.0.0.53`)},
+		Ns: []dns.RR{test.NS(`example.org. 3600 IN NS b.iana-servers.net.`)},
+	},
 }
 
 func TestLookupApexWildcard(t *testing.T) {
