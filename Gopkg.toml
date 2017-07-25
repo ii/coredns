@@ -3,6 +3,8 @@ ignored = [
     "github.com/mholt/caddy/caddyfile",
     "github.com/mholt/caddy/startupshutdown",
     "github.com/miekg/dns",
+    "golang.org/x/net/context",
+    "golang.org/x/net/context/ctxhttp"
 ]
 
 [[constraint]]
