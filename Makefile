@@ -11,7 +11,7 @@ coredns: check godeps
 	go build $(BUILD_VERBOSE) -ldflags="-s -w"
 
 .PHONY: deps
-deps: core/zmiddleware.go core/dnsserver/zdirectives.go godepsn
+deps: core/zmiddleware.go core/dnsserver/zdirectives.go godeps
 	go get -u github.com/golang/lint/golint
 
 .PHONY: check
