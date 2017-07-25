@@ -7,11 +7,11 @@ all: coredns
 # Phony this to ensure we always build the binary.
 # TODO: Add .go file dependencies.
 .PHONY: coredns
-coredns: check caddy dns
+coredns: check caddy dns context
 	go build $(BUILD_VERBOSE) -ldflags="-s -w"
 
 .PHONY: deps
-deps: core/zmiddleware.go core/dnsserver/zdirectives.go caddy dns
+deps: core/zmiddleware.go core/dnsserver/zdirectives.go caddy dns context
 	go get -u github.com/golang/lint/golint
 
 .PHONY: check
@@ -32,6 +32,10 @@ caddy:
 .PHONY: dns
 dns:
 	go get github.com/miekg/dns
+
+.PHONY: context
+context:
+	go get golang.org/x/net/context
 
 .PHONY: coverage
 coverage: check
