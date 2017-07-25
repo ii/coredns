@@ -315,12 +315,6 @@
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "3da985ce5951d99de868be4385f21ea6c2b22f24"
-
-[[projects]]
-  branch = "master"
   name = "golang.org/x/oauth2"
   packages = [".","google","internal","jws","jwt"]
   revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
@@ -334,7 +328,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["internal/gen","internal/triegen","internal/ucd","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable","width"]
+  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm","width"]
   revision = "4ee4af566555f5fbe026368b75596286a312663a"
 
 [[projects]]
@@ -376,6 +370,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "19d0d9fd2f7f6a3a19605fc13d85a217b5201a6d65d5752150350083d251be71"
+  inputs-digest = "0ddaab68018c7f38bccad1d9932df961ae52544dc56e3c0060ce1c28e5da0a47"
   solver-name = "gps-cdcl"
   solver-version = 1
