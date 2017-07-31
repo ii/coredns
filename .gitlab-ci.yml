@@ -62,10 +62,9 @@ release:
   image: golang:1.8.1
   script:
     - cat release.env
-    - curl --request POST \
-        --form token=$CI_JOB_TOKEN \
-        --form ref=ci-master-v0.1.0 \
-        --form "variables[UPLOAD_TO_S3]=true" \
+    - curl -X POST 
+        -F token=$CI_JOB_TOKEN 
+        -F ref=ci-master-v0.1.0 
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME -- vars not support with CI_JOB_TOKEN yet -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
   dependencies:
