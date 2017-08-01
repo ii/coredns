@@ -79,6 +79,7 @@ cluster:
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME, we are sleeping but we need to watch the gitlab API, to see when the Job has Finished
     - sleep 120
+    -  export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
     - echo $BASE_URL
     - KUBECONFIG_ENV=$(curl -s -L
         "$BASE_URL/cncf/cross-cloud/builds/artifacts/ci-stable-v0-2-0/file/data/aws-ci-stable-v0-2-0/kubeconfig?job=aws_k8s_deploy"
