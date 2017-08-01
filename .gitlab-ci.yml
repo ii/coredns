@@ -74,7 +74,7 @@ cluster:
     - curl -X POST
         -F token=$CROSS_CLOUD_CI_JOB_TOKEN
         -F ref=ci-stable-v0.2.0
-        -F "variables[CLOUD_AWS]=aws"
+        -F "variables[AWS_CLOUD]=aws"
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME -- vars not support with CI_JOB_TOKEN yet -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
   dependencies:
