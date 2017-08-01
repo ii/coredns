@@ -1,6 +1,7 @@
 stages:
   - build
   - package
+  - cluster
   - deploy
 
 before_script:
@@ -67,7 +68,7 @@ container:
       - release.env
 
 cluster:
-  stage: deploy
+  stage: cluster
   image: golang:1.8.1
   script:
     - cat release.env
