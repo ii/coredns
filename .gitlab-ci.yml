@@ -1,8 +1,7 @@
 stages:
   - build
   - package
-  - release
-  - build-e2e
+  - deploy
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
@@ -67,15 +66,15 @@ container:
     paths:
       - release.env
 
-release:
-  stage: release
+cluster:
+  stage: deploy
   image: golang:1.8.1
   script:
-    # test
     - cat release.env
     - curl -X POST
-        -F token=$CI_JOB_TOKEN
-        -F ref=ci-stable-v0.1.0
+        -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+        -F ref=ci-stable-v0.2.0
+        -F "variables[CLOUD_AWS]=aws"
         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME -- vars not support with CI_JOB_TOKEN yet -F "variables[COREDNS_BRANCH]=${CI_COMMIT_REF_NAME}"
   dependencies:
