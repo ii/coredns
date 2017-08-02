@@ -69,8 +69,9 @@ container:
 
 cluster:
   stage: cluster
-  image: golang:1.8.1
+  image: golang:1.8.3-stretch
   script:
+    - apt update && apt install -y jq
     - cat release.env
     # - curl -X POST
     #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
