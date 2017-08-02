@@ -85,7 +85,7 @@ cluster:
          -F "variables[AWS_CLOUD]=aws"
          https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
     - sleep 120
-    - PROJECT_JOB$(curl --header "PRIVATE-TOKEN:${TOKEN}"
+    - PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}"
          'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success'
          | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
     - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
