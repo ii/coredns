@@ -38,6 +38,7 @@ build-e2e:
   image: golang:1.8.1
   script:
     - make -f Makefile.release tar
+    - echo test
   dependencies:
     - compile
   artifacts:
