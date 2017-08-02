@@ -72,18 +72,18 @@ cluster:
   image: golang:1.8.1
   script:
     - cat release.env
-    - curl -X POST
-        -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-        -F ref=ci-stable-v0.2.0
-        -F "variables[AWS_CLOUD]=aws"
-        https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
+    # - curl -X POST
+    #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+    #     -F ref=ci-stable-v0.2.0
+    #     -F "variables[AWS_CLOUD]=aws"
+    #     https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - echo FIXME, we are sleeping but we need to watch the gitlab API, to see when the Job has Finished
-    - sleep 120
     - PROJECT_PIPELINE=$(curl -X POST
          -F token=$CROSS_CLOUD_CI_JOB_TOKEN
          -F ref=ci-stable-v0.2.0
          -F "variables[AWS_CLOUD]=aws"
          https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+    - sleep 120
     - PROJECT_JOB$(curl --header "PRIVATE-TOKEN:${TOKEN}"
          'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success'
          | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
