@@ -141,27 +141,25 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		}
 		return noext, nil, e
 	case "TXT":
-		if srv := k.recordsForTXT(r); srv != nil {
+		if r.typeName == "dns-version" {
+			srv := k.recordsForTXT(r)
 			svcs = append(svcs, srv)
 		}
 		return svcs, nil, err
 	case "NS":
-		srv = k.recordsForNS(r)
+		srv := k.recordsForNS(r)
 		svcs = append(svcs, srv)
 		return svcs, nil, err
 	}
 	return nil, nil, nil
 }
 
-func (k *Kubernetes) recordsForTXT(r recordRequest) []msg.Service {
-	if r.typeName != "dns-version" {
-		return nil
-	}
+func (k *Kubernetes) recordsForTXT(r recordRequest) msg.Service {
 	return msg.Service{Text: DNSSchemaVersion, TTL: 28800,
 		Key: msg.Path(strings.Join([]string{r.typeName, r.zone}, "."), "coredns")}
 }
 
-func (k *Kubernetes) recordsForNS(r recordRequest) []msg.Service {
+func (k *Kubernetes) recordsForNS(r recordRequest) msg.Service {
 	ns := k.coreDNSRecord()
 	return msg.Service{Host: ns.A.String(),
 		Key: msg.Path(strings.Join([]string{ns.Hdr.Name, r.zone}, "."), "coredns")}
