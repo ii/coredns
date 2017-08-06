@@ -11,7 +11,7 @@ import (
 // Go get external example middleware, compile it into CoreDNS
 // and check if it is really there, but running coredns -plugins.
 
-func TestExternalMiddlewareCompile(t *testing.T) {
+func testExternalMiddlewareCompile(t *testing.T) {
 	if err := addExampleMiddleware(); err != nil {
 		t.Fatal(err)
 	}

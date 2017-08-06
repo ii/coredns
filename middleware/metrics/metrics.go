@@ -11,7 +11,6 @@ import (
 	"github.com/coredns/coredns/middleware/metrics/vars"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func init() {
@@ -73,7 +72,7 @@ func (m *Metrics) OnStartup() error {
 	ListenAddr = m.ln.Addr().String()
 
 	m.mux = http.NewServeMux()
-	m.mux.Handle("/metrics", promhttp.Handler())
+	m.mux.Handle("/metrics", prometheus.Handler())
 
 	go func() {
 		http.Serve(m.ln, m.mux)
