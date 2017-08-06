@@ -37,6 +37,7 @@ func (rule *edns0NsidRule) Rewrite(r *dns.Msg) Result {
 	result := RewriteIgnored
 	o := setupEdns0Opt(r)
 	found := false
+Option:
 	for _, s := range o.Option {
 		switch e := s.(type) {
 		case *dns.EDNS0_NSID:
@@ -45,7 +46,7 @@ func (rule *edns0NsidRule) Rewrite(r *dns.Msg) Result {
 				result = RewriteDone
 			}
 			found = true
-			break
+			break Option
 		}
 	}
 
