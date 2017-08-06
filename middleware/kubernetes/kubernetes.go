@@ -100,13 +100,12 @@ type recordRequest struct {
 }
 
 var (
-	errNoItems           = errors.New("no items found")
-	errNsNotExposed      = errors.New("namespace is not exposed")
-	errInvalidRequest    = errors.New("invalid query name")
-	errZoneNotFound      = errors.New("zone not found")
-	errAPIBadPodType     = errors.New("expected type *api.Pod")
-	errPodsDisabled      = errors.New("pod records disabled")
-	errResolvConfReadErr = errors.New("resolv.conf read error")
+	errNoItems        = errors.New("no items found")
+	errNsNotExposed   = errors.New("namespace is not exposed")
+	errInvalidRequest = errors.New("invalid query name")
+	errZoneNotFound   = errors.New("zone not found")
+	errAPIBadPodType  = errors.New("expected type *api.Pod")
+	errPodsDisabled   = errors.New("pod records disabled")
 )
 
 // Services implements the ServiceBackend interface.
