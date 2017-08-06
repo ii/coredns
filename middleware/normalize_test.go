@@ -80,17 +80,3 @@ func TestHostNormalize(t *testing.T) {
 		}
 	}
 }
-
-func TestAddrNormalize(t *testing.T) {
-	addrs := []string{".:53", ".:53", "example.org", "example.org:53", "example.org.:1053", "example.org.:1053"}
-
-	for i := 0; i < len(addrs); i += 2 {
-		ts := addrs[i]
-		expected := addrs[i+1]
-		actual := Addr(ts).Normalize()
-		if expected != actual {
-			t.Errorf("Expected %v, got %v\n", expected, actual)
-		}
-	}
-
-}

@@ -53,8 +53,6 @@ func (n Name) Normalize() string { return strings.ToLower(dns.Fqdn(string(n))) }
 type (
 	// Host represents a host from the Corefile, may contain port.
 	Host string // Host represents a host from the Corefile, may contain port.
-	// Addr represents an address in the Corefile.
-	Addr string // Addr resprents an address in the Corefile.
 )
 
 // Normalize will return the host portion of host, stripping
@@ -78,18 +76,6 @@ func (h Host) Normalize() string {
 		host, _, _ = net.SplitHostPort(s + ":")
 	}
 	return Name(host).Normalize()
-}
-
-// Normalize will return a normalized address, if not port is specified
-// port 53 is added, otherwise the port will be left as is.
-func (a Addr) Normalize() string {
-	// separate host and port
-	addr, port, err := net.SplitHostPort(string(a))
-	if err != nil {
-		addr, port, _ = net.SplitHostPort(string(a) + ":53")
-	}
-	// TODO(miek): lowercase it?
-	return net.JoinHostPort(addr, port)
 }
 
 // Duplicated from core/dnsserver/address.go !
