@@ -467,13 +467,6 @@ func (k *Kubernetes) getRecordsForK8sItems(services []service, pods []pod, r rec
 	return records
 }
 
-func ipFromPodName(podname string) string {
-	if strings.Count(podname, "-") == 3 && !strings.Contains(podname, "--") {
-		return strings.Replace(podname, "-", ".", -1)
-	}
-	return strings.Replace(podname, "-", ":", -1)
-}
-
 func (k *Kubernetes) findPodWithIP(ip string) (p *api.Pod) {
 	if !k.AutoPath.Enabled {
 		return nil
