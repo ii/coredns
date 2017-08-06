@@ -56,10 +56,7 @@ func addExampleMiddleware() error {
 	defer f.Close()
 
 	_, err = f.WriteString(example)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 var (
