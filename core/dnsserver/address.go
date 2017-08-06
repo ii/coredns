@@ -1,10 +1,9 @@
 package dnsserver
 
 import (
-	"fmt"
-	"net"
-	"strconv"
 	"strings"
+
+	"github.com/coredns/coredns/middleware"
 
 	"github.com/miekg/dns"
 )
@@ -51,50 +50,9 @@ func normalizeZone(str string) (zoneAddr, error) {
 		str = str[len(TransportGRPC+"://"):]
 	}
 
-	// If there is: :[0-9]+ on the end we assume this is the port. This works for (ascii) domain
-	// names and our reverse syntax, which always needs a /mask *before* the port.
-	// So from the back, find first colon, and then check if its a number.
-	host := str
-	port := ""
-
-	colon := strings.LastIndex(str, ":")
-	if colon == len(str)-1 {
-		return zoneAddr{}, fmt.Errorf("expecting data after last colon: %q", str)
-	}
-	if colon != -1 {
-		if p, err := strconv.Atoi(str[colon+1:]); err == nil {
-			port = strconv.Itoa(p)
-			host = str[:colon]
-		}
-	}
-
-	// TODO(miek): this should take escaping into account.
-	if len(host) > 255 {
-		return zoneAddr{}, fmt.Errorf("specified zone is too long: %d > 255", len(host))
-	}
-
-	_, d := dns.IsDomainName(host)
-	if !d {
-		return zoneAddr{}, fmt.Errorf("zone is not a valid domain name: %s", host)
-	}
-
-	// Check if it parses as a reverse zone, if so we use that. Must be fully
-	// specified IP and mask and mask % 8 = 0.
-	ip, net, err := net.ParseCIDR(host)
-	if err == nil {
-		if rev, e := dns.ReverseAddr(ip.String()); e == nil {
-			ones, bits := net.Mask.Size()
-			if (bits-ones)%8 == 0 {
-				offset, end := 0, false
-				for i := 0; i < (bits-ones)/8; i++ {
-					offset, end = dns.NextLabel(rev, offset)
-					if end {
-						break
-					}
-				}
-				host = rev[offset:]
-			}
-		}
+	host, port, err := middleware.SplitHostPort(str)
+	if err != nil {
+		return zoneAddr{}, err
 	}
 
 	if port == "" {
@@ -109,7 +67,7 @@ func normalizeZone(str string) (zoneAddr, error) {
 		}
 	}
 
-	return zoneAddr{Zone: strings.ToLower(dns.Fqdn(host)), Port: port, Transport: trans}, nil
+	return zoneAddr{Zone: dns.Fqdn(host), Port: port, Transport: trans}, nil
 }
 
 // Supported transports.
