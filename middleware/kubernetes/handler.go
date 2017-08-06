@@ -27,13 +27,13 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	zone := middleware.Zones(k.Zones).Matches(state.Name())
 	if zone == "" {
 		if state.Type() != "PTR" {
-			return middleware.NextOrFailure(k.Name(), k.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, k.Name(), k.Next, w, r)
 		}
 		// If this is a PTR request, and the request is in a defined
 		// pod/service cidr range, process the request in this middleware,
 		// otherwise pass to next middleware.
 		if !k.isRequestInReverseRange(state.Name()) {
-			return middleware.NextOrFailure(k.Name(), k.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, k.Name(), k.Next, w, r)
 		}
 		// Set the zone to this specific request.
 		zone = state.Name()
@@ -71,7 +71,7 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			apw := NewAutoPathWriter(w, r)
 			for _, hostsearch := range k.AutoPath.HostSearchPath {
 				newstate := state.NewWithQuestion(strings.Join([]string{name, hostsearch}, "."), state.QType())
-				rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, newstate.Req)
+				rcode, nextErr := middleware.NextOrFailure(ctx, k.Name(), k.Next, apw, newstate.Req)
 				if apw.Sent {
 					return rcode, nextErr
 				}
@@ -89,7 +89,7 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			apw.Rcode = k.AutoPath.OnNXDOMAIN
 			newstate = state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
 			r = newstate.Req
-			rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, r)
+			rcode, nextErr := middleware.NextOrFailure(ctx, k.Name(), k.Next, apw, r)
 			if !apw.Sent && nextErr == nil {
 				r = dnsutil.Dedup(r)
 				state.SizeAndDo(r)
@@ -102,7 +102,7 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 
 	if k.IsNameError(err) {
 		if k.Fallthrough {
-			return middleware.NextOrFailure(k.Name(), k.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, k.Name(), k.Next, w, r)
 		}
 		// Make err nil when returning here, so we don't log spam for NXDOMAIN.
 		return middleware.BackendError(&k, zone, dns.RcodeNameError, state, nil /*debug*/, nil /* err */, middleware.Options{})

@@ -39,7 +39,7 @@ func (f File) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (i
 	// TODO(miek): match the qname better in the map
 	zone := middleware.Zones(f.Zones.Names).Matches(qname)
 	if zone == "" {
-		return middleware.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+		return middleware.NextOrFailure(ctx, f.Name(), f.Next, w, r)
 	}
 
 	z, ok := f.Zones.Z[zone]

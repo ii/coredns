@@ -35,7 +35,7 @@ func (h Hosts) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 		// PTR zones don't need to be specified in Origins
 		if state.Type() != "PTR" {
 			// If this doesn't match we need to fall through regardless of h.Fallthrough
-			return middleware.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, h.Name(), h.Next, w, r)
 		}
 	}
 
@@ -44,7 +44,7 @@ func (h Hosts) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 		names := h.LookupStaticAddr(dnsutil.ExtractAddressFromReverse(qname))
 		if len(names) == 0 {
 			// If this doesn't match we need to fall through regardless of h.Fallthrough
-			return middleware.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, h.Name(), h.Next, w, r)
 		}
 		answers = h.ptr(qname, names)
 	case dns.TypeA:
@@ -57,7 +57,7 @@ func (h Hosts) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 	if len(answers) == 0 {
 		if h.Fallthrough {
-			return middleware.NextOrFailure(h.Name(), h.Next, ctx, w, r)
+			return middleware.NextOrFailure(ctx, h.Name(), h.Next, w, r)
 		}
 		if !h.otherRecordsExist(state.QType(), qname) {
 			return dns.RcodeNameError, nil

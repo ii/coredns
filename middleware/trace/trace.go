@@ -82,5 +82,5 @@ func (t *trace) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		defer span.Finish()
 		ctx = ot.ContextWithSpan(ctx, span)
 	}
-	return middleware.NextOrFailure(t.Name(), t.Next, ctx, w, r)
+	return middleware.NextOrFailure(ctx, t.Name(), t.Next, w, r)
 }

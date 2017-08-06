@@ -53,7 +53,7 @@ func (a Auto) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (i
 	// Precheck with the origins, i.e. are we allowed to looks here.
 	zone := middleware.Zones(a.Zones.Origins()).Matches(qname)
 	if zone == "" {
-		return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
+		return middleware.NextOrFailure(ctx, a.Name(), a.Next, w, r)
 	}
 
 	// Now the real zone.

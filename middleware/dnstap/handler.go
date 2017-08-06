@@ -2,8 +2,9 @@ package dnstap
 
 import (
 	"fmt"
-	"golang.org/x/net/context"
 	"io"
+
+	"golang.org/x/net/context"
 
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/middleware/dnstap/msg"
@@ -36,7 +37,7 @@ func (h Dnstap) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	rw := taprw.ResponseWriter{ResponseWriter: w, Taper: &h, Query: r, Pack: h.Pack}
 	rw.QueryEpoch()
 
-	code, err := middleware.NextOrFailure(h.Name(), h.Next, ctx, &rw, r)
+	code, err := middleware.NextOrFailure(ctx, h.Name(), h.Next, &rw, r)
 	if err != nil {
 		// ignore dnstap errors
 		return code, err

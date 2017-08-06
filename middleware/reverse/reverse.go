@@ -98,7 +98,7 @@ func (re Reverse) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 	}
 
 	if re.Fallthrough {
-		return middleware.NextOrFailure(re.Name(), re.Next, ctx, w, r)
+		return middleware.NextOrFailure(ctx, re.Name(), re.Next, w, r)
 	}
 	return dns.RcodeServerFailure, nil
 }

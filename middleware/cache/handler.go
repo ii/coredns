@@ -46,7 +46,7 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 			// that we've gathered sofar. See we copy the frequencies info back
 			// into the new item that was stored in the cache.
 			prr := &ResponseWriter{ResponseWriter: w, Cache: c, prefetch: true}
-			middleware.NextOrFailure(c.Name(), c.Next, ctx, prr, r)
+			middleware.NextOrFailure(ctx, c.Name(), c.Next, prr, r)
 
 			if i1, _ := c.get(now, qname, qtype, do); i1 != nil {
 				i1.Freq.Reset(now, i.Freq.Hits())
@@ -57,7 +57,7 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	}
 
 	crr := &ResponseWriter{ResponseWriter: w, Cache: c}
-	return middleware.NextOrFailure(c.Name(), c.Next, ctx, crr, r)
+	return middleware.NextOrFailure(ctx, c.Name(), c.Next, crr, r)
 }
 
 // Name implements the Handler interface.

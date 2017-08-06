@@ -101,7 +101,7 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 	upstream := p.match(state)
 	if upstream == nil {
-		return middleware.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+		return middleware.NextOrFailure(ctx, p.Name(), p.Next, w, r)
 	}
 
 	for {

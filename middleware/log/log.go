@@ -33,7 +33,7 @@ func (l Logger) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		}
 
 		rrw := dnsrecorder.New(w)
-		rc, err := middleware.NextOrFailure(l.Name(), l.Next, ctx, rrw, r)
+		rc, err := middleware.NextOrFailure(ctx, l.Name(), l.Next, rrw, r)
 
 		if rc > 0 {
 			// There was an error up the chain, but no response has been written yet.
@@ -62,7 +62,7 @@ func (l Logger) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 		return rc, err
 
 	}
-	return middleware.NextOrFailure(l.Name(), l.Next, ctx, w, r)
+	return middleware.NextOrFailure(ctx, l.Name(), l.Next, w, r)
 }
 
 // Name implements the Handler interface.
