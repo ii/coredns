@@ -69,7 +69,9 @@ func TestNameNormalize(t *testing.T) {
 }
 
 func TestHostNormalize(t *testing.T) {
-	hosts := []string{".:53", ".", "example.org:53", "example.org.", "example.org.:53", "example.org."}
+	hosts := []string{".:53", ".", "example.org:53", "example.org.", "example.org.:53", "example.org.",
+		"10.0.0.0/8:53", "10.in-addr.arpa.", "10.0.0.0/9", "10.0.0.0/9.",
+		"dns://example.org", "example.org."}
 
 	for i := 0; i < len(hosts); i += 2 {
 		ts := hosts[i]
