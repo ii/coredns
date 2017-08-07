@@ -22,7 +22,6 @@ type Writer struct {
 	dns.ResponseWriter
 	original dns.Question
 	Rcode    int
-	Sent     bool
 }
 
 // AutoPath enables server side search path lookups for pods.
@@ -57,7 +56,7 @@ func (apw *Writer) WriteMsg(res *dns.Msg) error {
 		res.Answer[0] = CNAME(apw.original.Name, a.Header().Name, a.Header().Ttl)
 	}
 	res.Question[0] = apw.original
-	apw.Sent = true
+
 	return apw.ResponseWriter.WriteMsg(res)
 }
 

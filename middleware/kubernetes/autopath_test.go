@@ -128,7 +128,6 @@ func TestServeDNSAutoPath(t *testing.T) {
 	k.autoPath.OnNXDOMAIN = dns.RcodeNameError
 	runServeDNSTests(ctx, t, autopathCases, k)
 	runServeDNSTests(ctx, t, autopathBareSearchExpectNameErr, k)
-
 }
 
 var nextMap = map[dns.Question]dns.Msg{
@@ -158,9 +157,11 @@ func nextHandler(qMap map[dns.Question]dns.Msg) test.Handler {
 	return test.HandlerFunc(func(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 		m := new(dns.Msg)
 		m.SetReply(r)
+
 		msg, ok := qMap[r.Question[0]]
 		if !ok {
 			r.Rcode = dns.RcodeNameError
+			w.WriteMsg(m)
 			return r.Rcode, nil
 		}
 		r.Rcode = dns.RcodeSuccess

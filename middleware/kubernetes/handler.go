@@ -75,7 +75,8 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			for _, hostsearch := range k.autoPath.HostSearchPath {
 				newstate := state.NewWithQuestion(strings.Join([]string{name, hostsearch}, "."), state.QType())
 				rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, newstate.Req)
-				if apw.Sent {
+
+				if middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError {
 					return rcode, nextErr
 				}
 			}
@@ -93,7 +94,7 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 			newstate = state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
 			r = newstate.Req
 			rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, r)
-			if !apw.Sent && nextErr == nil {
+			if !(middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError) && nextErr == nil {
 				r = dnsutil.Dedup(r)
 				state.SizeAndDo(r)
 				r, _ = state.Scrub(r)

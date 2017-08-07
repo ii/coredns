@@ -209,6 +209,9 @@ func runServeDNSTests(ctx context.Context, t *testing.T, dnsTestCases map[string
 		}
 
 		resp := w.Msg
+		if resp == nil {
+			t.Fatalf("got nil message and no error for %q: %s %d", testname, r.Question[0].Name, r.Question[0].Qtype)
+		}
 
 		// Before sorting, make sure that CNAMES do not appear after their target records
 		for i, c := range resp.Answer {
