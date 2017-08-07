@@ -55,21 +55,22 @@ response placeholders.
 
 The following place holders are supported:
 
-* `{type}`: qtype of the request.
-* `{name}`: qname of the request.
-* `{class}`: qclass of the request.
-* `{proto}`: protocol used (tcp or udp).
-* `{when}`: time of the query.
-* `{remote}`: client's IP address.
-* `{size}`: request size in bytes.
-* `{port}`: client's port.
-* `{duration}`: response duration.
-* `{>bufsize}`: the EDNS0 buffer size advertised.
-* `{>do}`: is the EDNS0 DO (DNSSEC OK) bit set.
+* `{type}`: qtype of the request
+* `{name}`: qname of the request
+* `{class}`: qclass of the request
+* `{proto}`: protocol used (tcp or udp)
+* `{when}`: time of the query
+* `{remote}`: client's IP address
+* `{size}`: request size in bytes
+* `{port}`: client's port
+* `{duration}`: response duration
+* `{>bufsize}`: the EDNS0 buffer size advertised in the query
+* `{>do}`: is the EDNS0 DO (DNSSEC OK) bit set in the query
 * `{>id}`: query ID
-* `{>opcode}`: query OPCODE.
-* `{rcode}`: response RCODE.
-* `{rsize}`: response size.
+* `{>opcode}`: query OPCODE
+* `{rcode}`: response RCODE
+* `{rsize}`: response size
+* `{flags}`: response flags, each set flag will be displayed, e.g. "aa, tc"
 
 The default Common Log Format is:
 
