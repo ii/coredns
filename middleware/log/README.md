@@ -64,18 +64,19 @@ The following place holders are supported:
 * `{size}`: request size in bytes
 * `{port}`: client's port
 * `{duration}`: response duration
+* `{rcode}`: response RCODE
+* `{rsize}`: response size
+* `{>rflags}`: response flags, each set flag will be displayed, e.g. "aa, tc". This includes the qr
+  bit as well.
 * `{>bufsize}`: the EDNS0 buffer size advertised in the query
 * `{>do}`: is the EDNS0 DO (DNSSEC OK) bit set in the query
 * `{>id}`: query ID
 * `{>opcode}`: query OPCODE
-* `{rcode}`: response RCODE
-* `{rsize}`: response size
-* `{flags}`: response flags, each set flag will be displayed, e.g. "aa, tc"
 
 The default Common Log Format is:
 
 ~~~ txt
-`{remote} - [{when}] "{type} {class} {name} {proto} {size} {>do} {>bufsize}" {rcode} {rsize} {duration}`
+`{remote} - [{when}] "{type} {class} {name} {proto} {size} {>do} {>bufsize}" {rcode} {>rflags} {rsize} {duration}`
 ~~~
 
 ## Examples
