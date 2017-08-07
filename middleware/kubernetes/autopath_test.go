@@ -61,6 +61,7 @@ var autopathCases = map[string](*test.Case){
 		},
 	},
 }
+
 var autopathBareSearch = map[string](*test.Case){
 	"A Autopath Next Middleware (Bare Search) Non-existing OnNXDOMAIN default": {
 		Qname: "nothere.interwebs.podns.svc.cluster.local.", Qtype: dns.TypeA,
@@ -68,6 +69,7 @@ var autopathBareSearch = map[string](*test.Case){
 		Answer: []dns.RR{},
 	},
 }
+
 var autopathBareSearchExpectNameErr = map[string](*test.Case){
 	"A Autopath Next Middleware (Bare Search) Non-existing OnNXDOMAIN disabled": {
 		Qname: "nothere.interwebs.podns.svc.cluster.local.", Qtype: dns.TypeA,
@@ -75,6 +77,7 @@ var autopathBareSearchExpectNameErr = map[string](*test.Case){
 		Answer: []dns.RR{},
 	},
 }
+
 var autopath2NDotsCases = map[string](*test.Case){
 	"A Service (0 Dots)": {
 		Qname: "foo.podns.svc.cluster.local.", Qtype: dns.TypeA,
@@ -154,12 +157,12 @@ var nextMap = map[dns.Question]dns.Msg{
 
 // nextHandler returns a Handler that returns an answer for the question in the
 // request per the question->answer map qMap.
-func nextHandler(qMap map[dns.Question]dns.Msg) test.Handler {
+func nextHandler(m map[dns.Question]dns.Msg) test.Handler {
 	return test.HandlerFunc(func(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 		m := new(dns.Msg)
 		m.SetReply(r)
 
-		msg, ok := qMap[r.Question[0]]
+		msg, ok := m[r.Question[0]]
 		if !ok {
 			r.Rcode = dns.RcodeNameError
 			w.WriteMsg(m)
