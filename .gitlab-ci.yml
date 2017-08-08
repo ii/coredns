@@ -6,7 +6,6 @@ stages:
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
-  - echo 'TEST'
 
 compile:
   image: golang:1.8.1
