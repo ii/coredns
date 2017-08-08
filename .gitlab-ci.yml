@@ -70,7 +70,7 @@ container:
 
 cluster:
   stage: cluster
-  image: golang:1.8.3-stretch
+  image: golang:1.8.1
   script:
     - apt update && apt install -y jq
     - cat release.env
