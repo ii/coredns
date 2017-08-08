@@ -16,12 +16,15 @@ type Request struct {
 	Req *dns.Msg
 	W   dns.ResponseWriter
 
+	// The (lower cased) zone as determined for this query. This may be empty
+	Zone string
+
 	// Cache size after first call to Size or Do.
 	size int
 	do   int // 0: not, 1: true: 2: false
 	// TODO(miek): opt record itself as well?
 
-	// Cache lowercase qname.
+	// Cached lower case qname.
 	name string
 }
 

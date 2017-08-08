@@ -2,10 +2,8 @@ package kubernetes
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/coredns/coredns/middleware"
-	"github.com/coredns/coredns/middleware/kubernetes/autopath"
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	"github.com/coredns/coredns/request"
 
@@ -36,73 +34,107 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 		if !k.isRequestInReverseRange(state.Name()) {
 			return middleware.NextOrFailure(k.Name(), k.Next, ctx, w, r)
 		}
-		// Set the zone to this specific request.
-		zone = state.Name()
+		return dns.RcodeServerFailure, nil
 	}
 
-	records, extra, _, err := k.routeRequest(zone, state)
+	state.Zone = zone
 
-	// Check for Autopath search eligibility
-	if (k.autoPath != nil) && k.IsNameError(err) && (state.QType() == dns.TypeA || state.QType() == dns.TypeAAAA) {
-		p := k.findPodWithIP(state.IP())
+	var (
+		records, extra []dns.RR
+		err            error
+	)
 
-		for p != nil {
-			name, path, ok := autopath.SplitSearch(zone, state.QName(), p.Namespace)
-			if !ok {
-				break
-			}
-			if (dns.CountLabel(name) - 1) < k.autoPath.NDots {
-				break
-			}
-			origQName := state.QName()
-			// Search "svc.cluster.local." and "cluster.local."
-			for i := 0; i < 2; i++ {
-				path = strings.Join(dns.SplitDomainName(path)[1:], ".")
-				newstate := state.NewWithQuestion(strings.Join([]string{name, path}, "."), state.QType())
-				records, extra, _, err = k.routeRequest(zone, newstate)
-				if !k.IsNameError(err) && len(records) > 0 {
-					records = append(records, nil)
-					copy(records[1:], records)
-					records[0] = autopath.CNAME(origQName, records[0].Header().Name, records[0].Header().Ttl)
-					break
-				}
-			}
-			if !k.IsNameError(err) {
-				break
-			}
-			// Try host search path (if set) in the next middleware
-			apw := autopath.NewWriter(w, r)
-			for _, hostsearch := range k.autoPath.HostSearchPath {
-				newstate := state.NewWithQuestion(strings.Join([]string{name, hostsearch}, "."), state.QType())
-				rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, newstate.Req)
+	switch state.Type() {
+	case "A":
+		records, _, err = middleware.A(&k, zone, state, nil, middleware.Options{})
+	case "AAAA":
+		records, _, err = middleware.AAAA(&k, zone, state, nil, middleware.Options{})
+	case "TXT":
+		records, _, err = middleware.TXT(&k, zone, state, middleware.Options{})
+	case "CNAME":
+		records, _, err = middleware.CNAME(&k, zone, state, middleware.Options{})
+	case "PTR":
+		records, _, err = middleware.PTR(&k, zone, state, middleware.Options{})
+	case "MX":
+		records, extra, _, err = middleware.MX(&k, zone, state, middleware.Options{})
+	case "SRV":
+		records, extra, _, err = middleware.SRV(&k, zone, state, middleware.Options{})
+	case "SOA":
+		records, _, err = middleware.SOA(&k, zone, state, middleware.Options{})
+	case "NS":
+		if state.Name() == zone {
+			records, extra, _, err = middleware.NS(&k, zone, state, middleware.Options{})
+			break
+		}
+		fallthrough
+	default:
+		// Do a fake A lookup, so we can distinguish between NODATA and NXDOMAIN
+		_, _, err = middleware.A(&k, zone, state, nil, middleware.Options{})
+	}
 
-				if middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError {
+	/*
+		// Check for Autopath search eligibility
+		if (k.autoPath != nil) && k.IsNameError(err) && (state.QType() == dns.TypeA || state.QType() == dns.TypeAAAA) {
+			p := k.findPodWithIP(state.IP())
+
+				for p != nil {
+					name, path, ok := autopath.SplitSearch(zone, state.QName(), p.Namespace)
+					if !ok {
+						break
+					}
+					if (dns.CountLabel(name) - 1) < k.autoPath.NDots {
+						break
+					}
+					origQName := state.QName()
+					// Search "svc.cluster.local." and "cluster.local."
+					for i := 0; i < 2; i++ {
+						path = strings.Join(dns.SplitDomainName(path)[1:], ".")
+						newstate := state.NewWithQuestion(strings.Join([]string{name, path}, "."), state.QType())
+						records, extra, _, err = k.routeRequest(zone, newstate)
+						if !k.IsNameError(err) && len(records) > 0 {
+							records = append(records, nil)
+							copy(records[1:], records)
+							records[0] = autopath.CNAME(origQName, records[0].Header().Name, records[0].Header().Ttl)
+							break
+						}
+					}
+					if !k.IsNameError(err) {
+						break
+					}
+					// Try host search path (if set) in the next middleware
+					apw := autopath.NewWriter(w, r)
+					for _, hostsearch := range k.autoPath.HostSearchPath {
+						newstate := state.NewWithQuestion(strings.Join([]string{name, hostsearch}, "."), state.QType())
+						rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, newstate.Req)
+
+						if middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError {
+							return rcode, nextErr
+						}
+					}
+					// Search . in this middleware
+					newstate := state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
+					records, extra, _, err = k.routeRequest(zone, newstate)
+					if !k.IsNameError(err) && len(records) > 0 {
+						records = append(records, nil)
+						copy(records[1:], records)
+						records[0] = autopath.CNAME(origQName, records[0].Header().Name, records[0].Header().Ttl)
+						break
+					}
+					// Search . in the next middleware
+					apw.Rcode = k.autoPath.OnNXDOMAIN
+					newstate = state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
+					r = newstate.Req
+					rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, r)
+					if !(middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError) && nextErr == nil {
+						r = dnsutil.Dedup(r)
+						state.SizeAndDo(r)
+						r, _ = state.Scrub(r)
+						apw.WriteMsg(r)
+					}
 					return rcode, nextErr
 				}
-			}
-			// Search . in this middleware
-			newstate := state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
-			records, extra, _, err = k.routeRequest(zone, newstate)
-			if !k.IsNameError(err) && len(records) > 0 {
-				records = append(records, nil)
-				copy(records[1:], records)
-				records[0] = autopath.CNAME(origQName, records[0].Header().Name, records[0].Header().Ttl)
-				break
-			}
-			// Search . in the next middleware
-			apw.Rcode = k.autoPath.OnNXDOMAIN
-			newstate = state.NewWithQuestion(strings.Join([]string{name, "."}, ""), state.QType())
-			r = newstate.Req
-			rcode, nextErr := middleware.NextOrFailure(k.Name(), k.Next, ctx, apw, r)
-			if !(middleware.ClientWrite(rcode) || rcode == dns.RcodeNameError) && nextErr == nil {
-				r = dnsutil.Dedup(r)
-				state.SizeAndDo(r)
-				r, _ = state.Scrub(r)
-				apw.WriteMsg(r)
-			}
-			return rcode, nextErr
 		}
-	}
+	*/
 
 	if k.IsNameError(err) {
 		if k.Fallthrough {
@@ -127,37 +159,6 @@ func (k Kubernetes) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	m, _ = state.Scrub(m)
 	w.WriteMsg(m)
 	return dns.RcodeSuccess, nil
-}
-
-func (k *Kubernetes) routeRequest(zone string, state request.Request) (records []dns.RR, extra []dns.RR, debug []dns.RR, err error) {
-	switch state.Type() {
-	case "A":
-		records, _, err = middleware.A(k, zone, state, nil, middleware.Options{})
-	case "AAAA":
-		records, _, err = middleware.AAAA(k, zone, state, nil, middleware.Options{})
-	case "TXT":
-		records, _, err = middleware.TXT(k, zone, state, middleware.Options{})
-	case "CNAME":
-		records, _, err = middleware.CNAME(k, zone, state, middleware.Options{})
-	case "PTR":
-		records, _, err = middleware.PTR(k, zone, state, middleware.Options{})
-	case "MX":
-		records, extra, _, err = middleware.MX(k, zone, state, middleware.Options{})
-	case "SRV":
-		records, extra, _, err = middleware.SRV(k, zone, state, middleware.Options{})
-	case "SOA":
-		records, _, err = middleware.SOA(k, zone, state, middleware.Options{})
-	case "NS":
-		if state.Name() == zone {
-			records, extra, _, err = middleware.NS(k, zone, state, middleware.Options{})
-			break
-		}
-		fallthrough
-	default:
-		// Do a fake A lookup, so we can distinguish between NODATA and NXDOMAIN
-		_, _, err = middleware.A(k, zone, state, nil, middleware.Options{})
-	}
-	return records, extra, nil, err
 }
 
 // Name implements the Handler interface.

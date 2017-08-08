@@ -96,14 +96,13 @@ var (
 	errNoItems        = errors.New("no items found")
 	errNsNotExposed   = errors.New("namespace is not exposed")
 	errInvalidRequest = errors.New("invalid query name")
-	errZoneNotFound   = errors.New("zone not found")
 	errAPIBadPodType  = errors.New("expected type *api.Pod")
 	errPodsDisabled   = errors.New("pod records disabled")
 )
 
 // Services implements the ServiceBackend interface.
 func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.Options) (svcs []msg.Service, debug []msg.Service, err error) {
-	r, e := k.parseRequest(state.Name(), state.QType())
+	r, e := k.parseQuestion(state)
 	if e != nil {
 		return nil, nil, e
 	}
@@ -190,7 +189,7 @@ func (k *Kubernetes) Lookup(state request.Request, name string, typ uint16) (*dn
 
 // IsNameError implements the ServiceBackend interface.
 func (k *Kubernetes) IsNameError(err error) bool {
-	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest || err == errZoneNotFound
+	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest
 }
 
 // Debug implements the ServiceBackend interface.
@@ -259,34 +258,24 @@ func (k *Kubernetes) InitKubeCache() (err error) {
 	return err
 }
 
-func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16) (r recordRequest, err error) {
+func (k *Kubernetes) parseQuestion(state request.Request) (r recordRequest, err error) {
+	println("parsgin", state.Name())
 	// 3 Possible cases
 	//   SRV Request: _port._protocol.service.namespace.[federation.]type.zone
 	//   A Request (endpoint): endpoint.service.namespace.[federation.]type.zone
 	//   A Request (service): service.namespace.[federation.]type.zone
 
-	// separate zone from rest of lowerCasedName
-	var segs []string
-	for _, z := range k.Zones {
-		if dns.IsSubDomain(z, lowerCasedName) {
-			r.zone = z
-
-			segs = dns.SplitDomainName(lowerCasedName)
-			segs = segs[:len(segs)-dns.CountLabel(r.zone)]
-			break
-		}
-	}
-	if r.zone == "" {
-		return r, errZoneNotFound
-	}
+	// separate zone from rest of the qname.
+	segs := dns.SplitDomainName(state.Name())
+	segs = segs[:len(segs)-dns.CountLabel(state.Zone)]
 
 	r.federation, segs = k.stripFederation(segs)
 
-	if qtype == dns.TypeNS {
+	if state.Qtype() == dns.TypeNS {
 		return r, nil
 	}
 
-	if qtype == dns.TypeA && isDefaultNS(lowerCasedName, r) {
+	if state.Qtype() == dns.TypeA && isDefaultNS(state.Name(), r) {
 		return r, nil
 	}
 

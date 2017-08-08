@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"errors"
 	"net"
 	"reflect"
 	"testing"
@@ -60,24 +59,7 @@ func TestIsRequestInReverseRange(t *testing.T) {
 	}
 }
 
-func TestIsNameError(t *testing.T) {
-	k := Kubernetes{Zones: []string{"inter.webs.test"}}
-	if !k.IsNameError(errNoItems) {
-		t.Errorf("Expected 'true' for '%v'", errNoItems)
-	}
-	if !k.IsNameError(errNsNotExposed) {
-		t.Errorf("Expected 'true' for '%v'", errNsNotExposed)
-	}
-	if !k.IsNameError(errInvalidRequest) {
-		t.Errorf("Expected 'true' for '%v'", errInvalidRequest)
-	}
-	otherErr := errors.New("Some other error occurred")
-	if k.IsNameError(otherErr) {
-		t.Errorf("Expected 'true' for '%v'", otherErr)
-	}
-}
-
-func TestSymbolContainsWildcard(t *testing.T) {
+func TestWildcard(t *testing.T) {
 	var tests = []struct {
 		s        string
 		expected bool
