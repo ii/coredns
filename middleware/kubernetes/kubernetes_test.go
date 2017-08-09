@@ -13,17 +13,6 @@ import (
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
-func TestRecordForTXT(t *testing.T) {
-	k := Kubernetes{Zones: []string{"inter.webs.test"}}
-	r, _ := k.parseRequest("dns-version.inter.webs.test", dns.TypeTXT)
-
-	expected := DNSSchemaVersion
-	svc := k.recordsForTXT(r)
-	if svc.Text != expected {
-		t.Errorf("Expected result '%v'. Instead got result '%v'.", expected, svc.Text)
-	}
-}
-
 func TestPrimaryZone(t *testing.T) {
 	k := Kubernetes{Zones: []string{"inter.webs.test", "inter.nets.test"}}
 	expected := "inter.webs.test"
@@ -128,7 +117,7 @@ func TestParseRequest(t *testing.T) {
 		"endpoint":  "",
 		"service":   "webs",
 		"namespace": "mynamespace",
-		"typeName":  Svc,
+		"podOrSvc":  Svc,
 		"zone":      "inter.webs.test",
 	}
 	for field, expected := range tcs {
@@ -149,7 +138,7 @@ func TestParseRequest(t *testing.T) {
 		"endpoint":  "",
 		"service":   "*",
 		"namespace": "any",
-		"typeName":  Svc,
+		"podOrSvc":  Svc,
 		"zone":      "inter.webs.test",
 	}
 	for field, expected := range tcs {
@@ -168,7 +157,7 @@ func TestParseRequest(t *testing.T) {
 		"endpoint":  "1-2-3-4",
 		"service":   "webs",
 		"namespace": "mynamespace",
-		"typeName":  Svc,
+		"podOrSvc":  Svc,
 		"zone":      "inter.webs.test",
 	}
 	for field, expected := range tcs {
@@ -187,30 +176,11 @@ func TestParseRequest(t *testing.T) {
 		"endpoint":  "",
 		"service":   "",
 		"namespace": "",
-		"typeName":  "",
+		"podOrSvc":  "",
 		"zone":      "inter.webs.test",
 	}
 	for field, expected := range tcs {
 		expectString(t, f, "NS", query, &r, field, expected)
-	}
-
-	// Test TXT request
-	query = "dns-version.inter.webs.test."
-	r, e = k.parseRequest(query, dns.TypeTXT)
-	if e != nil {
-		t.Errorf("Expected no error from parseRequest(\"%v\", \"TXT\"). Instead got '%v'.", query, e)
-	}
-	tcs = map[string]string{
-		"port":      "",
-		"protocol":  "",
-		"endpoint":  "",
-		"service":   "",
-		"namespace": "",
-		"typeName":  "dns-version",
-		"zone":      "inter.webs.test",
-	}
-	for field, expected := range tcs {
-		expectString(t, f, "TXT", query, &r, field, expected)
 	}
 
 	// Invalid query tests
