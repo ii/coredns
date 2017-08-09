@@ -11,6 +11,7 @@ import (
 
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	dnsstrings "github.com/coredns/coredns/middleware/pkg/strings"
 	"github.com/coredns/coredns/middleware/proxy"
 	"github.com/coredns/coredns/request"
@@ -111,7 +112,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		return []msg.Service{svc}, nil, nil
 	}
 
-	r, e := k.parseRequest(state.Name(), state.QType())
+	r, e := k.parseRequest(state.Name(), state.QType(), state.Zone)
 	if e != nil {
 		return nil, nil, e
 	}
@@ -165,8 +166,7 @@ func (k *Kubernetes) Lookup(state request.Request, name string, typ uint16) (*dn
 
 // IsNameError implements the ServiceBackend interface.
 func (k *Kubernetes) IsNameError(err error) bool {
-	// TODO(miek): Ive *added* another errNameError
-	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest || err == errZoneNotFound || err == errNameError
+	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest || err == errZoneNotFound
 }
 
 // Debug implements the ServiceBackend interface.

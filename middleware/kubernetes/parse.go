@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
-	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 )
@@ -24,46 +23,7 @@ type recordRequest struct {
 	federation string
 }
 
-// parse parses a qname destined for the kubernetes middleware, it tries to pick apart
-// the qname so that we are left with the differnent parts; service, transport and namespace
-// to name a few. The rcode returned indicated what we should do with the request.
-func (k *Kubernetes) parse(state request.Request) (recordRequest, int) {
-	if state.Zone == "" {
-		return recordRequest{}, dns.RcodeServerFailure
-	}
-
-	r := recordRequest{}
-	r.zone = state.Zone
-
-	base, err := dnsutil.TrimZone(state.Name(), state.Zone)
-	if err != nil {
-		return r, dns.RcodeServerFailure
-	}
-	segs := dns.SplitDomainName(base)
-
-	r.federation, segs = k.stripFederation(segs)
-
-	// fluff.<namespace>.<pod|svc> should be left over.
-	end := len(segs) - 1
-	if segs[end] != Svc && segs[end] != Pod {
-		return r, dns.RcodeNameError
-	}
-
-	r.podOrSvc = segs[end]
-
-	// pod|svc seen, next namespace
-	end--
-	if end < 0 {
-		// Wildcard namespace.
-		r.namespace = "*"
-		return r, dns.RcodeSuccess
-
-	}
-
-	return r, dns.RcodeSuccess
-}
-
-func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16) (r recordRequest, err error) {
+func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16, zone ...string) (r recordRequest, err error) {
 	// 3 Possible cases
 	//   SRV Request: _port._protocol.service.namespace.[federation.]type.zone
 	//   A Request (endpoint): endpoint.service.namespace.[federation.]type.zone
@@ -71,22 +31,25 @@ func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16) (r record
 
 	// separate zone from rest of lowerCasedName
 	var segs []string
-	for _, z := range k.Zones {
-		if dns.IsSubDomain(z, lowerCasedName) {
-			r.zone = z
 
-			segs = dns.SplitDomainName(lowerCasedName)
-			segs = segs[:len(segs)-dns.CountLabel(r.zone)]
-			break
+	if len(zone) == 0 {
+		for _, z := range k.Zones {
+			if dns.IsSubDomain(z, lowerCasedName) {
+				r.zone = z
+
+				segs = dns.SplitDomainName(lowerCasedName)
+				segs = segs[:len(segs)-dns.CountLabel(r.zone)]
+				break
+			}
 		}
+		if r.zone == "" {
+			return r, errZoneNotFound
+		}
+	} else {
+		base, _ := dnsutil.TrimZone(lowerCasedName, zone[0])
+		segs = dns.SplitDomainName(base)
+		r.zone = zone[0]
 	}
-	if r.zone == "" {
-		return r, errZoneNotFound
-	}
-
-	//defer func() {
-	//fmt.Printf("rR %#v\n", r)
-	//}()
 
 	r.federation, segs = k.stripFederation(segs)
 
@@ -152,4 +115,19 @@ func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16) (r record
 	}
 
 	return r, errInvalidRequest
+}
+
+// String return a string representation of r, it just returns all
+// fields concatenated with dots.
+// This is mostly used in tests.
+func (r recordRequest) String() string {
+	s := r.port
+	s += "." + r.protocol
+	s += "." + r.endpoint
+	s += "." + r.service
+	s += "." + r.namespace
+	s += "." + r.podOrSvc
+	s += "." + r.zone
+	s += "." + r.federation
+	return s
 }
