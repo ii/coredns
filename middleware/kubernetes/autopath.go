@@ -3,24 +3,38 @@ package kubernetes
 import (
 	"fmt"
 
+	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/request"
 
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
 func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
+	// Check if the query falls in a zone we are actually authoriative for and thus if we want autopath.
+	zone := middleware.Zones(k.Zones).Matches(state.Name())
+	if zone == "" {
+		return nil, fmt.Errorf("kubernetes: no authoriative for %s", state.Name())
+	}
+
 	ip := state.IP()
 
 	pod := k.PodWithIP(ip)
 	if pod == nil {
-		return nil, fmt.Errorf("kubernets: no pod found for %s", ip)
+		return nil, fmt.Errorf("kubernetes: no pod found for %s", ip)
 	}
 
-	// something something namespace
-	namespace := pod.Namespace
+	search := make([]string, 3)
+	if zone == "." {
+		search[0] = pod.Namespace + ".svc."
+		search[1] = "svc."
+		search[2] = "."
+	} else {
+		search[0] = pod.Namespace + ".svc." + zone
+		search[1] = "svc." + zone
+		search[2] = zone
+	}
 
-	search := []string{namespace} // TODO: way more
-
+	search = append(search, k.autoPathSearch...)
 	search = append(search, "") // sentinal
 	return search, nil
 }
