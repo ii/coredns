@@ -188,7 +188,8 @@ func (k *Kubernetes) Lookup(state request.Request, name string, typ uint16) (*dn
 
 // IsNameError implements the ServiceBackend interface.
 func (k *Kubernetes) IsNameError(err error) bool {
-	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest || err == errZoneNotFound
+	// TODO(miek): Ive *added* another errNameError
+	return err == errNoItems || err == errNsNotExposed || err == errInvalidRequest || err == errZoneNotFound || err == errNameError
 }
 
 // Debug implements the ServiceBackend interface.
