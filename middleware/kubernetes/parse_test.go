@@ -20,13 +20,14 @@ func TestParseRequest(t *testing.T) {
 
 	var tcs map[string]string
 
-	k := Kubernetes{Zones: []string{"inter.webs.test"}}
+	zone := "intern.webs.tests."
+	k := Kubernetes{Zones: []string{zone}}
 	f := "parseRequest"
 
 	// Test a valid SRV request
 	//
 	query := "_http._tcp.webs.mynamespace.svc.inter.webs.test."
-	r, e := k.parseRequest(query, dns.TypeSRV)
+	r, e := k.parseRequest(query, dns.TypeSRV, zone)
 	if e != nil {
 		t.Errorf("Expected no error from parseRequest(%v, \"SRV\"). Instead got '%v'.", query, e)
 	}
@@ -38,7 +39,7 @@ func TestParseRequest(t *testing.T) {
 		"service":   "webs",
 		"namespace": "mynamespace",
 		"podOrSvc":  Svc,
-		"zone":      "inter.webs.test",
+		"zone":      zone,
 	}
 	for field, expected := range tcs {
 		expectString(t, f, "SRV", query, &r, field, expected)
@@ -47,7 +48,7 @@ func TestParseRequest(t *testing.T) {
 	// Test wildcard acceptance
 	//
 	query = "*.any.*.any.svc.inter.webs.test."
-	r, e = k.parseRequest(query, dns.TypeSRV)
+	r, e = k.parseRequest(query, dns.TypeSRV, zone)
 	if e != nil {
 		t.Errorf("Expected no error from parseRequest(\"%v\", \"SRV\"). Instead got '%v'.", query, e)
 	}
@@ -59,7 +60,7 @@ func TestParseRequest(t *testing.T) {
 		"service":   "*",
 		"namespace": "any",
 		"podOrSvc":  Svc,
-		"zone":      "inter.webs.test",
+		"zone":      zone,
 	}
 	for field, expected := range tcs {
 		expectString(t, f, "SRV", query, &r, field, expected)
@@ -67,7 +68,7 @@ func TestParseRequest(t *testing.T) {
 
 	// Test A request of endpoint
 	query = "1-2-3-4.webs.mynamespace.svc.inter.webs.test."
-	r, e = k.parseRequest(query, dns.TypeA)
+	r, e = k.parseRequest(query, dns.TypeA, zone)
 	if e != nil {
 		t.Errorf("Expected no error from parseRequest(\"%v\", \"A\"). Instead got '%v'.", query, e)
 	}
@@ -78,7 +79,7 @@ func TestParseRequest(t *testing.T) {
 		"service":   "webs",
 		"namespace": "mynamespace",
 		"podOrSvc":  Svc,
-		"zone":      "inter.webs.test",
+		"zone":      zone,
 	}
 	for field, expected := range tcs {
 		expectString(t, f, "A", query, &r, field, expected)
@@ -86,7 +87,7 @@ func TestParseRequest(t *testing.T) {
 
 	// Test NS request
 	query = "inter.webs.test."
-	r, e = k.parseRequest(query, dns.TypeNS)
+	r, e = k.parseRequest(query, dns.TypeNS, zone)
 	if e != nil {
 		t.Errorf("Expected no error from parseRequest(\"%v\", \"NS\"). Instead got '%v'.", query, e)
 	}
@@ -97,7 +98,7 @@ func TestParseRequest(t *testing.T) {
 		"service":   "",
 		"namespace": "",
 		"podOrSvc":  "",
-		"zone":      "inter.webs.test",
+		"zone":      zone,
 	}
 	for field, expected := range tcs {
 		expectString(t, f, "NS", query, &r, field, expected)
@@ -105,12 +106,11 @@ func TestParseRequest(t *testing.T) {
 
 	// Invalid query tests
 	invalidAQueries := []string{
-		"_http._tcp.webs.mynamespace.svc.inter.webs.test.", // A requests cannot have port or protocol
-		"servname.ns1.srv.inter.nets.test.",                // A requests must have zone that matches corefile
+		"_http._tcp.webs.mynamespace.svc.inter.webs.test.", // A requests cannot have port or protocol TODO(miek): this must return NODATA
 
 	}
 	for _, q := range invalidAQueries {
-		_, e = k.parseRequest(q, dns.TypeA)
+		_, e = k.parseRequest(q, dns.TypeA, zone)
 		if e == nil {
 			t.Errorf("Expected error from %v(\"%v\", \"A\").", f, q)
 		}
@@ -120,13 +120,10 @@ func TestParseRequest(t *testing.T) {
 		"_http._pcp.webs.mynamespace.svc.inter.webs.test.", // SRV protocol must be tcp or udp
 		"_http._tcp.ep.webs.ns.svc.inter.webs.test.",       // SRV requests cannot have an endpoint
 		"_*._*.webs.mynamespace.svc.inter.webs.test.",      // SRV request with invalid wildcards
-		"_http._tcp",
-		"_tcp.test.",
-		".",
 	}
 
 	for _, q := range invalidSRVQueries {
-		_, e = k.parseRequest(q, dns.TypeSRV)
+		_, e = k.parseRequest(q, dns.TypeSRV, zone)
 		if e == nil {
 			t.Errorf("Expected error from %v(\"%v\", \"SRV\").", f, q)
 		}

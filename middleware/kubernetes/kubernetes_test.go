@@ -209,7 +209,7 @@ func (APIConnServiceTest) GetNodeByName(name string) (api.Node, error) {
 
 func TestServices(t *testing.T) {
 
-	k := Kubernetes{Zones: []string{"interwebs.test"}}
+	k := Kubernetes{Zones: []string{"interwebs.test."}}
 	k.Federations = []Federation{{name: "fed", zone: "era.tion.com"}}
 	k.interfaceAddrsFunc = localPodIP
 	k.APIConn = &APIConnServiceTest{}
@@ -239,7 +239,8 @@ func TestServices(t *testing.T) {
 
 	for _, test := range tests {
 		state := request.Request{
-			Req: &dns.Msg{Question: []dns.Question{{Name: test.qname, Qtype: test.qtype}}},
+			Req:  &dns.Msg{Question: []dns.Question{{Name: test.qname, Qtype: test.qtype}}},
+			Zone: "interwebs.test.", // must match from k.Zones[0]
 		}
 		svcs, _, e := k.Services(state, false, middleware.Options{})
 		if e != nil {

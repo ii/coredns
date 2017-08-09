@@ -23,6 +23,7 @@ type recordRequest struct {
 	federation string
 }
 
+// TODO(miek): make it use request.Request.
 func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16, zone ...string) (r recordRequest, err error) {
 	// 3 Possible cases
 	//   SRV Request: _port._protocol.service.namespace.[federation.]type.zone
@@ -33,6 +34,7 @@ func (k *Kubernetes) parseRequest(lowerCasedName string, qtype uint16, zone ...s
 	var segs []string
 
 	if len(zone) == 0 {
+		panic("blllal")
 		for _, z := range k.Zones {
 			if dns.IsSubDomain(z, lowerCasedName) {
 				r.zone = z

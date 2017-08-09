@@ -104,7 +104,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 			return nil, nil, errors.New("servfail")
 		}
 		if segs[0] != "dns-version" {
-			return nil, nil, errNameError
+			return nil, nil, errInvalidRequest
 		}
 		svc := msg.Service{Text: DNSSchemaVersion, TTL: 28800, Key: msg.Path(state.QName(), "coredns")}
 		return []msg.Service{svc}, nil, nil
