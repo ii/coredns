@@ -86,8 +86,6 @@ var (
 	errZoneNotFound   = errors.New("zone not found")
 	errAPIBadPodType  = errors.New("expected type *api.Pod")
 	errPodsDisabled   = errors.New("pod records disabled")
-	// miek
-	errNameError = errors.New("no such name")
 )
 
 // Services implements the ServiceBackend interface.
