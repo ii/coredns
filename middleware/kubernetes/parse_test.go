@@ -17,20 +17,41 @@ func expectString(t *testing.T, function, qtype, query string, r *recordRequest,
 }
 
 func TestParseRequest(t *testing.T) {
+	const zone = "intern.webs.tests."
 
-	var tcs map[string]string
-
-	zone := "intern.webs.tests."
 	k := Kubernetes{Zones: []string{zone}}
 	f := "parseRequest"
+	var tcs map[string]string
+
+	tests := []struct {
+		query    string
+		qtype    uint16
+		expected string // output from r.String()
+	}{
+		{
+			"_http._tcp.webs.mynamespace.svc.inter.webs.test.",
+			dns.TypeSRV,
+			"http.tcp..webs.mynamespace.svc.intern.webs.tests..",
+		},
+	}
+	for i, tc := range tests {
+		r, e := k.parseRequest(tc.query, tc.qtype, zone)
+		if e != nil {
+			t.Errorf("Test %d, expected no error, got '%v'.", i, e)
+		}
+		rs := r.String()
+		if rs != tc.expected {
+			t.Errorf("Test %d, expected (stringyfied) recordRequest: %s, got %s", tc.expected, rs)
+		}
+	}
 
 	// Test a valid SRV request
 	//
-	query := "_http._tcp.webs.mynamespace.svc.inter.webs.test."
-	r, e := k.parseRequest(query, dns.TypeSRV, zone)
-	if e != nil {
-		t.Errorf("Expected no error from parseRequest(%v, \"SRV\"). Instead got '%v'.", query, e)
-	}
+	var (
+		query string
+		r     recordRequest
+		e     error
+	)
 
 	tcs = map[string]string{
 		"port":      "http",
