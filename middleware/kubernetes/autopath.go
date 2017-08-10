@@ -9,6 +9,8 @@ import (
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
+// AutoPath implements the AutoPathFunc call from the autopath middleware.
+// It returns a per-query search path or an error indicating no searchpathing should happen.
 func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
 	// Check if the query falls in a zone we are actually authoriative for and thus if we want autopath.
 	zone := middleware.Zones(k.Zones).Matches(state.Name())
@@ -18,7 +20,7 @@ func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
 
 	ip := state.IP()
 
-	pod := k.PodWithIP(ip)
+	pod := k.podWithIP(ip)
 	if pod == nil {
 		return nil, fmt.Errorf("kubernetes: no pod found for %s", ip)
 	}
@@ -39,8 +41,8 @@ func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
 	return search, nil
 }
 
-// PodWithIP return the api.Pod for source IP ip. It return nil if nothing can be found.
-func (k *Kubernetes) PodWithIP(ip string) (p *api.Pod) {
+// podWithIP return the api.Pod for source IP ip. It returns nil if nothing can be found.
+func (k *Kubernetes) podWithIP(ip string) (p *api.Pod) {
 	objList := k.APIConn.PodIndex(ip)
 	for _, o := range objList {
 		p, ok := o.(*api.Pod)
