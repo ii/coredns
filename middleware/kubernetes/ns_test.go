@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
+
 type APIConnTest struct{}
 
 func (APIConnTest) Run()                          { return }
