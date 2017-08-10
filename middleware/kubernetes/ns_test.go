@@ -58,7 +58,7 @@ func TestDoCoreDNSRecord(t *testing.T) {
 	k.interfaceAddrsFunc = func() net.IP { return net.ParseIP("172.0.40.10") }
 	k.APIConn = &APIConnTest{}
 
-	cdr := k.coreDNSRecord()
+	cdr := k.nsAddr()
 	expected := "10.0.0.111"
 
 	if cdr.A.String() != expected {

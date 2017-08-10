@@ -14,7 +14,7 @@ import (
 // ns.dns.[zone] -> dns service ip. This A record is needed to legitimize
 // the SOA response in middleware.NS(), which is hardcoded at ns.dns.[zone].
 func (k *Kubernetes) defaultNSMsg(r recordRequest) msg.Service {
-	ns := k.coreDNSRecord()
+	ns := k.nsAddr()
 	s := msg.Service{
 		Key:  msg.Path(strings.Join([]string{defaultNSName, r.zone}, "."), "coredns"),
 		Host: ns.A.String(),
@@ -26,7 +26,7 @@ func isDefaultNS(name string, r recordRequest) bool {
 	return strings.Index(name, defaultNSName) == 0 && strings.Index(name, r.zone) == len(defaultNSName)
 }
 
-func (k *Kubernetes) coreDNSRecord() *dns.A {
+func (k *Kubernetes) nsAddr() *dns.A {
 	var (
 		svcName      string
 		svcNamespace string

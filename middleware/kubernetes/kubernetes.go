@@ -151,7 +151,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 }
 
 func (k *Kubernetes) recordsForNS(r recordRequest) msg.Service {
-	ns := k.coreDNSRecord()
+	ns := k.nsAddr()
 	return msg.Service{Host: ns.A.String(),
 		Key: msg.Path(strings.Join([]string{ns.Hdr.Name, r.zone}, "."), "coredns")}
 }
