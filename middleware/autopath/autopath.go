@@ -70,7 +70,7 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	searchpath := a.search
 	if a.searchFunc != nil {
 		searchpath, err = a.searchFunc(state)
-		if err != nil {
+		if len(searchpath) == 0 || err != nil {
 			return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 		}
 	}

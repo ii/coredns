@@ -25,15 +25,15 @@ func setup(c *caddy.Controller) error {
 		return middleware.Error("autopath", err)
 	}
 
+	// Do this in OnStartup, so all middleware has been initialized.
 	c.OnStartup(func() error {
-		// Do this in OnStartup, so all middleware has been initialized.
 		// TODO(miek): fabricate test to proof this is not thread safe.
-		m := dnsserver.GetMiddleware(c, mw)
-		switch mw {
-		case "kubernetes":
-			if k, ok := m.(kubernetes.Kubernetes); ok {
-				ap.searchFunc = k.AutoPath
-			}
+		m := dnsserver.GetConfig(c).GetHandler(mw)
+		if m == nil {
+			return nil
+		}
+		if k, ok := m.(kubernetes.Kubernetes); ok {
+			ap.searchFunc = k.AutoPath
 		}
 		return nil
 	})
@@ -46,6 +46,8 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
+// allowedMiddleware has a list of middleware that can be used by autopath. For this to work, they
+// need to register themselves with dnsserver.RegisterHandler.
 var allowedMiddleware = map[string]bool{
 	"@kubernetes": true,
 }
