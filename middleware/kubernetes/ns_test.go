@@ -7,7 +7,6 @@ import (
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
-
 type APIConnTest struct{}
 
 func (APIConnTest) Run()                          { return }
@@ -53,7 +52,7 @@ func (APIConnTest) EndpointsList() api.EndpointsList {
 
 func (APIConnTest) GetNodeByName(name string) (api.Node, error) { return api.Node{}, nil }
 
-func TestDoCoreDNSRecord(t *testing.T) {
+func TestNsAddr(t *testing.T) {
 
 	k := Kubernetes{Zones: []string{"inter.webs.test"}}
 	k.interfaceAddrsFunc = func() net.IP { return net.ParseIP("172.0.40.10") }
