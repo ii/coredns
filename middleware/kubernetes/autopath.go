@@ -1,8 +1,6 @@
 package kubernetes
 
 import (
-	"fmt"
-
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/request"
 
@@ -10,19 +8,19 @@ import (
 )
 
 // AutoPath implements the AutoPathFunc call from the autopath middleware.
-// It returns a per-query search path or an error indicating no searchpathing should happen.
-func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
+// It returns a per-query search path or nil indicating no searchpathing should happen.
+func (k *Kubernetes) AutoPath(state request.Request) []string {
 	// Check if the query falls in a zone we are actually authoriative for and thus if we want autopath.
 	zone := middleware.Zones(k.Zones).Matches(state.Name())
 	if zone == "" {
-		return nil, fmt.Errorf("kubernetes: no authoriative for %s", state.Name())
+		return nil
 	}
 
 	ip := state.IP()
 
 	pod := k.podWithIP(ip)
 	if pod == nil {
-		return nil, fmt.Errorf("kubernetes: no pod found for %s", ip)
+		return nil
 	}
 
 	search := make([]string, 3)
@@ -38,7 +36,7 @@ func (k *Kubernetes) AutoPath(state request.Request) ([]string, error) {
 
 	search = append(search, k.autoPathSearch...)
 	search = append(search, "") // sentinal
-	return search, nil
+	return search
 }
 
 // podWithIP return the api.Pod for source IP ip. It returns nil if nothing can be found.
