@@ -125,33 +125,16 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		return nil, nil, e
 	}
 
-	switch state.QType() {
-	case dns.TypeA, dns.TypeAAAA, dns.TypeCNAME:
-		if state.Type() == "A" && isDefaultNS(state.Name(), r) {
-			// If this is an A request for "ns.dns", respond with a "fake" record for coredns.
-			// SOA records always use this hardcoded name
-			ns := k.nsAddr()
-			svc := msg.Service{Host: ns.A.String(), Key: msg.Path(state.QName(), "coredns")}
-			return []msg.Service{svc}, nil, nil
-		}
-		s, e := k.Entries(r)
-		if state.QType() == dns.TypeAAAA {
-			// AAAA not implemented
-			return nil, nil, e
-		}
-		return s, nil, e // Haven't implemented debug queries yet.
-	case dns.TypeSRV:
-		s, e := k.Entries(r)
-		// SRV for external services is not yet implemented, so remove those records
-		noext := []msg.Service{}
-		for _, svc := range s {
-			if t, _ := svc.HostType(); t != dns.TypeCNAME {
-				noext = append(noext, svc)
-			}
-		}
-		return noext, nil, e
+	if state.QType() == dns.TypeA && isDefaultNS(state.Name(), r) {
+		// If this is an A request for "ns.dns", respond with a "fake" record for coredns.
+		// SOA records always use this hardcoded name
+		ns := k.nsAddr()
+		svc := msg.Service{Host: ns.A.String(), Key: msg.Path(state.QName(), "coredns")}
+		return []msg.Service{svc}, nil, nil
 	}
-	return nil, nil, nil
+
+	s, e := k.Entries(r)
+	return s, nil, e // TODO(...): debug queries?
 }
 
 // primaryZone will return the first non-reverse zone being handled by this middleware
