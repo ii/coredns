@@ -91,16 +91,16 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 				return nil, errors.New("zone name must be provided for kubernetes middleware")
 			}
 
-			k8s.primaryZone = -1
+			k8s.primaryZoneIndex = -1
 			for i, z := range k8s.Zones {
 				if strings.HasSuffix(z, "in-addr.arpa.") || strings.HasSuffix(z, "ip6.arpa.") {
 					continue
 				}
-				k8s.primaryZone = i
+				k8s.primaryZoneIndex = i
 				break
 			}
 
-			if k8s.primaryZone == -1 {
+			if k8s.primaryZoneIndex == -1 {
 				return nil, errors.New("non-reverse zone name must be given for Kubernetes")
 			}
 
@@ -226,8 +226,4 @@ func searchFromResolvConf() []string {
 	return rc.Search
 }
 
-const (
-	defaultResyncPeriod = 5 * time.Minute
-	defautNdots         = 0
-	defaultOnNXDOMAIN   = dns.RcodeSuccess
-)
+const defaultResyncPeriod = 5 * time.Minute
