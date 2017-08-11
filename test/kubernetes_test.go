@@ -470,6 +470,7 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 		}
 
 		if len(res.Answer) != len(tc.Answer) {
+			t.Logf("%v\n", res)
 			t.Errorf("Expected %d answers but got %d for query %s, %d", len(tc.Answer), len(res.Answer), tc.Qname, tc.Qtype)
 		}
 
