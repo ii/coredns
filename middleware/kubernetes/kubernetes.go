@@ -98,6 +98,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 
 	// We're looking again at types, which we've already done in ServeDNS, but there are some types k8s just can't answer.
 	switch state.QType() {
+
 	case dns.TypeTXT:
 		// 1 label + zone, label must be "dns-version".
 		t, err := dnsutil.TrimZone(state.Name(), state.Zone)
@@ -113,6 +114,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		}
 		svc := msg.Service{Text: DNSSchemaVersion, TTL: 28800, Key: msg.Path(state.QName(), "coredns")}
 		return []msg.Service{svc}, nil, nil
+
 	case dns.TypeNS:
 		// We can only get here if the qname equal the zone, see ServeDNS in handler.go.
 		ns := k.nsAddr()
