@@ -120,12 +120,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		return []msg.Service{svc}, nil, nil
 	}
 
-	r, e := k.parseRequest(state)
-	if e != nil {
-		return nil, nil, e
-	}
-
-	if state.QType() == dns.TypeA && isDefaultNS(state.Name(), r) {
+	if state.QType() == dns.TypeA && isDefaultNS(state.Name(), state.Zone) {
 		// If this is an A request for "ns.dns", respond with a "fake" record for coredns.
 		// SOA records always use this hardcoded name
 		ns := k.nsAddr()
@@ -133,7 +128,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		return []msg.Service{svc}, nil, nil
 	}
 
-	s, e := k.Entries(r)
+	s, e := k.Entries(state)
 	return s, nil, e // TODO(...): debug queries?
 }
 
@@ -248,7 +243,7 @@ func (k *Kubernetes) InitKubeCache() (err error) {
 
 	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return fmt.Errorf("failed to create kubernetes notification controller: %v", err)
+		return fmt.Errorf("failed to create kubernetes notification controller: %q", err)
 	}
 
 	if k.LabelSelector != nil {
@@ -256,12 +251,12 @@ func (k *Kubernetes) InitKubeCache() (err error) {
 		selector, err = unversionedapi.LabelSelectorAsSelector(k.LabelSelector)
 		k.Selector = &selector
 		if err != nil {
-			return fmt.Errorf("unable to create Selector for LabelSelector '%s'.Error was: %s", k.LabelSelector, err)
+			return fmt.Errorf("unable to create Selector for LabelSelector '%s': %q", k.LabelSelector, err)
 		}
 	}
 
 	if k.LabelSelector != nil {
-		log.Printf("[INFO] Kubernetes middleware configured with the label selector '%s'. Only kubernetes objects matching this label selector will be exposed.", unversionedapi.FormatLabelSelector(k.LabelSelector))
+		log.Printf("[INFO] Kubernetes has label selector '%s'. Only objects matching this label selector will be exposed.", unversionedapi.FormatLabelSelector(k.LabelSelector))
 	}
 
 	opts := dnsControlOpts{
@@ -272,18 +267,21 @@ func (k *Kubernetes) InitKubeCache() (err error) {
 	return err
 }
 
-// Records not implemented, see Entries().
+// Records is not implemented.
 func (k *Kubernetes) Records(name string, exact bool) ([]msg.Service, error) {
-	return nil, fmt.Errorf("NOOP")
+	return nil, fmt.Errorf("not implemented")
 }
 
-// Entries looks up services in kubernetes. If exact is true, it will lookup
-// just this name. This is used when find matches when completing SRV lookups
-// for instance.
-func (k *Kubernetes) Entries(r recordRequest) ([]msg.Service, error) {
+// Entries looks up services in kubernetes.
+func (k *Kubernetes) Entries(state request.Request) ([]msg.Service, error) {
+	r, e := k.parseRequest(state)
+	if e != nil {
+		return nil, e
+	}
 
-	// Abort if the namespace does not contain a wildcard, and namespace is not published per CoreFile
-	// Case where namespace contains a wildcard is handled in Get(...) method.
+	// Abort if the namespace does not contain a wildcard, and namespace is
+	// not published per CoreFile Case where namespace contains a wildcard
+	// is handled in Get(...) method.
 	if (!wildcard(r.namespace)) && (len(k.Namespaces) > 0) && (!dnsstrings.StringInSlice(r.namespace, k.Namespaces)) {
 		return nil, errNsNotExposed
 	}
