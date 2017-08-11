@@ -10,8 +10,17 @@ to deploy CoreDNS in Kubernetes](https://github.com/coredns/deployment/tree/mast
 
 ## Syntax
 
+~~~
+kubernetes [ZONES...]
+~~~
+
+With only the directive specified, the *kubernetes* middleware will default to the zone specified in
+the server's block. It will handle all queries in that zone and connect to Kubernetes in-cluster. It
+will not provide PTR records for services, or A records for pods. If **ZONES** is used is specifies
+all the zones the middleware should be authoritative for.
+
 ```
-kubernetes ZONE [ZONE...] [
+kubernetes [ZONES...] {
 	resyncperiod DURATION
 	endpoint URL
 	tls CERT KEY CACERT]
@@ -23,7 +32,6 @@ kubernetes ZONE [ZONE...] [
 	fallthrough
 }
 ```
-
 * `resyncperiod` specifies the Kubernetes data API **DURATION** period.
 * `endpoint` specifies the **URL** for a remove k8s API endpoint.
    If omitted, it will connect to k8s in-cluster using the cluster service account.
