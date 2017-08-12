@@ -130,7 +130,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 
 	s, e := k.Entries(state)
 
-	// Filter out sevices that point to external ones.
+	// Filter out sevices  that point to external ones.
 	// TODO(chris): SRV for external services is not yet implemented.
 	internal := []msg.Service{}
 	for _, srv := range s {
@@ -139,7 +139,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 		}
 	}
 
-	return s, nil, e // TODO(...): debug queries?
+	return internal, nil, e
 }
 
 // primaryZone will return the first non-reverse zone being handled by this middleware
