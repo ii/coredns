@@ -101,16 +101,14 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 
 	case dns.TypeTXT:
 		// 1 label + zone, label must be "dns-version".
-		t, err := dnsutil.TrimZone(state.Name(), state.Zone)
-		if err != nil {
-			return nil, nil, err
-		}
+		t, _ := dnsutil.TrimZone(state.Name(), state.Zone)
+
 		segs := dns.SplitDomainName(t)
 		if len(segs) != 1 {
-			return nil, nil, errors.New("servfail")
+			return nil, nil, fmt.Errorf("kubernetes: TXT query can only be for dns-version: ", state.QName())
 		}
 		if segs[0] != "dns-version" {
-			return nil, nil, errInvalidRequest
+			return nil, nil, nil
 		}
 		svc := msg.Service{Text: DNSSchemaVersion, TTL: 28800, Key: msg.Path(state.QName(), "coredns")}
 		return []msg.Service{svc}, nil, nil
@@ -131,6 +129,16 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 	}
 
 	s, e := k.Entries(state)
+
+	// Filter out sevices that point to external ones.
+	// TODO(chris): SRV for external services is not yet implemented.
+	internal := []msg.Service{}
+	for _, srv := range s {
+		if t, _ := srv.HostType(); t != dns.TypeCNAME {
+			internal = append(internal, srv)
+		}
+	}
+
 	return s, nil, e // TODO(...): debug queries?
 }
 
@@ -281,12 +289,10 @@ func (k *Kubernetes) Entries(state request.Request) ([]msg.Service, error) {
 		return nil, e
 	}
 
-	// Abort if the namespace does not contain a wildcard, and namespace is
-	// not published per CoreFile Case where namespace contains a wildcard
-	// is handled in Get(...) method.
-	if (!wildcard(r.namespace)) && (len(k.Namespaces) > 0) && (!dnsstrings.StringInSlice(r.namespace, k.Namespaces)) {
+	if !k.namespaceExposed(r.namespace) {
 		return nil, errNsNotExposed
 	}
+
 	services, pods, err := k.get(r)
 	if err != nil {
 		return nil, err
@@ -303,7 +309,6 @@ func (k *Kubernetes) Entries(state request.Request) ([]msg.Service, error) {
 	}
 
 	records := k.getRecordsForK8sItems(services, pods, r)
-
 	return records, nil
 }
 
@@ -446,6 +451,7 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 		if !(match(r.namespace, svc.Namespace, nsWildcard) && match(r.service, svc.Name, serviceWildcard)) {
 			continue
 		}
+
 		// If namespace has a wildcard, filter results against Corefile namespace list.
 		// (Namespaces without a wildcard were filtered before the call to this function.)
 		if nsWildcard && (len(k.Namespaces) > 0) && (!dnsstrings.StringInSlice(svc.Namespace, k.Namespaces)) {
@@ -543,26 +549,20 @@ func (k *Kubernetes) getServiceRecordForIP(ip, name string) []msg.Service {
 	return nil
 }
 
+// namespaceExposed returns true when the namespace is exposed.
+func (k *Kubernetes) namespaceExposed(namespace string) bool {
+	// Abort if the namespace does not contain a wildcard, and namespace is
+	// not published per CoreFile Case where namespace contains a wildcard
+	// is handled in k.get(...) method.
+	if (!wildcard(namespace)) && (len(k.Namespaces) > 0) && (!dnsstrings.StringInSlice(namespace, k.Namespaces)) {
+		return false
+	}
+	return true
+}
+
 // wildcard checks whether s contains a wildcard value
 func wildcard(s string) bool {
 	return (s == "*" || s == "any")
-}
-
-func localPodIP() net.IP {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return nil
-	}
-
-	for _, addr := range addrs {
-		ip, _, _ := net.ParseCIDR(addr.String())
-		ip = ip.To4()
-		if ip == nil || ip.IsLoopback() {
-			continue
-		}
-		return ip
-	}
-	return nil
 }
 
 const (
