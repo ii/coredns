@@ -565,23 +565,6 @@ func wildcard(s string) bool {
 	return (s == "*" || s == "any")
 }
 
-func localPodIP() net.IP {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return nil
-	}
-
-	for _, addr := range addrs {
-		ip, _, _ := net.ParseCIDR(addr.String())
-		ip = ip.To4()
-		if ip == nil || ip.IsLoopback() {
-			continue
-		}
-		return ip
-	}
-	return nil
-}
-
 const (
 	// Svc is the DNS schema for kubernetes services
 	Svc = "svc"
