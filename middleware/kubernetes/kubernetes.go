@@ -130,16 +130,7 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 
 	s, e := k.Entries(state)
 
-	// Filter out sevices  that point to external ones.
-	// TODO(chris): SRV for external services is not yet implemented.
-	internal := []msg.Service{}
-	for _, srv := range s {
-		if t, _ := srv.HostType(); t != dns.TypeCNAME {
-			internal = append(internal, srv)
-		}
-	}
-
-	return internal, nil, e
+	return s, nil, e
 }
 
 // primaryZone will return the first non-reverse zone being handled by this middleware
