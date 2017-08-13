@@ -5,7 +5,12 @@ import (
 	"strings"
 
 	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/request"
 )
+
+func (k *Kubernetes) FederationsDoItNowPlease(state request.Request) string {
+	return "TODO and differently"
+}
 
 // Federation holds TODO(...).
 type Federation struct {

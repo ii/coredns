@@ -5,6 +5,7 @@ import (
 
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/kubernetes"
 	"github.com/miekg/dns"
 
 	"github.com/mholt/caddy"
@@ -22,6 +23,20 @@ func setup(c *caddy.Controller) error {
 	if err != nil {
 		return middleware.Error("federation", err)
 	}
+
+	// Do this in OnStartup, so all middleware has been initialized.
+	c.OnStartup(func() error {
+		// TODO(miek): fabricate test to proof this is not thread safe.
+		m := dnsserver.GetConfig(c).GetHandler("chaos")
+		if m == nil {
+			return nil
+		}
+		if k, ok := m.(kubernetes.Kubernetes); ok {
+			fed.Federations = k.FederationsDoItNowPlease
+		}
+		return nil
+	})
+
 	dnsserver.GetConfig(c).AddMiddleware(func(next middleware.Handler) middleware.Handler {
 		fed.Next = next
 		return nil
