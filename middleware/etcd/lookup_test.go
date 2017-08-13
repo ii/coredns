@@ -16,6 +16,7 @@ import (
 	"github.com/coredns/coredns/middleware/proxy"
 	"github.com/coredns/coredns/middleware/test"
 
+	etcdc "github.com/coreos/etcd/client"
 	"github.com/miekg/dns"
 )
 
