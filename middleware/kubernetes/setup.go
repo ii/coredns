@@ -3,8 +3,6 @@ package kubernetes
 import (
 	"errors"
 	"fmt"
-	"log"
-	"net"
 	"strings"
 	"time"
 
@@ -97,29 +95,11 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 			}
 
 			if k8s.primaryZoneIndex == -1 {
-				return nil, errors.New("non-reverse zone name must be given for Kubernetes")
+				return nil, errors.New("non-reverse zone name must be used")
 			}
 
 			for c.NextBlock() {
 				switch c.Val() {
-				case "cidrs":
-
-					// DEPRECATION WARNING
-					log.Printf("[WARNING] \"cidrs\" will be removed for CoreDNS soon. See https://coredns.io/2017/07/23/corefile-explained#reverse-zones for the replacement")
-
-					args := c.RemainingArgs()
-					if len(args) > 0 {
-						for _, cidrStr := range args {
-							_, cidr, err := net.ParseCIDR(cidrStr)
-							if err != nil {
-								return nil, fmt.Errorf("invalid cidr: %s", cidrStr)
-							}
-							k8s.ReverseCidrs = append(k8s.ReverseCidrs, *cidr)
-
-						}
-						continue
-					}
-					return nil, c.ArgErr()
 				case "pods":
 					args := c.RemainingArgs()
 					if len(args) == 1 {
@@ -195,16 +175,6 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 						return nil, err
 					}
 					k8s.Proxy = proxy.NewLookup(ups)
-				case "federation": // name zone
-					args := c.RemainingArgs()
-					if len(args) == 2 {
-						k8s.Federations = append(k8s.Federations, Federation{
-							name: args[0],
-							zone: args[1],
-						})
-						continue
-					}
-					return nil, fmt.Errorf("incorrect number of arguments for federation, got %v, expected 2", len(args))
 				}
 			}
 			return k8s, nil
