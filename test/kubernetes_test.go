@@ -3,6 +3,8 @@
 package test
 
 import (
+	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -12,6 +14,10 @@ import (
 	"github.com/mholt/caddy"
 	"github.com/miekg/dns"
 )
+
+func init() {
+	log.SetOutput(ioutil.Discard)
+}
 
 // Test data
 // TODO: Fix the actual RR values
