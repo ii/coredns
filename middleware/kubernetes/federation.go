@@ -9,7 +9,7 @@ import (
 )
 
 func (k *Kubernetes) FederationsDoItNowPlease(state request.Request) ([]msg.Service, error) {
-	return []msg.Service{msg.Service{Host: "TODO"}}, nil
+	return []msg.Service{{Host: "TODO"}}, nil
 }
 
 // Federation holds TODO(...).
