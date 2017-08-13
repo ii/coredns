@@ -226,13 +226,6 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "next-in-chain.", Qtype: dns.TypeA,
-		Rcode: dns.RcodeSuccess,
-		Answer: []dns.RR{
-			test.A("next-in-chain.              0       IN      A       192.0.2.53"),
-		},
-	},
-	{
 		Qname: "cluster.local.", Qtype: dns.TypeNS,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
