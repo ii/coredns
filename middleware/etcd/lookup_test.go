@@ -11,10 +11,10 @@ import (
 
 	"github.com/coredns/coredns/middleware/etcd/msg"
 	"github.com/coredns/coredns/middleware/pkg/dnsrecorder"
+	"github.com/coredns/coredns/middleware/pkg/singleflight"
 	"github.com/coredns/coredns/middleware/pkg/tls"
 	"github.com/coredns/coredns/middleware/proxy"
 	"github.com/coredns/coredns/middleware/test"
-	"github.com/skynetservices/skydns/singleflight"
 
 	"github.com/miekg/dns"
 )
