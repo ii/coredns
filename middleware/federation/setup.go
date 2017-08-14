@@ -32,8 +32,7 @@ func setup(c *caddy.Controller) error {
 			return nil
 		}
 		if k, ok := m.(kubernetes.Kubernetes); ok {
-			fed.Federations = k.FederationsDoItNowPlease
-			//fed.Federations = k.Federations // Can't use this now as k.Federations is a struct field
+			fed.Federations = k.Federations
 		}
 		return nil
 	})
