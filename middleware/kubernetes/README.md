@@ -108,7 +108,19 @@ be set to `verified` for this to function properly.
 
 ## Federation
 
-... TODO...
+The *kubernetes* middleware can be used in conjunction with the *federation* middleware.  Using this
+feature enables serving federated domains from the kubernetes clusters.
+
+    cluster.local {
+        federation {
+            fallthrough
+            prod prod.example.org
+            staging staging.example.org
+
+        }
+        kubernetes
+    }
+
 
 ## Wildcards
 
