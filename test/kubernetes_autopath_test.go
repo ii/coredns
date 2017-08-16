@@ -9,7 +9,7 @@ import (
 )
 
 func TestLookupAutoPathKubernetes(t *testing.T) {
-	corefile := `cluster.local {
+	corefile := `cluster.local:0 {
 		kubernetes {
                 endpoint http://localhost:8080
 		namespaces test-1
