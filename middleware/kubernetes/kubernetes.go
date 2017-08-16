@@ -128,11 +128,13 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 	}
 
 	s, e := k.Entries(state)
-	if state.Qtype() != dns.TypeSRV {
+
+	// SRV for external services is not yet implemented, so remove those records.
+
+	if state.QType() != dns.TypeSRV {
 		return s, nil, e
 	}
 
-	// SRV for external services is not yet implemented, so remove those records.
 	internal := []msg.Service{}
 	for _, svc := range s {
 		if t, _ := svc.HostType(); t != dns.TypeCNAME {
