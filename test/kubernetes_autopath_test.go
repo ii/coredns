@@ -30,12 +30,10 @@ func TestLookupAutoPathKubernetes(t *testing.T) {
 	}
 	defer i.Stop()
 
-	addr := "127.0.0.1:" + udp
-
 	m := new(dns.Msg)
 	m.SetQuestion("google.com", dns.TypeA)
 
-	r, err := dns.Exchange(m, addr)
+	r, err := dns.Exchange(m, udp)
 	if err != nil {
 		t.Fatalf("Failed to sent query: %q", err)
 	}
