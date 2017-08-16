@@ -128,8 +128,19 @@ func (k *Kubernetes) Services(state request.Request, exact bool, opt middleware.
 	}
 
 	s, e := k.Entries(state)
+	if state.Qtype() != dns.TypeSRV {
+		return s, nil, e
+	}
 
-	return s, nil, e
+	// SRV for external services is not yet implemented, so remove those records.
+	internal := []msg.Service{}
+	for _, svc := range s {
+		if t, _ := svc.HostType(); t != dns.TypeCNAME {
+			internal = append(internal, svc)
+		}
+	}
+
+	return internal, nil, e
 }
 
 // primaryZone will return the first non-reverse zone being handled by this middleware
@@ -227,9 +238,11 @@ func (k *Kubernetes) getClientConfig() (*rest.Config, error) {
 	if len(k.APIClientKey) > 0 {
 		authinfo.ClientKey = k.APIClientKey
 	}
+
 	overrides.ClusterInfo = clusterinfo
 	overrides.AuthInfo = authinfo
 	clientConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides)
+
 	return clientConfig.ClientConfig()
 }
 
