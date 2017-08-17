@@ -9,8 +9,8 @@ import (
 )
 
 func TestLookupAutoPathKubernetes(t *testing.T) {
-	corefile := `cluster.local:0 {
-		kubernetes {
+	corefile := `.:0 {
+		kubernetes cluster.local {
                 endpoint http://localhost:8080
 		namespaces test-1
 		pods insecure
