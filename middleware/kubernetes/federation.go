@@ -21,23 +21,28 @@ const (
 	labelRegion = "failure-domain.beta.kubernetes.io/region"
 )
 
-func (k *Kubernetes) Federations(state request.Request, fzone string) ([]msg.Service, error) {
+type FederationFunc func(state request.Request) (msg.Service, error)
+
+// Federations is used from the federations middleware to return the service that should be
+// returned as a CNAME for federation to work.
+func (k *Kubernetes) Federations(state request.Request) (msg.Service, error) {
 	nodeName := k.localNodeName()
 	node, err := k.APIConn.GetNodeByName(nodeName)
 	if err != nil {
 		return msg.Service{}, err
 	}
+	r, err := k.parseRequest(state)
 
 	if r.endpoint == "" {
 		s := msg.Service{
-			Key:  strings.Join([]string{msg.Path(r.zone, "coredns"), r.podOrSvc, fzone, r.namespace, r.service}, "/"),
-			Host: strings.Join([]string{r.service, r.namespace, fzone, r.podOrSvc, node.Labels[labelZone], node.Labels[labelRegion], f.zone}, "."),
+			Key:  strings.Join([]string{msg.Path(r.zone, "coredns"), r.podOrSvc, state.Zone, r.namespace, r.service}, "/"),
+			Host: strings.Join([]string{r.service, r.namespace, state.Zone, r.podOrSvc, node.Labels[labelZone], node.Labels[labelRegion], state.Zone}, "."),
 		}
 		return s, nil
 	}
 	s := msg.Service{
-		Key:  strings.Join([]string{msg.Path(r.zone, "coredns"), r.podOrSvc, fzone, r.namespace, r.service, r.endpoint}, "/"),
-		Host: strings.Join([]string{r.endpoint, r.service, r.namespace, fzone, r.podOrSvc, node.Labels[labelZone], node.Labels[labelRegion], f.zone}, "."),
+		Key:  strings.Join([]string{msg.Path(r.zone, "coredns"), r.podOrSvc, state.Zone, r.namespace, r.service, r.endpoint}, "/"),
+		Host: strings.Join([]string{r.endpoint, r.service, r.namespace, state.Zone, r.podOrSvc, node.Labels[labelZone], node.Labels[labelRegion], state.Zone}, "."),
 	}
 	return s, nil
 }
