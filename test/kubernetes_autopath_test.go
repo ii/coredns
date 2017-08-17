@@ -31,7 +31,7 @@ func TestLookupAutoPathKubernetes(t *testing.T) {
 	defer i.Stop()
 
 	m := new(dns.Msg)
-	m.SetQuestion("google.com", dns.TypeA)
+	m.SetQuestion("google.com.", dns.TypeA)
 
 	r, err := dns.Exchange(m, udp)
 	if err != nil {
