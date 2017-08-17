@@ -26,13 +26,12 @@ func setup(c *caddy.Controller) error {
 
 	// Do this in OnStartup, so all middleware has been initialized.
 	c.OnStartup(func() error {
-		// TODO(miek): fabricate test to proof this is not thread safe.
-		m := dnsserver.GetConfig(c).GetHandler("chaos")
+		m := dnsserver.GetConfig(c).GetHandler("kubernetes")
 		if m == nil {
 			return nil
 		}
-		if k, ok := m.(kubernetes.Kubernetes); ok {
-			fed.Federations = k.Federations
+		if x, ok := m.(kubernetes.Kubernetes); ok {
+			fed.Federations = x.Federations
 		}
 		return nil
 	})
@@ -45,7 +44,7 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
-func federationParse(c *caddy.Controller) (Federation, error) {
+func federationParse(c *caddy.Controller) (*Federation, error) {
 	fed := New()
 
 	for c.Next() {

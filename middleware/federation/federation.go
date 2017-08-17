@@ -1,3 +1,11 @@
+/*
+The federation package implements kubernetes federation. It checks if the qname matches
+a possible federation. If this is the case and the captured answer is an NXDOMAIN,
+federation is performed. If this is not the case the next middleware in the chain
+is called.
+
+Federation is only useful in conjunction with the kubernetes middleware, without it is a noop.
+*/
 package federation
 
 import (
@@ -24,12 +32,11 @@ type Federation struct {
 // federation. Right now this is only the kubernetes middleware.
 type FederationFunc func(state request.Request) ([]msg.Service, error)
 
-func New() Federation {
-	return Federation{f: make(map[string]string)}
+func New() *Federation {
+	return &Federation{f: make(map[string]string)}
 }
 
-func (f Federation) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
-
+func (f *Federation) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	// Kubernetes is not loaded, we can't get to the data.
 	if f.Federations == nil {
 		if f.Fallthrough {
@@ -77,4 +84,4 @@ func (f Federation) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.M
 	return dns.RcodeSuccess, nil
 }
 
-func (f Federation) Name() string { return "federation" }
+func (f *Federation) Name() string { return "federation" }
