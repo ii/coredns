@@ -67,6 +67,7 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 
 	zone := middleware.Zones(a.Zones).Matches(state.Name())
 	if zone == "" {
+		println("NO ZONE FOUND")
 		return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 	}
 
@@ -77,6 +78,7 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	if a.searchFunc != nil {
 		searchpath = a.searchFunc(state)
 		if len(searchpath) == 0 {
+			println("NO SEARCH PATH FOUND")
 			return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 		}
 	}
