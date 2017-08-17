@@ -1,8 +1,6 @@
 package kubernetes
 
 import (
-	"fmt"
-
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/request"
 
@@ -35,9 +33,6 @@ func (k *Kubernetes) AutoPath(state request.Request) []string {
 		search[1] = "svc." + zone
 		search[2] = zone
 	}
-
-	// TODO(miek): Remove before merge
-	fmt.Printf("SEARCHPATH: %v\n", search)
 
 	search = append(search, k.autoPathSearch...)
 	search = append(search, "") // sentinal

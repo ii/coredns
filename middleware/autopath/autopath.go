@@ -34,6 +34,7 @@ func (m Middleware ) AutoPath(state request.Request) []string {
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
@@ -70,26 +71,30 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 		return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 	}
 
-	// Check if autopath should be done, searchFunc takes precedence over the local configured
-	// search path.
+	// Check if autopath should be done, searchFunc takes precedence over the local configured search path.
 	var err error
 	searchpath := a.search
+
 	if a.searchFunc != nil {
 		searchpath = a.searchFunc(state)
+		fmt.Printf("search %v\n", searchpath)
 		if len(searchpath) == 0 {
 			return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 		}
 	}
+	if len(searchpath) == 0 {
+		// This means no manual searchpath was set, nor that the SearchFunc was called correctly?
+		panic("middleware/autopath: no searchpath defined")
+	}
 
-	match := a.FirstInSearchPath(state.Name())
-	if !match {
+	if !firstInSearchPath(state.Name(), searchpath) {
 		return middleware.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 	}
 
 	origQName := state.QName()
 
 	// Establish base name of the query. I.e what was originally asked.
-	base, err := dnsutil.TrimZone(state.QName(), a.search[0]) // TODO(miek): we loose the original case of the query here.
+	base, err := dnsutil.TrimZone(state.QName(), searchpath[0]) // TODO(miek): we loose the original case of the query here.
 	if err != nil {
 		return dns.RcodeServerFailure, err
 	}
@@ -140,16 +145,16 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	return firstRcode, firstErr
 }
 
-// FirstInSearchPath checks if name is equal to are a sibling of the first element in the search path.
-func (a *AutoPath) FirstInSearchPath(name string) bool {
-	if name == a.search[0] {
+// Name implements the Handler interface.
+func (a *AutoPath) Name() string { return "autopath" }
+
+// firstInSearchPath checks if name is equal to are a sibling of the first element in the search path.
+func firstInSearchPath(name string, searchpath []string) bool {
+	if name == searchpath[0] {
 		return true
 	}
-	if dns.IsSubDomain(a.search[0], name) {
+	if dns.IsSubDomain(searchpath[0], name) {
 		return true
 	}
 	return false
 }
-
-// Name implements the Handler interface.
-func (a *AutoPath) Name() string { return "autopath" }
