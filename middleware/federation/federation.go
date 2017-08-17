@@ -11,6 +11,7 @@ package federation
 import (
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
@@ -55,6 +56,7 @@ func (f *Federation) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 	}
 
 	state.Zone = zone
+
 	services, err := f.Federations(state)
 
 	if err != nil {
@@ -85,3 +87,20 @@ func (f *Federation) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 }
 
 func (f *Federation) Name() string { return "federation" }
+
+// IsNameFederation checks the qname to see if it is a potential federation. The federation
+// label is always the 2nd to last once the zone is chopped of. For instance
+// "nginx.mynamespace.myfederation.svc.example.com' has myfederation as the federation label.
+// IsNameFederation returns the label that matches any of the configured federation names or the
+// empty string if nothing is found.
+func (f *Federation) isNameFederation(state request.Request) string {
+	base, _ := dnsutil.TrimZone(state.Name(), state.Zone)
+	// prevlabel twice, check segment
+	fed := "bla"
+
+
+	for name, _ := range f.f {
+		if name == fed
+		}
+	}
+}
