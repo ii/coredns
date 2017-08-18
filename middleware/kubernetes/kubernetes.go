@@ -306,7 +306,7 @@ func (k *Kubernetes) Entries(state request.Request) ([]msg.Service, error) {
 		return nil, e
 	}
 
-	if !k.namespaceExposed(r.namespace) {
+	if !wildcard(r.namespace) && !k.namespaceExposed(r.namespace) {
 		return nil, errNsNotExposed
 	}
 
@@ -401,11 +401,11 @@ func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error
 			return nil, errAPIBadPodType
 		}
 		// If namespace has a wildcard, filter results against Corefile namespace list.
-		if wildcard(namespace) && !k.namespaceExposed2(p.Namespace) {
+		if wildcard(namespace) && !k.namespaceExposed(p.Namespace) {
 			continue
 		}
 		// check for matching ip and namespace
-		if ip == p.Status.PodIP && match2(namespace, p.Namespace) {
+		if ip == p.Status.PodIP && match(namespace, p.Namespace) {
 			s := kPod{name: podname, namespace: namespace, addr: ip}
 			pods = append(pods, s)
 			return pods, nil
@@ -416,8 +416,8 @@ func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error
 
 // get retrieves matching data from the cache.
 func (k *Kubernetes) get(r recordRequest) (services []kService, pods []kPod, err error) {
-	switch {
-	case r.podOrSvc == Pod:
+	switch r.podOrSvc {
+	case Pod:
 		pods, err = k.findPods(r.namespace, r.service)
 		return nil, pods, err
 	default:
@@ -430,19 +430,14 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 	serviceList := k.APIConn.ServiceList()
 	var resultItems []kService
 
-	nsWildcard := wildcard(r.namespace)
-	serviceWildcard := wildcard(r.service)
-	portWildcard := wildcard(r.port) || r.port == ""
-	protocolWildcard := wildcard(r.protocol) || r.protocol == ""
-
 	for _, svc := range serviceList {
-		if !(match(r.namespace, svc.Namespace, nsWildcard) && match(r.service, svc.Name, serviceWildcard)) {
+		if !(match(r.namespace, svc.Namespace) && match(r.service, svc.Name)) {
 			continue
 		}
 
 		// If namespace has a wildcard, filter results against Corefile namespace list.
 		// (Namespaces without a wildcard were filtered before the call to this function.)
-		if nsWildcard && !k.namespaceExposed2(svc.Namespace) {
+		if wildcard(r.namespace) && !k.namespaceExposed(svc.Namespace) {
 			continue
 		}
 		s := kService{name: svc.Name, namespace: svc.Namespace}
@@ -462,7 +457,7 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 							if r.endpoint != "" && r.endpoint != ephostname {
 								continue
 							}
-							if !(match(r.port, p.Name, portWildcard) && match(r.protocol, string(p.Protocol), protocolWildcard)) {
+							if !(match(r.port, p.Name) && match(r.protocol, string(p.Protocol))) {
 								continue
 							}
 							s.endpoints = append(s.endpoints, endpoint{addr: addr, port: p})
@@ -486,7 +481,7 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 		// ClusterIP service
 		s.addr = svc.Spec.ClusterIP
 		for _, p := range svc.Spec.Ports {
-			if !(match(r.port, p.Name, portWildcard) && match(r.protocol, string(p.Protocol), protocolWildcard)) {
+			if !(match(r.port, p.Name) && match(r.protocol, string(p.Protocol))) {
 				continue
 			}
 			s.ports = append(s.ports, p)
@@ -498,15 +493,7 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 }
 
 // match checks if a and b are equal taking wildcards into account.
-func match(a, b string, wc bool) bool {
-	if wc {
-		println(wildcard(a), wildcard(b))
-		return true
-	}
-	return strings.EqualFold(a, b)
-}
-
-func match2(a, b string) bool {
+func match(a, b string) bool {
 	if wildcard(a) {
 		return true
 	}
@@ -521,14 +508,14 @@ func wildcard(s string) bool {
 	return s == "*" || s == "any"
 }
 
-// getServiceRecordForIP: Gets a service record with a cluster ip matching the ip argument
+// serviceRecordForIP gets a service record with a cluster ip matching the ip argument
 // If a service cluster ip does not match, it checks all endpoints
-func (k *Kubernetes) getServiceRecordForIP(ip, name string) []msg.Service {
+func (k *Kubernetes) serviceRecordForIP(ip, name string) []msg.Service {
 	// First check services with cluster ips
 	svcList := k.APIConn.ServiceList()
 
 	for _, service := range svcList {
-		if (len(k.Namespaces) > 0) && !k.namespaceExposed2(service.Namespace) {
+		if (len(k.Namespaces) > 0) && !k.namespaceExposed(service.Namespace) {
 			continue
 		}
 		if service.Spec.ClusterIP == ip {
@@ -539,7 +526,7 @@ func (k *Kubernetes) getServiceRecordForIP(ip, name string) []msg.Service {
 	// If no cluster ips match, search endpoints
 	epList := k.APIConn.EndpointsList()
 	for _, ep := range epList.Items {
-		if (len(k.Namespaces) > 0) && !k.namespaceExposed2(ep.ObjectMeta.Namespace) {
+		if (len(k.Namespaces) > 0) && !k.namespaceExposed(ep.ObjectMeta.Namespace) {
 			continue
 		}
 		for _, eps := range ep.Subsets {
@@ -556,17 +543,6 @@ func (k *Kubernetes) getServiceRecordForIP(ip, name string) []msg.Service {
 
 // namespaceExposed returns true when the namespace is exposed.
 func (k *Kubernetes) namespaceExposed(namespace string) bool {
-	// Abort if the namespace does not contain a wildcard, and namespace is
-	// not published per CoreFile Case where namespace contains a wildcard
-	// is handled in k.get(...) method.
-	if (!wildcard(namespace)) && !k.namespaceExposed2(namespace) {
-		return false
-	}
-	return true
-}
-
-// namespaceExposed returns true when the namespace is exposed.
-func (k *Kubernetes) namespaceExposed2(namespace string) bool {
 	_, ok := k.Namespaces[namespace]
 	if len(k.Namespaces) > 0 && !ok {
 		return false

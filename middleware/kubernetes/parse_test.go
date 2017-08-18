@@ -24,12 +24,12 @@ func TestParseRequest(t *testing.T) {
 		{
 			// wildcard acceptance
 			"*.any.*.any.svc.inter.webs.test.", dns.TypeSRV,
-			"*..any.*.any.svc",
+			"*.*.any.*.any.svc",
 		},
 		{
 			// A request of endpoint
 			"1-2-3-4.webs.mynamespace.svc.inter.webs.test.", dns.TypeA,
-			"*..1-2-3-4.webs.mynamespace.svc",
+			"*.*.1-2-3-4.webs.mynamespace.svc",
 		},
 	}
 	for i, tc := range tests {

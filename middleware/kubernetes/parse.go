@@ -38,8 +38,9 @@ func (k *Kubernetes) parseRequest(state request.Request) (r recordRequest, err e
 	segs := dns.SplitDomainName(base)
 
 	r.port = "*"
+	r.protocol = "*"
 	r.service = "*"
-	r.endpoint = "" // TODO(miek): dangerous; should just work with "*"
+	r.endpoint = "" // TODO(miek): dangerous; should just work with "*", but "" is checked in k.get()
 	r.namespace = "*"
 
 	// start at the right and fill out recordRequest with the bits we find, so we look for
