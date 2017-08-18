@@ -12,11 +12,33 @@ import (
 )
 
 var dnsTestCases = map[string](test.Case){
+	// *.any.svc-1-a.*.svc.cluster.local.,
 	"A Service": {
 		Qname: "svc1.testns.svc.cluster.local.", Qtype: dns.TypeA,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.A("svc1.testns.svc.cluster.local.	0	IN	A	10.0.0.1"),
+		},
+	},
+	"A Service (wildcard)": {
+		Qname: "svc1.*.svc.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("svc1.testns.svc.cluster.local.  0       IN      A       10.0.0.1"),
+		},
+	},
+	"SRV Service (wildcards)": {
+		Qname: "*.any.svc1.*.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("svc1.testns.svc.cluster.local.  0       IN      A       10.0.0.1"),
+		},
+	},
+	"A Service (wildcards)": {
+		Qname: "*.any.svc1.*.svc.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("svc1.testns.svc.cluster.local.  0       IN      A       10.0.0.1"),
 		},
 	},
 	"A Service (Headless)": {
