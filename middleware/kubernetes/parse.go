@@ -1,8 +1,6 @@
 package kubernetes
 
 import (
-	"fmt"
-
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	"github.com/coredns/coredns/request"
 
@@ -41,12 +39,8 @@ func (k *Kubernetes) parseRequest(state request.Request) (r recordRequest, err e
 
 	r.port = "*"
 	r.service = "*"
-	r.endpoint = "*"
+	r.endpoint = "" // TODO(miek): dangerous; should just work with "*"
 	r.namespace = "*"
-
-	defer func() {
-		fmt.Printf("%#v\n", r)
-	}()
 
 	// start at the right and fill out recordRequest with the bits we find, so we look for
 	// pod|svc.namespace.service and then either
