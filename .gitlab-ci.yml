@@ -71,24 +71,22 @@ aws-cluster:
   stage: cluster
   image: golang:1.8.1
   script:
-    - apt update && apt install -y jq
-    - cat release.env
-    # - curl -X POST
-    #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-    #     -F ref=ci-stable-v0.2.0
-    #     -F "variables[AWS_CLOUD]=aws"
-    #     https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
-    - PROJECT_PIPELINE=$(curl -X POST
-         -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-         -F ref=ci-stable-v0.2.0
-         -F "variables[AWS_CLOUD]=aws"
-         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
-    - echo 'Wait for Cluster "FIX ME / HACK"'
-    - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
-    - PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
-    - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
-    - curl -s -o aws-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/aws-ci-stable-v0.2.0/kubeconfig"
-     
+    - >
+      if [ "$BUILD_TRIGGER" == "yes" ]; then
+        exit 0
+      else
+        apt update && apt install -y jq
+        PROJECT_PIPELINE=$(curl -X POST
+           -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+           -F ref=ci-stable-v0.2.0
+           -F "variables[AWS_CLOUD]=aws"
+           https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        echo 'Wait for Cluster "FIX ME / HACK"'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
+        export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
+        curl -s -o aws-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/aws-ci-stable-v0.2.0/kubeconfig"
+      fi
 
   dependencies:
     - container
@@ -103,22 +101,21 @@ gce-cluster:
   image: golang:1.8.1
   script:
     - apt update && apt install -y jq
-    - cat release.env
-    # - curl -X POST
-    #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-    #     -F ref=ci-stable-v0.2.0
-    #     -F "variables[AWS_CLOUD]=aws"
-    #     https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
-    - PROJECT_PIPELINE=$(curl -X POST
-         -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-         -F ref=ci-stable-v0.2.0
-         -F "variables[GCE_CLOUD]=gce"
-         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
-    - echo 'Wait for Cluster "FIX ME / HACK"'
-    - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
-    - PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gce_k8s_deploy") | .id')
-    - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
-    - curl -s -o gce-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gce-ci-stable-v0.2.0/kubeconfig"
+    - >
+      if [ "$BUILD_TRIGGER" == "yes" ]; then
+        exit 0
+      else
+        PROJECT_PIPELINE=$(curl -X POST
+           -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+           -F ref=ci-stable-v0.2.0
+           -F "variables[GCE_CLOUD]=gce"
+           https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        echo 'Wait for Cluster "FIX ME / HACK"'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gce_k8s_deploy") | .id')
+        export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
+        curl -s -o gce-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gce-ci-stable-v0.2.0/kubeconfig"
+      fi
 
   dependencies:
     - container
@@ -133,23 +130,22 @@ gke-cluster:
   image: golang:1.8.1
   script:
     - apt update && apt install -y jq
-    - cat release.env
-    # - curl -X POST
-    #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-    #     -F ref=ci-stable-v0.2.0
-    #     -F "variables[AWS_CLOUD]=aws"
-    #     https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
-    - PROJECT_PIPELINE=$(curl -X POST
-         -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-         -F ref=ci-stable-v0.2.0
-         -F "variables[GKE_CLOUD]=gke"
-         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
-    - echo 'Wait for Cluster "FIX ME / HACK"'
-    - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gke_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
-    - echo $PROJECT_PIPELINE
-    - PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gke_k8s_deploy") | .id')
-    - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
-    - curl -s -o gke-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gke-ci-stable-v0.2.0/kubeconfig"
+    - >
+      if [ "$BUILD_TRIGGER" == "yes" ]; then
+        exit 0
+      else
+        PROJECT_PIPELINE=$(curl -X POST
+           -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+           -F ref=ci-stable-v0.2.0
+           -F "variables[GKE_CLOUD]=gke"
+           https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        echo 'Wait for Cluster "FIX ME / HACK"'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gke_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        echo $PROJECT_PIPELINE
+        PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gke_k8s_deploy") | .id')
+        export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
+        curl -s -o gke-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gke-ci-stable-v0.2.0/kubeconfig"
+      fi
 
   dependencies:
     - container
@@ -164,22 +160,21 @@ packet-cluster:
   image: golang:1.8.1
   script:
     - apt update && apt install -y jq
-    - cat release.env
-    # - curl -X POST
-    #     -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-    #     -F ref=ci-stable-v0.2.0
-    #     -F "variables[AWS_CLOUD]=aws"
-    #     https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
-    - PROJECT_PIPELINE=$(curl -X POST
-         -F token=$CROSS_CLOUD_CI_JOB_TOKEN
-         -F ref=ci-stable-v0.2.0
-         -F "variables[PACKET_CLOUD]=packet"
-         https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
-    - echo 'Wait for Cluster "FIX ME / HACK"'
-    - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
-    - PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="packet_k8s_deploy") | .id')
-    - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
-    - curl -s -o packet-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/packet-ci-stable-v0.2.0/kubeconfig"
+    - >
+      if [ "$BUILD_TRIGGER" == "yes" ]; then
+        exit 0
+      else
+        PROJECT_PIPELINE=$(curl -X POST
+           -F token=$CROSS_CLOUD_CI_JOB_TOKEN
+           -F ref=ci-stable-v0.2.0
+           -F "variables[PACKET_CLOUD]=packet"
+           https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        echo 'Wait for Cluster "FIX ME / HACK"'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="packet_k8s_deploy") | .id')
+        export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
+        curl -s -o packet-kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/packet-ci-stable-v0.2.0/kubeconfig"
+      fi
 
   dependencies:
     - container
