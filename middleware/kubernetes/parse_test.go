@@ -31,6 +31,12 @@ func TestParseRequest(t *testing.T) {
 			"1-2-3-4.webs.mynamespace.svc.inter.webs.test.", dns.TypeA,
 			"..1-2-3-4.webs.mynamespace.svc",
 		},
+		{
+
+			// 3 segments
+			"webs.mynamespace.svc.inter.webs.test.", dns.TypeSRV,
+			"*...webs.mynamespace.svc",
+		},
 	}
 	for i, tc := range tests {
 		m := new(dns.Msg)
