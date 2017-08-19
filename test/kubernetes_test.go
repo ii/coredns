@@ -213,8 +213,9 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
+		// TODO(miek): double check.
 		Qname: "*._not-udp-or-tcp.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
-		Rcode:  dns.RcodeNameError,
+		Rcode:  dns.RcodeSuccess,
 		Answer: []dns.RR{},
 	},
 	{
