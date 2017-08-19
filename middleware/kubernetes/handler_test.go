@@ -45,6 +45,13 @@ var dnsTestCases = map[string](test.Case){
 			test.A("*.any.svc1.*.svc.cluster.local.  0       IN      A       10.0.0.1"),
 		},
 	},
+	"SRV Service Not udp/tcp": {
+		Qname: "*._not-udp-or-tcp.svc1.testns.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Rcode: dns.RcodeSuccess,
+		Ns: []dns.RR{
+			test.SOA("cluster.local.	300	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1499347823 7200 1800 86400 60"),
+		},
+	},
 	"SRV Service": {
 		Qname: "_http._tcp.svc1.testns.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
