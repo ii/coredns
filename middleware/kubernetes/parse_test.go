@@ -13,28 +13,18 @@ func TestParseRequest(t *testing.T) {
 
 	tests := []struct {
 		query    string
-		qtype    uint16
 		expected string // output from r.String()
 	}{
-		{
-			// valid SRV request
-			"_http._tcp.webs.mynamespace.svc.inter.webs.test.", dns.TypeSRV,
-			"http.tcp..webs.mynamespace.svc",
-		},
-		{
-			// wildcard acceptance
-			"*.any.*.any.svc.inter.webs.test.", dns.TypeSRV,
-			"*.any..*.any.svc",
-		},
-		{
-			// A request of endpoint
-			"1-2-3-4.webs.mynamespace.svc.inter.webs.test.", dns.TypeA,
-			"*.*.1-2-3-4.webs.mynamespace.svc",
-		},
+		// valid SRV request
+		{"_http._tcp.webs.mynamespace.svc.inter.webs.test.", "http.tcp..webs.mynamespace.svc"},
+		// wildcard acceptance
+		{"*.any.*.any.svc.inter.webs.test.", "*.any..*.any.svc"},
+		// A request of endpoint
+		{"1-2-3-4.webs.mynamespace.svc.inter.webs.test.", "*.*.1-2-3-4.webs.mynamespace.svc"},
 	}
 	for i, tc := range tests {
 		m := new(dns.Msg)
-		m.SetQuestion(tc.query, tc.qtype)
+		m.SetQuestion(tc.query, dns.TypeA)
 		state := request.Request{Zone: zone, Req: m}
 
 		r, e := k.parseRequest(state)
@@ -52,8 +42,8 @@ func TestParseInvalidRequest(t *testing.T) {
 	k := New([]string{zone})
 
 	invalid := []string{
-		"webs.mynamespace.pood.inter.webs.test.",                // Request must be for pod or svc subdomain.
-		"too.long.for.what.I.am.trying.to.do.inter.webs.tests.", // Too long.
+		"webs.mynamespace.pood.inter.webs.test.",                 // Request must be for pod or svc subdomain.
+		"too.long.for.what.I.am.trying.to.pod.inter.webs.tests.", // Too long.
 	}
 
 	for i, query := range invalid {
