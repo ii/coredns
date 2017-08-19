@@ -24,7 +24,7 @@ func TestParseRequest(t *testing.T) {
 		{
 			// wildcard acceptance
 			"*.any.*.any.svc.inter.webs.test.", dns.TypeSRV,
-			"*.*.any.*.any.svc",
+			"*.any..*.any.svc",
 		},
 		{
 			// A request of endpoint

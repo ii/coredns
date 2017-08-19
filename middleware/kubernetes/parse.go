@@ -24,15 +24,15 @@ type recordRequest struct {
 }
 
 // parseRequest parses the qname to find all the elements we need for querying k8s. Anything
-// that is not parsed will have the wildcard "*" value. Potential underscores are stripped
-// from _port and _protocol.
+// that is not parsed will have the wildcard "*" value (except r.endpoint).
+// Potential underscores are stripped from _port and _protocol.
 func (k *Kubernetes) parseRequest(state request.Request) (r recordRequest, err error) {
 	// 3 Possible cases:
-	// o SRV Request: _port._protocol.service.namespace.pod|svc.zone
-	// o A Request (endpoint): endpoint.service.namespace.pod|svc.zone
-	// o A Request (service): service.namespace.pod|svc.zone
+	// 1. _port._protocol.service.namespace.pod|svc.zone
+	// 2. (endpoint): endpoint.service.namespace.pod|svc.zone
+	// 3. (service): service.namespace.pod|svc.zone
 	//
-	// Federations are handled in the federation middleware.
+	// Federations are handled in the federation middleware. And aren't parsed here.
 
 	base, _ := dnsutil.TrimZone(state.Name(), state.Zone)
 	segs := dns.SplitDomainName(base)
@@ -40,8 +40,9 @@ func (k *Kubernetes) parseRequest(state request.Request) (r recordRequest, err e
 	r.port = "*"
 	r.protocol = "*"
 	r.service = "*"
-	r.endpoint = "" // TODO(miek): dangerous; should just work with "*", but "" is checked in k.get()
 	r.namespace = "*"
+	// r.endpoint is the odd one out, we need to know if it has been set or not. If it is
+	// empty we should skip the endpoint check in k.get(). Hence we cannot set if to "*".
 
 	// start at the right and fill out recordRequest with the bits we find, so we look for
 	// pod|svc.namespace.service and then either
@@ -70,25 +71,29 @@ func (k *Kubernetes) parseRequest(state request.Request) (r recordRequest, err e
 		return r, nil
 	}
 
-	if segs[last][0] == '_' {
-		r.protocol = segs[last][1:]
-	} else {
+	// Becuase of ambiquity we check the labels left: 1: an endpoint. 2: port and protocol.
+	// Anything else is a query that is too long to answer and can safely be delegated to return an nxdomain.
+	switch last {
+
+	case 0: // endpoint only
 		r.endpoint = segs[last]
-	}
-	last--
-	if last < 0 {
-		return r, nil
-	}
+	case 1: // service and port
+		r.protocol = stripUnderscore(segs[last])
+		r.port = stripUnderscore(segs[last-1])
 
-	if segs[last][0] == '_' {
-		r.port = segs[last][1:]
-	}
-
-	if last > 0 { // Too long, so NXDOMAIN these.
+	default: // too long
 		return r, errInvalidRequest
-
 	}
+
 	return r, nil
+}
+
+// stripUnderscore removes a prefixed underscore from s.
+func stripUnderscore(s string) string {
+	if s[0] != '_' {
+		return s
+	}
+	return s[1:]
 }
 
 // String return a string representation of r, it just returns all fields concatenated with dots.

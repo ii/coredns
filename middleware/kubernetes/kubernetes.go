@@ -450,13 +450,19 @@ func (k *Kubernetes) findServices(r recordRequest) ([]kService, error) {
 				if ep.ObjectMeta.Name != svc.Name || ep.ObjectMeta.Namespace != svc.Namespace {
 					continue
 				}
+
 				for _, eps := range ep.Subsets {
 					for _, addr := range eps.Addresses {
-						for _, p := range eps.Ports {
-							ephostname := endpointHostname(addr)
-							if r.endpoint != "" && r.endpoint != ephostname {
+
+						// See comments in parse.go parseRequest about the endpoint handling.
+
+						if r.endpoint != "" {
+							if !match(r.endpoint, endpointHostname(addr)) {
 								continue
 							}
+						}
+
+						for _, p := range eps.Ports {
 							if !(match(r.port, p.Name) && match(r.protocol, string(p.Protocol))) {
 								continue
 							}
