@@ -175,7 +175,7 @@ packet-cluster:
 
 deploy:
   stage: cross-project
-  image: bulidpack-deps:stretch
+  image: buildpack-deps:stretch
   script:
     AWS_KUBECONFIG=$(cat ./aws-kubeconfig)
     GCE_KUBECONFIG=$(cat ./gce-kubeconfig)
