@@ -6,6 +6,7 @@ stages:
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
+  - mkdir ./auth
 
 compile:
   image: golang:1.8.1
@@ -82,7 +83,7 @@ aws-cluster:
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/aws-ci-stable-v0.2.0/kubeconfig"
-        cat ./kubeconfig | base64 | tee ./aws-kubeconfig
+        cat ./kubeconfig | base64 | tee ./auth/aws-kubeconfig
       fi
   dependencies:
     - container
@@ -90,7 +91,7 @@ aws-cluster:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     expire_in: 5 weeks
     paths:
-      - aws-kubeconfig
+      - ./auth/
 
 gce-cluster:
   stage: cluster
@@ -107,7 +108,7 @@ gce-cluster:
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gce_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gce-ci-stable-v0.2.0/kubeconfig"
-        cat ./kubeconfig | base64 | tee ./gce-kubeconfig
+        cat ./kubeconfig | base64 | tee ./auth/gce-kubeconfig
       fi
   dependencies:
     - container
@@ -115,7 +116,7 @@ gce-cluster:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     expire_in: 5 weeks
     paths:
-      - gce-kubeconfig
+      - ./auth/
 
 gke-cluster:
   stage: cluster
@@ -133,7 +134,7 @@ gke-cluster:
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="gke_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gke-ci-stable-v0.2.0/kubeconfig"
-        cat ./kubeconfig | base64 | tee ./gke-kubeconfig
+        cat ./kubeconfig | base64 | tee ./auth/gke-kubeconfig
       fi
   dependencies:
     - container
@@ -141,7 +142,7 @@ gke-cluster:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     expire_in: 5 weeks
     paths:
-      - gke-kubeconfig
+      - ./auth/
 
 packet-cluster:
   stage: cluster
@@ -158,7 +159,7 @@ packet-cluster:
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" 'https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success' | jq '.[] | select(.name=="packet_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/packet-ci-stable-v0.2.0/kubeconfig"
-        cat ./kubeconfig | base64 | tee ./packet-kubeconfig
+        cat ./kubeconfig | base64 | tee ./auth/packet-kubeconfig
       fi
   dependencies:
     - container
@@ -166,7 +167,7 @@ packet-cluster:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     expire_in: 5 weeks
     paths:
-      - packet-kubeconfig
+      - ./auth/
 
 deploy:
   stage: cross-project
@@ -188,7 +189,4 @@ deploy:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     expire_in: 5 weeks
     paths:
-      - aws-kubeconfig
-      - gce-kubeconfig
-      - gke-kubeconfig
-      - packet-kubeconfig
+      - ./auth/
