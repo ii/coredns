@@ -65,7 +65,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 	k8s := &Kubernetes{
 		ResyncPeriod:       defaultResyncPeriod,
 		interfaceAddrsFunc: localPodIP,
-		PodMode:            PodModeDisabled,
+		podMode:            podModeDisabled,
 		Proxy:              proxy.Proxy{},
 		autoPathSearch:     searchFromResolvConf(),
 	}
@@ -104,8 +104,8 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 				args := c.RemainingArgs()
 				if len(args) == 1 {
 					switch args[0] {
-					case PodModeDisabled, PodModeInsecure, PodModeVerified:
-						k8s.PodMode = args[0]
+					case podModeDisabled, podModeInsecure, podModeVerified:
+						k8s.podMode = args[0]
 					default:
 						return nil, fmt.Errorf("wrong value for pods: %s,  must be one of: disabled, verified, insecure", args[0])
 					}

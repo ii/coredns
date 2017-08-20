@@ -154,13 +154,13 @@ func TestServeDNS(t *testing.T) {
 	runServeDNSTests(ctx, t, dnsTestCases, k)
 
 	//Set PodMode to Disabled
-	k.PodMode = PodModeDisabled
+	k.podMode = podModeDisabled
 	runServeDNSTests(ctx, t, podModeDisabledCases, k)
 	//Set PodMode to Insecure
-	k.PodMode = PodModeInsecure
+	k.podMode = podModeInsecure
 	runServeDNSTests(ctx, t, podModeInsecureCases, k)
 	//Set PodMode to Verified
-	k.PodMode = PodModeVerified
+	k.podMode = podModeVerified
 	runServeDNSTests(ctx, t, podModeVerifiedCases, k)
 }
 

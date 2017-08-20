@@ -43,7 +43,7 @@ type Kubernetes struct {
 	Namespaces    []string
 	LabelSelector *unversionedapi.LabelSelector
 	Selector      *labels.Selector
-	PodMode       string
+	podMode       string
 	Fallthrough   bool
 
 	primaryZoneIndex   int
@@ -62,12 +62,12 @@ func New(zones []string) *Kubernetes {
 }
 
 const (
-	// PodModeDisabled is the default value where pod requests are ignored
-	PodModeDisabled = "disabled"
-	// PodModeVerified is where Pod requests are answered only if they exist
-	PodModeVerified = "verified"
-	// PodModeInsecure is where pod requests are answered without verfying they exist
-	PodModeInsecure = "insecure"
+	// podModeDisabled is the default value where pod requests are ignored
+	podModeDisabled = "disabled"
+	// podModeVerified is where Pod requests are answered only if they exist
+	podModeVerified = "verified"
+	// podModeInsecure is where pod requests are answered without verfying they exist
+	podModeInsecure = "insecure"
 	// DNSSchemaVersion is the schema version: https://github.com/kubernetes/dns/blob/master/docs/specification.md
 	DNSSchemaVersion = "1.0.1"
 )
@@ -284,7 +284,7 @@ func (k *Kubernetes) InitKubeCache() (err error) {
 	}
 
 	opts := dnsControlOpts{
-		initPodCache: k.PodMode == PodModeVerified,
+		initPodCache: k.podMode == podModeVerified,
 	}
 	k.APIConn = newdnsController(kubeClient, k.ResyncPeriod, k.Selector, opts)
 
@@ -367,7 +367,7 @@ func (k *Kubernetes) getRecordsForK8sItems(services []kService, pods []kPod, zon
 }
 
 func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error) {
-	if k.PodMode == PodModeDisabled {
+	if k.podMode == podModeDisabled {
 		return pods, errPodsDisabled
 	}
 
@@ -378,7 +378,7 @@ func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error
 		ip = strings.Replace(podname, "-", ":", -1)
 	}
 
-	if k.PodMode == PodModeInsecure {
+	if k.podMode == podModeInsecure {
 		s := kPod{name: podname, namespace: namespace, addr: ip}
 		pods = append(pods, s)
 		return pods, nil
