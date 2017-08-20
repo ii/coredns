@@ -177,6 +177,7 @@ deploy:
   stage: cross-project
   image: buildpack-deps:stretch
   script:
+    - apt update && apt install -y jq
     AWS_KUBECONFIG=$(cat ./aws-kubeconfig)
     GCE_KUBECONFIG=$(cat ./gce-kubeconfig)
     GKE_KUBECONFIG=$(cat ./gke-kubeconfig)
