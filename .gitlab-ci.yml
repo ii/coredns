@@ -178,13 +178,15 @@ deploy:
   image: buildpack-deps:stretch
   script:
     - apt update && apt install -y jq
+    - pwd
+    - ls -la
+    - sleep 100000
     - AWS_KUBECONFIG=$(cat ./aws-kubeconfig)
     - GCE_KUBECONFIG=$(cat ./gce-kubeconfig)
     - GKE_KUBECONFIG=$(cat ./gke-kubeconfig)
     - PACKET_KUBECONFIG=$( cat ./packet-kubeconfig)
     - PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" -F "variables[GCE_KUBECONFIG]="${GCE_KUBECONFIG}"" -F "variables[GKE_KUBECONFIG]="${GKE_KUBECONFIG}"" -F "variables[PACKET_KUBECONFIG]="${PACKET_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
     - echo TRIGGER CROSS-PROJECT
-    - sleep 100000
   dependencies:
     - container
   artifacts:
