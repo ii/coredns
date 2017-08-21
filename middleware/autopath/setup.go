@@ -50,8 +50,7 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
-// allowedMiddleware has a list of middleware that can be used by autopath. For this to work, they
-// need to register themselves with dnsserver.RegisterHandler.
+// allowedMiddleware has a list of middleware that can be used by autopath.
 var allowedMiddleware = map[string]bool{
 	"@kubernetes": true,
 	"@erratic":    true,
