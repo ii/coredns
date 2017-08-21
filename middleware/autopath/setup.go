@@ -29,7 +29,7 @@ func setup(c *caddy.Controller) error {
 	// Do this in OnStartup, so all middleware has been initialized.
 	c.OnStartup(func() error {
 		// TODO(miek): fabricate test to proof this is not thread safe.
-		m := dnsserver.GetConfig(c).GetHandler(mw)
+		m := dnsserver.GetConfig(c).Handler(mw)
 		if m == nil {
 			return nil
 		}

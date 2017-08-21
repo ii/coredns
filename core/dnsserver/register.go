@@ -135,11 +135,11 @@ func (c *Config) registerHandler(h middleware.Handler) {
 	c.Registry[h.Name()] = h
 }
 
-// GetHandler returns the middleware handler that has been added to the config under its name.
+// Handler returns the middleware handler that has been added to the config under its name.
 // This is useful to inspect if a certain middleware is active in this server.
 // Note that this is order dependent and the order is defined in directives.go, i.e. if your middleware
 // comes before the middleware you are checking; it will not be there (yet).
-func (c *Config) GetHandler(name string) middleware.Handler {
+func (c *Config) Handler(name string) middleware.Handler {
 	if c.Registry == nil {
 		return nil
 	}
