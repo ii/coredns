@@ -182,3 +182,9 @@ deploy:
     expire_in: 5 weeks
     paths:
       - ./auth/
+# List all Job ids attatched to a commit
+#curl --header "PRIVATE-TOKEN: ${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/9/repository/commits/342cf3373fbf1faf515d8085c7d342193b6b0695/statuses" | jq '.'
+
+# Find full SHA Based of Short
+# curl --header "PRIVATE-TOKEN: ${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/9/repository/commits/73d0bd06" | jq '.'
+
