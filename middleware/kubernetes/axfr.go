@@ -2,28 +2,35 @@ package kubernetes
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 
+	"github.com/miekg/dns"
 	"k8s.io/client-go/1.5/pkg/api"
 )
 
 type Xfr struct {
 	*Kubernetes
+	sync.RWMutex
+	epoch time.Time
 }
 
-func (x *Xfr) services(zone string) ([]kService, error) {
-	res := []kService{}
+func NewXfr(k *Kubernetes) *Xfr {
+	return &Xfr{Kubernetes: k, epoch: time.Now().UTC()}
+}
+
+func (x *Xfr) services(zone string) []dns.RR {
+	res := []dns.RR{}
 
 	serviceList := x.APIConn.ServiceList()
 	for _, svc := range serviceList {
-		s := kService{name: svc.Name, namespace: svc.Namespace}
-		fmt.Printf("name %v %v\n", svc.Name, svc.Namespace)
-		suffix := dnsutil.Join([]string{svc.Name, svc.Namespace, zone})
+
+		name := dnsutil.Join([]string{svc.Name, svc.Namespace, zone})
 
 		// Endpoint query or headless service
 		if svc.Spec.ClusterIP == api.ClusterIPNone {
-			s.addr = svc.Spec.ClusterIP
 
 			endpointsList := x.APIConn.EndpointsList()
 			for _, ep := range endpointsList.Items {
@@ -33,39 +40,63 @@ func (x *Xfr) services(zone string) ([]kService, error) {
 				for _, eps := range ep.Subsets {
 					for _, addr := range eps.Addresses {
 						for _, p := range eps.Ports {
-							s.endpoints = append(s.endpoints, endpoint{addr: addr, port: p})
-							fmt.Printf("%s IN A %s\n", suffix, addr.IP)
-							fmt.Printf("_%s_%s.%s IN SRV %s\n", p.Name, p.Protocol, suffix, addr.IP)
-							fmt.Printf("%s.%s IN A %s\n", endpointHostname(addr), suffix, addr.IP)
+
+							fmt.Printf("%s IN A %s\n", name, addr.IP)
+							fmt.Printf("_%s._%s.%s IN SRV %d %s.%s\n", p.Name, p.Protocol, name, p.Port, endpointHostname(addr), name)
+							fmt.Printf("%s.%s IN A %s\n", endpointHostname(addr), name, addr.IP)
 						}
 					}
 				}
 			}
-			if len(s.endpoints) > 0 {
-				res = append(res, s)
-			}
 			continue
 		}
-		println("clusterip", svc.Spec.ClusterIP)
 
 		// External service
 		if svc.Spec.ExternalName != "" {
-			s.addr = svc.Spec.ExternalName
-			println("external", s.addr)
-			res = append(res, s)
+			fmt.Printf("%s IN CNAME %s", name, svc.Spec.ExternalName)
 			continue
 		}
 
 		// ClusterIP service
-		s.addr = svc.Spec.ClusterIP
+		fmt.Printf("%s IN A %s\n", name, svc.Spec.ClusterIP)
 		for _, p := range svc.Spec.Ports {
-			fmt.Printf("SRV record _%s._%s %s\n", p.Name, p.Protocol, suffix)
-			s.ports = append(s.ports, p)
-			// srv target is suffix which gets cluster IP
-			fmt.Printf("A record %s %s\n", suffix, svc.Spec.ClusterIP)
+			fmt.Printf("_%s._%s.%s IN SRV %s\n", p.Name, p.Protocol, name, name)
 		}
-
-		res = append(res, s)
 	}
-	return res, nil
+	return res
 }
+
+func (x *Xfr) serial() uint32 {
+	x.RLock()
+	defer x.RUnlock()
+	return uint32(x.epoch.Unix())
+}
+
+/*
+From https://stackoverflow.com/questions/35192712/kubernetes-watch-pod-events-with-api
+
+similar to what is in controller.go ? May extend that when transfers are enabled?
+grab xfr lock and epoch = time.Now().UTC() on every event watch
+
+    watchlist := cache.NewListWatchFromClient(clientset.Core().RESTClient(), "pods", v1.NamespaceDefault,
+       fields.Everything())
+    _, controller := cache.NewInformer(
+        watchlist,
+        &v1.Pod{},
+        time.Second * 0,
+        cache.ResourceEventHandlerFuncs{
+            AddFunc: func(obj interface{}) {
+                fmt.Printf("add: %s \n", obj)
+            },
+            DeleteFunc: func(obj interface{}) {
+                fmt.Printf("delete: %s \n", obj)
+            },
+            UpdateFunc:func(oldObj, newObj interface{}) {
+                fmt.Printf("old: %s, new: %s \n", oldObj, newObj)
+            },
+        },
+    )
+    stop := make(chan struct{})
+    go controller.Run(stop)
+}
+*/
