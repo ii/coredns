@@ -188,3 +188,8 @@ deploy:
 # Find full SHA Based of Short
 # curl --header "PRIVATE-TOKEN: ${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/9/repository/commits/73d0bd06" | jq '.'
 
+# Fetch the JOB IDs
+#curl --header "PRIVATE-TOKEN: ${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/9/jobs/21754" | jq '.'
+
+# Retry the Jobs
+#curl -X POST --header "PRIVATE-TOKEN: ${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/14/pipelines/1818/retry" | jq '.'
