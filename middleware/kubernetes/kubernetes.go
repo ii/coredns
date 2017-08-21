@@ -366,10 +366,13 @@ func (k *Kubernetes) getRecordsForK8sItems(services []kService, pods []kPod, zon
 	return records
 }
 
-func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error) {
+func (k *Kubernetes) findPods(r recordRequest) (pods []kPod, err error) {
 	if k.PodMode == PodModeDisabled {
-		return pods, errPodsDisabled
+		return nil, errPodsDisabled
 	}
+
+	podname := r.service
+	namespace := r.namespace
 
 	var ip string
 	if strings.Count(podname, "-") == 3 && !strings.Contains(podname, "--") {
@@ -411,7 +414,7 @@ func (k *Kubernetes) findPods(namespace, podname string) (pods []kPod, err error
 func (k *Kubernetes) get(r recordRequest) (services []kService, pods []kPod, err error) {
 	switch {
 	case r.podOrSvc == Pod:
-		pods, err = k.findPods(r.namespace, r.service)
+		pods, err = k.findPods(r)
 		return nil, pods, err
 	default:
 		services, err = k.findServices(r)
