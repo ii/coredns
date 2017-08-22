@@ -72,31 +72,25 @@ func (x *Xfr) serial() uint32 {
 	return uint32(x.epoch.Unix())
 }
 
-/*
-From https://stackoverflow.com/questions/35192712/kubernetes-watch-pod-events-with-api
-
-similar to what is in controller.go ? May extend that when transfers are enabled?
-grab xfr lock and epoch = time.Now().UTC() on every event watch
-
-    watchlist := cache.NewListWatchFromClient(clientset.Core().RESTClient(), "pods", v1.NamespaceDefault,
-       fields.Everything())
-    _, controller := cache.NewInformer(
-        watchlist,
-        &v1.Pod{},
-        time.Second * 0,
-        cache.ResourceEventHandlerFuncs{
-            AddFunc: func(obj interface{}) {
-                fmt.Printf("add: %s \n", obj)
-            },
-            DeleteFunc: func(obj interface{}) {
-                fmt.Printf("delete: %s \n", obj)
-            },
-            UpdateFunc:func(oldObj, newObj interface{}) {
-                fmt.Printf("old: %s, new: %s \n", oldObj, newObj)
-            },
-        },
-    )
-    stop := make(chan struct{})
-    go controller.Run(stop)
+// Give these to dnscontroller via the options, so these functions get exectuted and the SOA's serial gets updated.
+func (x *Xfr) AddDeleteXfrHandler(a interface{}) {
+	x.Lock()
+	defer x.Unlock()
+	x.epoch = time.Now().UTC()
 }
+
+func (x *Xfr) UpdateXfrHandler(a, b interface{}) {
+	x.Lock()
+	defer x.Unlock()
+	x.epoch = time.Now().UTC()
+}
+
+/*
+cache.ResourceEventHandlerFuncs{
+    AddFunc: x.AddDeleteXfrHandler,
+    DeleteFunc: x.AddDeleteXfrHandler,
+    UpdateFunc: x.UpdateXfrHandler,
+}
+
+// set to nil? Or noop functions as defaults?
 */
