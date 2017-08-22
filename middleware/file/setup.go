@@ -6,8 +6,8 @@ import (
 
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/middleware"
-	"github.com/coredns/coredns/middleware/pkg/corefile"
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware/pkg/transfer"
 	"github.com/coredns/coredns/middleware/proxy"
 
 	"github.com/mholt/caddy"
@@ -97,7 +97,7 @@ func fileParse(c *caddy.Controller) (Zones, error) {
 		for c.NextBlock() {
 			switch c.Val() {
 			case "transfer":
-				t, _, e = corefile.Transfer(c, false)
+				t, _, e = transfer.Parse(c, false)
 				if e != nil {
 					return Zones{}, e
 				}

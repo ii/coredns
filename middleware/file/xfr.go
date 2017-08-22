@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/pkg/transfer"
 	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
@@ -19,7 +20,7 @@ type Xfr struct {
 // ServeDNS implements the middleware.Handler interface.
 func (x Xfr) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
-	if !x.TransferAllowed(state) {
+	if transfer.Allowed(state, x.TransferTo) {
 		return dns.RcodeServerFailure, nil
 	}
 	if state.QType() != dns.TypeAXFR && state.QType() != dns.TypeIXFR {

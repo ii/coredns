@@ -1,15 +1,17 @@
-package corefile
+package transfer
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/request"
 
 	"github.com/mholt/caddy"
 )
 
-// Transfer parses transfer statements: 'transfer to [address...]'.
-func Transfer(c *caddy.Controller, secondary bool) (tos, froms []string, err error) {
+// Parse parses transfer statements: 'transfer to [address...]'.
+func Parse(c *caddy.Controller, secondary bool) (tos, froms []string, err error) {
 	if !c.NextArg() {
 		return nil, nil, c.ArgErr()
 	}
@@ -45,4 +47,23 @@ func Transfer(c *caddy.Controller, secondary bool) (tos, froms []string, err err
 		}
 	}
 	return
+}
+
+// Allowed checks if incoming request for transferring the zone is allowed according to the ACLs.
+func Allowed(state request.Request, transferTo []string) bool {
+	for _, t := range transferTo {
+		if t == "*" {
+			return true
+		}
+		// If remote IP matches we accept.
+		remote := state.IP()
+		to, _, err := net.SplitHostPort(t)
+		if err != nil {
+			continue
+		}
+		if to == remote {
+			return true
+		}
+	}
+	return false
 }
