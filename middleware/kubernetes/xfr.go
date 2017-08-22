@@ -21,7 +21,8 @@ func NewXfr(k *Kubernetes) *Xfr {
 	return &Xfr{Kubernetes: k, epoch: time.Now().UTC()}
 }
 
-func (x *Xfr) services(zone string) []dns.RR {
+// All returns all kubernetes records with a SOA at the start.
+func (x *Xfr) All(zone string) []dns.RR {
 	res := []dns.RR{}
 
 	serviceList := x.APIConn.ServiceList()
