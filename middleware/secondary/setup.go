@@ -4,6 +4,7 @@ import (
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/middleware"
 	"github.com/coredns/coredns/middleware/file"
+	"github.com/coredns/coredns/middleware/pkg/corefile"
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	"github.com/coredns/coredns/middleware/proxy"
 
@@ -74,7 +75,7 @@ func secondaryParse(c *caddy.Controller) (file.Zones, error) {
 
 				switch c.Val() {
 				case "transfer":
-					t, f, e = file.TransferParse(c, true)
+					t, f, e = corefile.Transfer(c, true)
 					if e != nil {
 						return file.Zones{}, e
 					}
