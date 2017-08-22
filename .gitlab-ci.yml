@@ -170,7 +170,7 @@ deploy:
     - GCE_KUBECONFIG=$(cat ./gce-kubeconfig | tr -d '\n')
     - GKE_KUBECONFIG=$(cat ./gke-kubeconfig | tr -d '\n')
     - PACKET_KUBECONFIG=$( cat ./packet-kubeconfig | tr -d '\n')
-    - PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" -F "variables[GCE_KUBECONFIG]="${GCE_KUBECONFIG}"" -F "variables[GKE_KUBECONFIG]="${GKE_KUBECONFIG}"" -F "variables[PACKET_KUBECONFIG]="${PACKET_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
+    - PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[COREDNS_COMMIT]=fb7473ec" -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" -F "variables[GCE_KUBECONFIG]="${GCE_KUBECONFIG}"" -F "variables[GKE_KUBECONFIG]="${GKE_KUBECONFIG}"" -F "variables[PACKET_KUBECONFIG]="${PACKET_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
     - echo TRIGGER CROSS-PROJECT
   dependencies:
     - aws-cluster
