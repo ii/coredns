@@ -381,8 +381,6 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 					continue
 				}
 
-				err = nil
-
 				for _, eps := range ep.Subsets {
 					for _, addr := range eps.Addresses {
 
@@ -400,6 +398,8 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 							}
 							s := msg.Service{Host: addr.IP, Port: int(p.Port)}
 							s.Key = strings.Join([]string{zonePath, Svc, svc.Namespace, svc.Name, endpointHostname(addr)}, "/")
+
+							err = nil
 
 							services = append(services, s)
 						}
