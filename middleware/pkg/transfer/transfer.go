@@ -69,7 +69,8 @@ func Allowed(state request.Request, transferTo []string) bool {
 	return false
 }
 
-// Out starts a transfer to the remote server (out from CoreDNS). RRs must start and end with a SOA record.
+// Out starts a transfer to the remote server (out from CoreDNS). RRs must start and end with a SOA record, this
+// is not enforced.
 func Out(state request.Request, rrs []dns.RR) {
 	ch := make(chan *dns.Envelope)
 	defer close(ch)
@@ -80,7 +81,7 @@ func Out(state request.Request, rrs []dns.RR) {
 	j, l := 0, 0
 	for i, r := range rrs {
 		l += dns.Len(r)
-		if l > length {
+		if l > envelopeSize {
 			ch <- &dns.Envelope{RR: rrs[j:i]}
 			l = 0
 			j = i
@@ -94,4 +95,4 @@ func Out(state request.Request, rrs []dns.RR) {
 	// state.W.Close() // Client closes connection
 }
 
-const length = 1000 // Start a new envelop after message reaches this size in bytes. Intentionally small to test multi envelope parsing.
+const envelopeSize = 32000 // Start a new envelop after message reaches this size in bytes.
