@@ -6,6 +6,7 @@ import (
 
 	"github.com/coredns/coredns/middleware/pkg/dnsutil"
 	"github.com/coredns/coredns/request"
+	"github.com/miekg/dns"
 
 	"github.com/mholt/caddy"
 )
@@ -67,3 +68,30 @@ func Allowed(state request.Request, transferTo []string) bool {
 	}
 	return false
 }
+
+// Out starts a transfer to the remote server (out from CoreDNS). RRs must start and end with a SOA record.
+func Out(state request.Request, rrs []dns.RR) {
+	ch := make(chan *dns.Envelope)
+	defer close(ch)
+
+	tr := new(dns.Transfer)
+	go tr.Out(state.W, state.Req, ch)
+
+	j, l := 0, 0
+	for i, r := range rrs {
+		l += dns.Len(r)
+		if l > length {
+			ch <- &dns.Envelope{RR: rrs[j:i]}
+			l = 0
+			j = i
+		}
+	}
+	if j < len(rrs) {
+		ch <- &dns.Envelope{RR: rrs[j:]}
+	}
+
+	state.W.Hijack()
+	// state.W.Close() // Client closes connection
+}
+
+const length = 1000 // Start a new envelop after message reaches this size in bytes. Intentionally small to test multi envelope parsing.
