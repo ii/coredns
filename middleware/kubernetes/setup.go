@@ -178,10 +178,11 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 				k8s.Proxy = proxy.NewLookup(ups)
 
 			case "transfer":
-				t, _, e = transfer.Parse(c, false)
+				t, _, e := transfer.Parse(c, false)
 				if e != nil {
 					return nil, e
 				}
+				t = t // TODO(miek) hook up into xfr or kubernetes
 			default:
 				return nil, c.Errf("unknown property '%s'", c.Val())
 			}

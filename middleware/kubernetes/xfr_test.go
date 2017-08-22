@@ -10,6 +10,6 @@ func TestAxfr(t *testing.T) {
 	k.APIConn = &APIConnServeTest{}
 
 	x := NewXfr(k)
-	x.services("example.org.")
+	x.All("example.org.")
 	fmt.Println()
 }
