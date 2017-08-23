@@ -16,6 +16,26 @@ type health struct {
 
 	ln  net.Listener
 	mux *http.ServeMux
+
+	// A slice of Healthers that the health middleware will poll every second for their
+	// health status.
+	h []Healther
+	sync.RWMutex
+	ok bool // ok is the global boolean indicating all healthy middleware stack
+}
+
+// Ok returns the global health status of all middleware configured in this server.
+func (h *health) Ok() bool {
+	h.RLock()
+	defer h.RUnlock()
+	return h.ok
+}
+
+// SetOk sets the global health status of all middleware configured in this server.
+func (h *health) SetOk(ok bool) {
+	h.Lock()
+	defer h.Unlock()
+	h.ok = ok
 }
 
 func (h *health) Startup() error {
@@ -35,7 +55,12 @@ func (h *health) Startup() error {
 		h.mux = http.NewServeMux()
 
 		h.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-			io.WriteString(w, ok)
+			if !h.Ok() {
+				w.WriteHeader(http.StatusOK)
+				io.WriteString(w, ok)
+				return
+			}
+			w.WriteHeader(http.StatusServiceUnavailable)
 		})
 
 		go func() {
@@ -52,8 +77,25 @@ func (h *health) Shutdown() error {
 	return nil
 }
 
+// Poll polls all healthers and sets the global state.
+func (h *health) Poll() {
+	for _, m := range h.h {
+		if !m.Health() {
+			h.SetOk(false)
+			return
+		}
+	}
+	h.SetOk(true)
+}
+
+// Middleware that implements the Healther interface.
+var healthers = map[string]bool{
+	"erratic": true,
+}
+
 const (
 	ok      = "OK"
+	nok     = "NOT OK"
 	defAddr = ":8080"
 	path    = "/health"
 )
