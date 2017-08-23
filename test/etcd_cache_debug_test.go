@@ -27,7 +27,7 @@ func TestEtcdCacheAndDebug(t *testing.T) {
     cache skydns.test
 }`
 
-	ex, udp_, _, err := CoreDNSServerAndPorts(corefile)
+	ex, udp, _, err := CoreDNSServerAndPorts(corefile)
 	if err != nil {
 		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
 	}
