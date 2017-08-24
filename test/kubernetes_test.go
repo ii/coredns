@@ -666,8 +666,7 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 	}
 	defer server.Stop()
 
-	// Work-around for timing condition that results in no-data being returned in
-	// test environment.
+	// Work-around for timing condition that results in no-data being returned in test environment.
 	time.Sleep(3 * time.Second)
 
 	for _, tc := range testCases {
@@ -682,7 +681,6 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 
 		test.SortAndCheck(t, res, tc)
 	}
-
 }
 
 func createUpstreamServer(t *testing.T) (func(), *caddy.Instance, string) {
