@@ -55,7 +55,7 @@ type AutoPath struct {
 
 	// Search always includes "" as the last element, so we try the base query with out any search paths added as well.
 	search     []string
-	searchFunc AutoPathFunc
+	searchFunc Func
 }
 
 // ServeDNS implements the middleware.Handle interface.
