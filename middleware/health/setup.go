@@ -1,6 +1,8 @@
 package health
 
 import (
+	"time"
+
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/middleware"
 
@@ -33,8 +35,12 @@ func setup(c *caddy.Controller) error {
 	})
 
 	c.OnStartup(func() error {
-		// Kick of Go-func that every second calls h.Poll()
-		h.Poll()
+		go func() {
+			for {
+				<-time.After(1 * time.Second)
+				h.Poll()
+			}
+		}()
 		return nil
 	})
 

@@ -88,11 +88,6 @@ func (h *health) Poll() {
 	h.SetOk(true)
 }
 
-// Middleware that implements the Healther interface.
-var healthers = map[string]bool{
-	"erratic": true,
-}
-
 const (
 	ok      = "OK"
 	nok     = "NOT OK"
