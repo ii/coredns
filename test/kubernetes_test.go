@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -679,8 +680,11 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 			t.Fatalf("Could not send query: %s", err)
 		}
 
-		// Before sorting, make sure that CNAMES do not appear after their target records.
+		// Before sorting, make sure that CNAMES do not appear after their target records and then sort the tc.
 		test.CNAMEOrder(t, res)
+		sort.Sort(test.RRSet(tc.Answer))
+		sort.Sort(test.RRSet(tc.Ns))
+		sort.Sort(test.RRSet(tc.Extra))
 
 		test.SortAndCheck(t, res, tc)
 	}
