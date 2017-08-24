@@ -679,6 +679,9 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 			t.Fatalf("Could not send query: %s", err)
 		}
 
+		// Before sorting, make sure that CNAMES do not appear after their target records.
+		test.CNAMEOrder(t, res)
+
 		test.SortAndCheck(t, res, tc)
 	}
 }
