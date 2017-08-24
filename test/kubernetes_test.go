@@ -660,22 +660,11 @@ var dnsTestCasesFallthrough = []test.Case{
 	},
 }
 
-func createTestServer(t *testing.T, corefile string) (*caddy.Instance, string) {
-	server, err := CoreDNSServer(corefile)
+func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
+	server, udp, _, err := CoreDNSServerAndPorts(corefile)
 	if err != nil {
 		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
 	}
-
-	udp, _ := CoreDNSServerPorts(server, 0)
-	if udp == "" {
-		t.Fatalf("Could not get UDP listening port")
-	}
-
-	return server, udp
-}
-
-func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
-	server, udp := createTestServer(t, corefile)
 	defer server.Stop()
 
 	// Work-around for timing condition that results in no-data being returned in
@@ -719,7 +708,10 @@ func createUpstreamServer(t *testing.T) (func(), *caddy.Instance, string) {
 		drop 0
 	}
 	`
-	server, udp := createTestServer(t, upstreamServerCorefile)
+	server, udp := CoreDNSServerAndPorts(upstreamServerCorefile)
+	if err != nil {
+		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
+	}
 	return rmfile, server, udp
 }
 
