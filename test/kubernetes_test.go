@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -673,26 +672,15 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 
 	for _, tc := range testCases {
 
-		dnsClient := new(dns.Client)
-		dnsMessage := new(dns.Msg)
+		c := new(dns.Client)
+		m := tc.Msg()
 
-		dnsMessage.SetQuestion(tc.Qname, tc.Qtype)
-
-		res, _, err := dnsClient.Exchange(dnsMessage, udp)
+		res, _, err := c.Exchange(m, udp)
 		if err != nil {
 			t.Fatalf("Could not send query: %s", err)
 		}
 
-		// Before sorting, make sure that CNAMES do not appear after their target records
-		test.CNAMEOrder(t, res)
-
-		// Sorting the test cases to check with the response
-		sort.Sort(test.RRSet(tc.Answer))
-		sort.Sort(test.RRSet(tc.Ns))
-		sort.Sort(test.RRSet(tc.Extra))
-
 		test.SortAndCheck(t, res, tc)
-
 	}
 
 }
@@ -708,7 +696,7 @@ func createUpstreamServer(t *testing.T) (func(), *caddy.Instance, string) {
 		drop 0
 	}
 	`
-	server, udp := CoreDNSServerAndPorts(upstreamServerCorefile)
+	server, udp, _, err := CoreDNSServerAndPorts(upstreamServerCorefile)
 	if err != nil {
 		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
 	}
