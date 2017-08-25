@@ -17,11 +17,10 @@ type health struct {
 	ln  net.Listener
 	mux *http.ServeMux
 
-	// A slice of Healthers that the health middleware will poll every second for their
-	// health status.
+	// A slice of Healthers that the health middleware will poll every second for their health status.
 	h []Healther
 	sync.RWMutex
-	ok bool // ok is the global boolean indicating all healthy middleware stack
+	ok bool // ok is the global boolean indicating an all healthy middleware stack
 }
 
 // Ok returns the global health status of all middleware configured in this server.
