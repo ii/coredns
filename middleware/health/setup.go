@@ -35,6 +35,7 @@ func setup(c *caddy.Controller) error {
 	})
 
 	c.OnStartup(func() error {
+		h.Poll()
 		go func() {
 			for {
 				<-time.After(1 * time.Second)
