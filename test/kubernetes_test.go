@@ -624,14 +624,14 @@ var dnsTestCasesFallthrough = []test.Case{
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.A("example.net.		303	IN	A	13.14.15.16"),
-			test.CNAME("ext-svc.test-1.svc.cluster.local. 0 IN	CNAME	example.net."),
+			test.CNAME("ext-svc.test-1.svc.cluster.local. 303 IN	CNAME	example.net."),
 		},
 	},
 	{
 		Qname: "ext-svc.test-1.svc.cluster.local.", Qtype: dns.TypeCNAME,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
-			test.CNAME("ext-svc.test-1.svc.cluster.local. 0 IN	CNAME	example.net."),
+			test.CNAME("ext-svc.test-1.svc.cluster.local. 303 IN	CNAME	example.net."),
 		},
 	},
 	{
