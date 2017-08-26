@@ -38,6 +38,5 @@ func (h *health) Poll() {
 }
 
 // Middleware that implements the Healther interface.
-var healthers = map[string]bool{
-	"erratic": true,
-}
+// TODO(miek): none yet.
+var healthers = map[string]bool{}
