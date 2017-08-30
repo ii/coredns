@@ -23,8 +23,6 @@ func init() {
 	log.SetOutput(ioutil.Discard)
 }
 
-// Test data
-
 var dnsTestCases = []test.Case{
 	{
 		Qname: "svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeA,
@@ -299,60 +297,6 @@ var dnsTestCases = []test.Case{
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.CNAME("ext-svc.test-1.svc.cluster.local. 303 IN	CNAME	example.net."),
-		},
-	},
-}
-
-var dnsTestCasesPodsInsecure = []test.Case{
-	{
-		Qname: "10-20-0-101.test-1.pod.cluster.local.", Qtype: dns.TypeA,
-		Rcode: dns.RcodeSuccess,
-		Answer: []dns.RR{
-			test.A("10-20-0-101.test-1.pod.cluster.local. 303 IN A    10.20.0.101"),
-		},
-	},
-	{
-		Qname: "10-20-0-101.test-X.pod.cluster.local.", Qtype: dns.TypeA,
-		Rcode:  dns.RcodeNameError,
-		Answer: []dns.RR{},
-		Ns: []dns.RR{
-			test.SOA("cluster.local.	303	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1502307903 7200 1800 86400 60"),
-		},
-	},
-}
-
-var dnsTestCasesPodsVerified = []test.Case{
-	{
-		Qname: "10-20-0-101.test-1.pod.cluster.local.", Qtype: dns.TypeA,
-		Rcode:  dns.RcodeNameError,
-		Answer: []dns.RR{},
-		Ns: []dns.RR{
-			test.SOA("cluster.local.	303	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1502308197 7200 1800 86400 60"),
-		},
-	},
-	{
-		Qname: "10-20-0-101.test-X.pod.cluster.local.", Qtype: dns.TypeA,
-		Rcode:  dns.RcodeNameError,
-		Answer: []dns.RR{},
-		Ns: []dns.RR{
-			test.SOA("cluster.local.	303	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1502307960 7200 1800 86400 60"),
-		},
-	},
-}
-
-var dnsTestCasesAllNSExposed = []test.Case{
-	{
-		Qname: "svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeA,
-		Rcode: dns.RcodeSuccess,
-		Answer: []dns.RR{
-			test.A("svc-1-a.test-1.svc.cluster.local.      303    IN      A       10.0.0.100"),
-		},
-	},
-	{
-		Qname: "svc-c.test-2.svc.cluster.local.", Qtype: dns.TypeA,
-		Rcode: dns.RcodeSuccess,
-		Answer: []dns.RR{
-			test.A("svc-c.test-2.svc.cluster.local.      303    IN      A       10.0.0.120"),
 		},
 	},
 }
@@ -658,16 +602,6 @@ var dnsTestCasesFallthrough = []test.Case{
 	},
 }
 
-var dnsTestCasesAPIProxy = []test.Case{
-	{
-		Qname: "svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeA,
-		Rcode: dns.RcodeSuccess,
-		Answer: []dns.RR{
-			test.A("svc-1-a.test-1.svc.cluster.local.      303    IN      A       10.0.0.100"),
-		},
-	},
-}
-
 func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 	server, udp, _, err := CoreDNSServerAndPorts(corefile)
 	if err != nil {
@@ -735,61 +669,6 @@ func TestKubernetesIntegration(t *testing.T) {
 	}
 `
 	doIntegrationTests(t, corefile, dnsTestCases)
-}
-
-func TestKubernetesIntegrationAPIProxy(t *testing.T) {
-
-	removeUpstreamConfig, upstreamServer, udp := createUpstreamServer(t)
-	defer upstreamServer.Stop()
-	defer removeUpstreamConfig()
-
-	corefile :=
-		`.:0 {
-    kubernetes cluster.local 0.0.10.in-addr.arpa {
-        endpoint http://nonexistance:8080,http://invalidip:8080,http://localhost:8080
-        namespaces test-1
-        pods disabled
-        upstream ` + udp + `
-    }
-    erratic . {
-        drop 0
-    }
-`
-	doIntegrationTests(t, corefile, dnsTestCasesAPIProxy)
-}
-
-func TestKubernetesIntegrationPodsInsecure(t *testing.T) {
-	corefile :=
-		`.:0 {
-    kubernetes cluster.local 0.0.10.in-addr.arpa {
-                endpoint http://localhost:8080
-		namespaces test-1
-		pods insecure
-    }
-`
-	doIntegrationTests(t, corefile, dnsTestCasesPodsInsecure)
-}
-
-func TestKubernetesIntegrationPodsVerified(t *testing.T) {
-	corefile :=
-		`.:0 {
-    kubernetes cluster.local 0.0.10.in-addr.arpa {
-                endpoint http://localhost:8080
-                namespaces test-1
-                pods verified
-    }
-`
-	doIntegrationTests(t, corefile, dnsTestCasesPodsVerified)
-}
-
-func TestKubernetesIntegrationAllNSExposed(t *testing.T) {
-	corefile :=
-		`.:0 {
-    kubernetes cluster.local {
-                endpoint http://localhost:8080
-    }
-`
-	doIntegrationTests(t, corefile, dnsTestCasesAllNSExposed)
 }
 
 func TestKubernetesIntegrationFallthrough(t *testing.T) {
