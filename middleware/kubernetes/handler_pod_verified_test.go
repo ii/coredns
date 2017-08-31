@@ -20,8 +20,7 @@ var podModeVerifiedCases = []test.Case{
 	},
 	{
 		Qname: "172-0-0-2.podns.pod.cluster.local.", Qtype: dns.TypeA,
-		Rcode:  dns.RcodeNameError,
-		Answer: []dns.RR{},
+		Rcode: dns.RcodeNameError,
 		Ns: []dns.RR{
 			test.SOA("cluster.local.	300	IN	SOA	ns.dns.cluster.local. hostmaster.cluster.local. 1499347823 7200 1800 86400 60"),
 		},
