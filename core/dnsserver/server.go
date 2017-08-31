@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/coredns/coredns/middleware"
-	"github.com/coredns/coredns/middleware/metrics/vars"
 	"github.com/coredns/coredns/middleware/pkg/edns"
-	"github.com/coredns/coredns/middleware/pkg/rcode"
 	"github.com/coredns/coredns/middleware/pkg/trace"
 	"github.com/coredns/coredns/request"
 
@@ -290,9 +288,6 @@ func DefaultErrorFunc(w dns.ResponseWriter, r *dns.Msg, rc int) {
 	answer.SetRcode(r, rc)
 
 	state.SizeAndDo(answer)
-
-	vars.Report(state, vars.Dropped, rcode.ToString(rc), answer.Len(), time.Now())
-
 	w.WriteMsg(answer)
 }
 
