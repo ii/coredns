@@ -32,8 +32,8 @@ dnssec [ZONES... ] {
   will be signed with all keys. Generating a key can be done with `dnssec-keygen`: `dnssec-keygen -a
   ECDSAP256SHA256 <zonename>`. A key created for zone *A* can be safely used for zone *B*.
 
-* `cache_capacity` indicates the capacity of the cache. The dnssec middleware uses cache to manage
-  RRSIGs and the default capacity is 10000.
+* `cache_capacity` indicates the capacity of the cache. The dnssec middleware uses a cache to store
+  RRSIGs. The default capacity is 10000.
 
 ## Metrics
 
@@ -46,7 +46,7 @@ If monitoring is enabled (via the *prometheus* directive) then the following met
 
 ## Examples
 
-Sign responses for `example.org` with the key "Kexample.org.+005+45330.key".
+Sign responses for `example.org` with the key "Kexample.org.+013+45330.key".
 
 ~~~
 example.org:53 {
