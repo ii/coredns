@@ -40,6 +40,9 @@ func newGoogle(endpoint string, bootstrap []string) *google {
 	}
 
 	boot := NewLookup(bootstrap)
+	// don't do any fancy healthchecking on this backend.
+	(*boot.Upstreams)[0].(*staticUpstream).HealthCheck.MaxFails = 0
+	(*boot.Upstreams)[0].(*staticUpstream).HealthCheck.FailTimeout = 1 * time.Second
 
 	return &google{client: client, endpoint: dns.Fqdn(endpoint), bootstrapProxy: boot, quit: make(chan bool)}
 }
@@ -135,29 +138,31 @@ func (g *google) OnStartup(p *Proxy) error {
 
 	go func() {
 		tick := time.NewTicker(120 * time.Second)
-		first := time.NewTimer(time.Second * 1)
+		first := time.NewTimer(2 * time.Second)
 
 		for {
 			select {
 			case <-first.C:
 				// duplicate code, as select-case doesn't allow fallthrough...
 
-				log.Printf("[INFO] Bootstrapping A records %q", g.endpoint)
+				log.Printf("[INFO] Initial bootstrapping A records %q", g.endpoint)
 
 				new, err := g.bootstrapProxy.Lookup(state, g.endpoint, dns.TypeA)
 				if err != nil {
-					log.Printf("[WARNING] Failed to bootstrap A records %q: %s", g.endpoint, err)
+					log.Printf("[WARNING] Failed to initial bootstrap A records %q: %s", g.endpoint, err)
 					continue
 				}
 
 				addrs, err1 := extractAnswer(new)
 				if err1 != nil {
-					log.Printf("[WARNING] Failed to bootstrap A records %q: %s", g.endpoint, err1)
+					log.Printf("[WARNING] Failed to initial bootstrap A records %q: %s", g.endpoint, err1)
 					continue
 				}
 
 				up := newUpstream(addrs, oldUpstream.(*staticUpstream))
 				p.Upstreams = &[]Upstream{up}
+
+				first.Stop()
 
 			case <-tick.C:
 
