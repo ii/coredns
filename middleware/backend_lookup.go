@@ -358,7 +358,7 @@ func NS(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 }
 
 // SOA returns a SOA record from the backend.
-func SOA(b ServiceBackend, zone string, state request.Request, opt Options) ([]dns.RR, []msg.Service, error) {
+func SOA(b ServiceBackend, zone string, state request.Request, opt Options) ([]dns.RR, error) {
 	header := dns.RR_Header{Name: zone, Rrtype: dns.TypeSOA, Ttl: 300, Class: dns.ClassINET}
 
 	Mbox := hostmaster + "."
@@ -377,7 +377,7 @@ func SOA(b ServiceBackend, zone string, state request.Request, opt Options) ([]d
 		Expire:  86400,
 		Minttl:  minTTL,
 	}
-	return []dns.RR{soa}, nil, nil
+	return []dns.RR{soa}, nil
 }
 
 // BackendError writes an error response to the client.
@@ -385,7 +385,7 @@ func BackendError(b ServiceBackend, zone string, rcode int, state request.Reques
 	m := new(dns.Msg)
 	m.SetRcode(state.Req, rcode)
 	m.Authoritative, m.RecursionAvailable, m.Compress = true, true, true
-	m.Ns, _, _ = SOA(b, zone, state, opt)
+	m.Ns, _ = SOA(b, zone, state, opt)
 
 	state.SizeAndDo(m)
 	state.W.WriteMsg(m)

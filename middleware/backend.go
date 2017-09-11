@@ -20,12 +20,12 @@ type ServiceBackend interface {
 	// Lookup is used to find records else where.
 	Lookup(state request.Request, name string, typ uint16) (*dns.Msg, error)
 
-	// IsNameError return true if err indicated a record not found condition
-	IsNameError(err error) bool
-
 	// Returns _all_ services that matches a certain name.
 	// Note: it does not implement a specific service.
 	Records(state request.Request, exact bool) ([]msg.Service, error)
+
+	// IsNameError return true if err indicated a record not found condition
+	IsNameError(err error) bool
 }
 
 // Options are extra options that can be specified for a lookup.
