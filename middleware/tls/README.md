@@ -27,7 +27,7 @@ tls CERT KEY CA
 Start a DNS-over-TLS server that picks up incoming DNS-over-TLS queries on port 5553 and uses the
 nameservers defined in `/etc/resolv.conf` to resolve the query. This proxy path uses plain old DNS.
 
-~~~ corefile
+~~~
 tls://.:5553 {
 	tls cert.pem key.pem ca.pem
 	proxy . /etc/resolv.conf
@@ -37,7 +37,7 @@ tls://.:5553 {
 Start a DNS-over-gRPC server that is similar to the previous example, but using DNS-over-gRPC for
 incoming queries.
 
-~~~ corefile
+~~~
 grpc://. {
 	tls cert.pem key.pem ca.pem
 	proxy . /etc/resolv.conf
