@@ -22,7 +22,7 @@ func setup(c *caddy.Controller) error {
 
 	t := dnsserver.GetConfig(c).Handler("trace")
 	P := &Proxy{Trace: t}
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		P.Next = next
 		P.Upstreams = &upstreams
 		return P

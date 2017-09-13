@@ -18,7 +18,7 @@ func setup(c *caddy.Controller) error {
 		// TODO(miek): block and option parsing
 	}
 
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		return RoundRobin{Next: next}
 	})
 

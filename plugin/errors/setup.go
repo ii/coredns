@@ -26,7 +26,7 @@ func setup(c *caddy.Controller) error {
 
 	handler.Log = log.New(os.Stdout, "", 0)
 
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		handler.Next = next
 		return handler
 	})

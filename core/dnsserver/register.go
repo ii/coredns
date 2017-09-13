@@ -119,8 +119,8 @@ func (h *dnsContext) MakeServers() ([]caddy.Server, error) {
 	return servers, nil
 }
 
-// AddMiddleware adds a plugin to a site's plugin stack.
-func (c *Config) AddMiddleware(m plugin.Plugin) {
+// AddPlugin adds a plugin to a site's plugin stack.
+func (c *Config) AddPlugin(m plugin.Plugin) {
 	c.Plugin = append(c.Plugin, m)
 }
 

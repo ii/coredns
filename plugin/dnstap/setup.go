@@ -88,7 +88,7 @@ func setup(c *caddy.Controller) error {
 		return nil
 	})
 
-	dnsserver.GetConfig(c).AddMiddleware(
+	dnsserver.GetConfig(c).AddPlugin(
 		func(next plugin.Handler) plugin.Handler {
 			dnstap.Next = next
 			return dnstap

@@ -24,7 +24,7 @@ func setupErratic(c *caddy.Controller) error {
 		return plugin.Error("erratic", err)
 	}
 
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		return e
 	})
 

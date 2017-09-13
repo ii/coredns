@@ -24,7 +24,7 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("prometheus", err)
 	}
 
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		m.Next = next
 		return m
 	})

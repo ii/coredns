@@ -51,7 +51,7 @@ func setup(c *caddy.Controller) error {
 		return kubernetes.APIConn.Stop()
 	})
 
-	dnsserver.GetConfig(c).AddMiddleware(func(next plugin.Handler) plugin.Handler {
+	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		kubernetes.Next = next
 		return kubernetes
 	})
