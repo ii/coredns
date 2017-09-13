@@ -5,8 +5,8 @@ import (
 	"crypto/tls"
 	"log"
 
-	"github.com/coredns/coredns/plugin/pkg/trace"
 	"github.com/coredns/coredns/pb"
+	"github.com/coredns/coredns/plugin/pkg/trace"
 	"github.com/coredns/coredns/request"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
