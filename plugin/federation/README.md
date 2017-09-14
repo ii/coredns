@@ -20,7 +20,7 @@ federation [ZONES...] {
 
 Here we handle all service requests in the `prod` and `stage` federations.
 
-~~~ txt
+~~~ corefile
 . {
     kubernetes cluster.local 
     federation cluster.local {
@@ -32,7 +32,7 @@ Here we handle all service requests in the `prod` and `stage` federations.
 
 Or slightly shorter:
 
-~~~ txt
+~~~ corefile
 cluster.local {
     kubernetes
     federation {

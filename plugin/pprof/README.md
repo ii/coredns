@@ -30,8 +30,10 @@ pprof
 
 Listen on an alternate address:
 
-~~~
-pprof 10.9.8.7:6060
+~~~ corefile
+. {
+    pprof 10.9.8.7:6060
+}
 ~~~
 
 Listen on an all addresses on port 6060:
