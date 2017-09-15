@@ -30,7 +30,7 @@ pprof
 
 Listen on an alternate address:
 
-~~~ corefile
+~~~
 . {
     pprof 10.9.8.7:6060
 }
