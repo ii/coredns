@@ -46,10 +46,9 @@ func (w *watch) remove(dir string) error {
 	}
 	i--
 	if i == 0 {
-		if err := w.w.Remove(dir); err != nil {
-			return err
-		}
+		err := w.w.Remove(dir)
 		delete(w.d, dir)
+		return err
 	}
 	w.d[dir]--
 	return nil
