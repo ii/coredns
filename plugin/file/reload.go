@@ -69,8 +69,8 @@ func (z *Zone) Reload() error {
 			select {
 			case event := <-watcher.w.Events:
 				if path.Clean(event.Name) == z.file {
-
-					if event.Op&fsnotify.Write != fsnotify.Write {
+					// You should move stuff into place!
+					if event.Op&fsnotify.Create != fsnotify.Create {
 						continue
 					}
 
