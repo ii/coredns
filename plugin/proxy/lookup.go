@@ -120,7 +120,7 @@ func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
 			}
 			// If we get a network error, *our* upstream is broken, not us, SERVFAIL request to client.
 			if _, ok := backendErr.(*net.OpError); ok {
-				return dns.RcodeServerFailure, fmt.Errorf("bad upstream %s: %s", host.Name, backendErr)
+				return nil, fmt.Errorf("bad upstream %s: %s", host.Name, backendErr)
 			}
 			timeout := host.FailTimeout
 			if timeout == 0 {
