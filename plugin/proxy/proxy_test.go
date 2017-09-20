@@ -80,8 +80,6 @@ func TestStop(t *testing.T) {
 			if counterValueAfterWaiting > (counterValueAfterShutdown + 1) {
 				t.Errorf("Expected no more healthchecks after shutdown. Got: %d healthchecks after shutdown", counterValueAfterWaiting-counterValueAfterShutdown)
 			}
-
 		})
-
 	}
 }

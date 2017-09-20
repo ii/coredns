@@ -1,15 +1,14 @@
 package healthcheck
 
 import (
-	"io"
-	"io/ioutil"
 	"log"
 	"net"
-	"net/http"
 	"net/url"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/miekg/dns"
 )
 
 // UpstreamHostDownFunc can be used to customize how Down behaves.
@@ -106,7 +105,7 @@ func (u *HealthCheck) Stop() error {
 // otherwise checks will back up, potentially a lot of them if a host is
 // absent for a long time.  This arrangement makes checks quickly see if
 // they are the only one running and abort otherwise.
-func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
+func healthCheckDNS(nextTs time.Time, host *UpstreamHost, client *dns.Client) {
 
 	// lock for our bool check.  We don't just defer the unlock because
 	// we don't want the lock held while http.Get runs
@@ -121,22 +120,15 @@ func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 	host.Checking = true
 	host.CheckMu.Unlock()
 
-	//log.Printf("[DEBUG] Healthchecking %s, nextTs is %s\n", url, nextTs.Local())
+	ping := newPingMsg()
 
-	// fetch that url.  This has been moved into a go func because
+	_, _, err := client.Exchange(ping, host.Name)
+
+	// Ping our upstream. This has been moved into a go func because
 	// when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one
 	// fetch could last several check intervals
-	if r, err := http.Get(host.CheckURL); err == nil {
-		io.Copy(ioutil.Discard, r.Body)
-		r.Body.Close()
-
-		if r.StatusCode < 200 || r.StatusCode >= 400 {
-			log.Printf("[WARNING] Host %s health check returned HTTP code %d\n",
-				host.Name, r.StatusCode)
-			nextTs = time.Unix(0, 0)
-		}
-	} else {
+	if err != nil {
 		log.Printf("[WARNING] Host %s health check probe failed: %v\n", host.Name, err)
 		nextTs = time.Unix(0, 0)
 	}
@@ -148,6 +140,10 @@ func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 }
 
 func (u *HealthCheck) healthCheck() {
+
+	client := new(dns.Client)
+	client.Net = "tcp"
+
 	for _, host := range u.Hosts {
 
 		if host.CheckURL == "" {
@@ -178,7 +174,7 @@ func (u *HealthCheck) healthCheck() {
 		nextTs := time.Now().Add(u.Future)
 
 		// locks/bools should prevent requests backing up
-		go healthCheckURL(nextTs, host)
+		go healthCheckDNS(nextTs, host, client)
 	}
 }
 
