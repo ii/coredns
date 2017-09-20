@@ -43,15 +43,13 @@ func TestStop(t *testing.T) {
 			// Set up proxy.
 			var counter int64
 			backend := dnstest.NewServer(dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
-				println("DFD")
 				w.WriteMsg(r)
 				atomic.AddInt64(&counter, 1)
 			}))
 
 			defer backend.Close()
 
-			corefile := fmt.Sprintf(config, backend.UDPAddr, backend.TCPAddr, test.intervalInMilliseconds)
-			println(corefile)
+			corefile := fmt.Sprintf(config, backend.Addr, backend.Addr, test.intervalInMilliseconds)
 
 			c := caddyfile.NewDispenser("Testfile", strings.NewReader(corefile))
 			upstreams, err := NewStaticUpstreams(&c)
