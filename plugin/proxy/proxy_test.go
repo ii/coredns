@@ -2,18 +2,19 @@ package proxy
 
 import (
 	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/coredns/coredns/plugin/pkg/dnstest"
+
 	"github.com/mholt/caddy/caddyfile"
+	"github.com/miekg/dns"
 )
 
 func TestStop(t *testing.T) {
-	config := "proxy . %s {\n health_check /healthcheck:%s %dms \n}"
+	config := "proxy . %s {\n health_check %s %dms \n}"
 	tests := []struct {
 		name                    string
 		intervalInMilliseconds  int
@@ -41,16 +42,18 @@ func TestStop(t *testing.T) {
 
 			// Set up proxy.
 			var counter int64
-			backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				r.Body.Close()
+			backend := dnstest.NewServer(dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
+				println("DFD")
+				w.WriteMsg(r)
 				atomic.AddInt64(&counter, 1)
 			}))
 
 			defer backend.Close()
 
-			port := backend.URL[17:] // Remove all crap up to the port
-			back := backend.URL[7:]  // Remove http://
-			c := caddyfile.NewDispenser("Testfile", strings.NewReader(fmt.Sprintf(config, back, port, test.intervalInMilliseconds)))
+			corefile := fmt.Sprintf(config, backend.UDPAddr, backend.TCPAddr, test.intervalInMilliseconds)
+			println(corefile)
+
+			c := caddyfile.NewDispenser("Testfile", strings.NewReader(corefile))
 			upstreams, err := NewStaticUpstreams(&c)
 			if err != nil {
 				t.Error("Expected no error. Got:", err.Error())
