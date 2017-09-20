@@ -27,8 +27,9 @@ func NewLookupWithOption(hosts []string, opts Options) Proxy {
 		from: ".",
 		HealthCheck: healthcheck.HealthCheck{
 			FailTimeout: 10 * time.Second,
-			MaxFails:    3, // TODO(miek): disable error checking for simple lookups?
+			MaxFails:    3,
 			Future:      60 * time.Second,
+			client:      &dns.Client{net: "tcp"},
 		},
 		ex: newDNSExWithOption(opts),
 	}

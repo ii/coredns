@@ -115,6 +115,26 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 				return 0, taperr
 			}
+
+			timeout := host.FailTimeout
+			if timeout == 0 {
+				timeout = 5 * time.Second
+			}
+
+			atomic.AddInt32(&host.Fails, 1)
+
+			// preemptive healthcheck to see if really down (and should not be used) or not.
+			fails := atomic.LoadInt32(&host.Fails)
+			if fails > 3 { // TODO(miek): configure value or max_fails??
+				// calculate this before the ping
+				nextTs := time.Now().Add(upstream.HealthCheck.Future)
+				go healthCheckDNS(nextTs, host)
+			}
+
+			go func(host *healthcheck.UpstreamHost, timeout time.Duration) {
+				time.Sleep(timeout)
+				atomic.AddInt32(&host.Fails, -1)
+			}(host, timeout)
 		}
 
 		RequestDuration.WithLabelValues(state.Proto(), upstream.Exchanger().Protocol(), upstream.From()).Observe(float64(time.Since(start) / time.Millisecond))

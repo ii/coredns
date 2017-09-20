@@ -69,6 +69,7 @@ type HealthCheck struct {
 	Path        string
 	Port        string
 	Interval    time.Duration
+	client      *dns.Client // client used for sending DNS queries
 }
 
 // Start starts the healthcheck
@@ -105,7 +106,7 @@ func (u *HealthCheck) Stop() error {
 // otherwise checks will back up, potentially a lot of them if a host is
 // absent for a long time.  This arrangement makes checks quickly see if
 // they are the only one running and abort otherwise.
-func healthCheckDNS(nextTs time.Time, host *UpstreamHost, client *dns.Client) {
+func healthCheckDNS(nextTs time.Time, host *UpstreamHost) {
 
 	// lock for our bool check.  We don't just defer the unlock because
 	// we don't want the lock held while http.Get runs
@@ -122,7 +123,7 @@ func healthCheckDNS(nextTs time.Time, host *UpstreamHost, client *dns.Client) {
 
 	ping := newPingMsg()
 
-	_, _, err := client.Exchange(ping, host.Name)
+	_, _, err := host.client.Exchange(ping, host.Name)
 
 	// Ping our upstream. This has been moved into a go func because
 	// when the remote host is not merely not serving, but actually
@@ -140,9 +141,6 @@ func healthCheckDNS(nextTs time.Time, host *UpstreamHost, client *dns.Client) {
 }
 
 func (u *HealthCheck) healthCheck() {
-
-	client := new(dns.Client)
-	client.Net = "tcp"
 
 	for _, host := range u.Hosts {
 
@@ -170,11 +168,11 @@ func (u *HealthCheck) healthCheck() {
 			host.CheckURL = "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
 		}
 
-		// calculate this before the get
+		// calculate this before the ping
 		nextTs := time.Now().Add(u.Future)
 
 		// locks/bools should prevent requests backing up
-		go healthCheckDNS(nextTs, host, client)
+		go healthCheckDNS(nextTs, host)
 	}
 }
 
