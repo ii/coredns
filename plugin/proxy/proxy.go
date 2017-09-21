@@ -95,6 +95,10 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 			reply, backendErr = upstream.Exchanger().Exchange(ctx, host.Name, state)
 
+			// To call an healthcheck for a host, call host.Healthcheck
+			// host.Healthcheck(upstream.Exchange(), opts..?)
+
+			fmt.Printf("%T\n", host)
 			respEpoch := msg.Epoch()
 			atomic.AddInt64(&host.Conns, -1)
 

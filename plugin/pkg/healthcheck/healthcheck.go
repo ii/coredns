@@ -121,8 +121,6 @@ func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 	host.Checking = true
 	host.CheckMu.Unlock()
 
-	//log.Printf("[DEBUG] Healthchecking %s, nextTs is %s\n", url, nextTs.Local())
-
 	// fetch that url.  This has been moved into a go func because
 	// when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one

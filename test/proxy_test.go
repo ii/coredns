@@ -13,7 +13,6 @@ import (
 )
 
 func TestLookupProxy(t *testing.T) {
-	t.Parallel()
 	name, rm, err := test.TempFile(".", exampleOrg)
 	if err != nil {
 		t.Fatalf("failed to create zone: %s", err)
@@ -30,8 +29,6 @@ func TestLookupProxy(t *testing.T) {
 		t.Fatalf("Could not get CoreDNS serving instance: %s", err)
 	}
 	defer i.Stop()
-
-	log.SetOutput(ioutil.Discard)
 
 	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}

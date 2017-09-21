@@ -11,6 +11,8 @@ import (
 // can use whatever transport it likes.
 type Exchanger interface {
 	Exchange(ctx context.Context, addr string, state request.Request) (*dns.Msg, error)
+
+	// Protocol returns the protocol as specified in the config, grpc, https_google etc.
 	Protocol() string
 
 	// Transport returns the only transport protocol used by this Exchanger or "".
