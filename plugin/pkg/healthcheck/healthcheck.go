@@ -123,6 +123,7 @@ func healthCheckDNS(nextTs time.Time, host *UpstreamHost) {
 
 	ping := newPingMsg()
 
+	// TODO: check returned packet, consider Success, NXDOMAIN, refused Ok
 	_, _, err := host.client.Exchange(ping, host.Name)
 
 	// Ping our upstream. This has been moved into a go func because
