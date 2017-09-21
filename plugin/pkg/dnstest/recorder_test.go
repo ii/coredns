@@ -8,7 +8,8 @@ import (
 
 type responseWriter struct{ dns.ResponseWriter }
 
-func (r *responseWriter) WriteMsg(m *dns.Msg) error { return nil }
+func (r *responseWriter) WriteMsg(m *dns.Msg) error     { return nil }
+func (r *responseWriter) Write(buf []byte) (int, error) { return len(buf), nil }
 
 func TestNewRecorder(t *testing.T) {
 	w := &responseWriter{}
@@ -34,5 +35,16 @@ func TestWriteMsg(t *testing.T) {
 	}
 	if x := record.Msg.Question[0].Name; x != responseTestName {
 		t.Fatalf("Expected Msg Qname to be %s , but found %s\n", responseTestName, x)
+	}
+}
+
+func TestWrite(t *testing.T) {
+	w := &responseWriter{}
+	record := NewRecorder(w)
+	responseTest := []byte("testmsg.example.org.")
+
+	record.Write(responseTest)
+	if record.Len != len(responseTest) {
+		t.Fatalf("Expected the bytes written counter to be %d, but instead found %d\n", len(responseTest), record.Len)
 	}
 }

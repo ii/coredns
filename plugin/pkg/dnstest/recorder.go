@@ -52,7 +52,3 @@ func (r *Recorder) Write(buf []byte) (int, error) {
 	}
 	return n, err
 }
-
-// Hijack implements dns.Hijacker. It simply wraps the underlying
-// ResponseWriter's Hijack method if there is one, or returns an error.
-func (r *Recorder) Hijack() { r.ResponseWriter.Hijack(); return }
