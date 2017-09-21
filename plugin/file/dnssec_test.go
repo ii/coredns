@@ -138,7 +138,7 @@ func TestLookupDNSSEC(t *testing.T) {
 	for _, tc := range dnssecTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)
@@ -158,7 +158,7 @@ func BenchmarkFileLookupDNSSEC(b *testing.B) {
 
 	fm := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{testzone: zone}, Names: []string{testzone}}}
 	ctx := context.TODO()
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	tc := test.Case{
 		Qname: "b.miek.nl.", Qtype: dns.TypeA, Do: true,

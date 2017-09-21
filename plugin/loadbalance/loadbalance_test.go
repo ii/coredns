@@ -79,7 +79,7 @@ func TestLoadBalance(t *testing.T) {
 		},
 	}
 
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	for i, test := range tests {
 		req := new(dns.Msg)

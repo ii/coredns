@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewReplacer(t *testing.T) {
-	w := dnstest.New(&test.ResponseWriter{})
+	w := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	r := new(dns.Msg)
 	r.SetQuestion("example.org.", dns.TypeHINFO)
@@ -37,7 +37,7 @@ func TestNewReplacer(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	w := dnstest.New(&test.ResponseWriter{})
+	w := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	r := new(dns.Msg)
 	r.SetQuestion("example.org.", dns.TypeHINFO)

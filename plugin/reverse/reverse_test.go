@@ -52,7 +52,7 @@ func TestReverse(t *testing.T) {
 		tr.qtype = dns.TypeA
 		req.SetQuestion(dns.Fqdn(tr.qname), tr.qtype)
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := em.ServeDNS(ctx, rec, req)
 
 		if err != tr.expectedErr {

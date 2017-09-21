@@ -35,7 +35,7 @@ func TestWhoami(t *testing.T) {
 		req := new(dns.Msg)
 		req.SetQuestion(dns.Fqdn(tc.qname), tc.qtype)
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := wh.ServeDNS(ctx, rec, req)
 
 		if err != tc.expectedErr {

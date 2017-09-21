@@ -32,7 +32,7 @@ func (l Logger) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 			continue
 		}
 
-		rrw := dnstest.NewRecorder(w)
+		rrw := dnstest.NewRecorderRecorder(w)
 		rc, err := plugin.NextOrFailure(l.Name(), l.Next, ctx, rrw, r)
 
 		if rc > 0 {

@@ -101,7 +101,7 @@ func TestLookupDNAME(t *testing.T) {
 	for _, tc := range dnameTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)
@@ -154,7 +154,7 @@ func TestLookupDNAMEDNSSEC(t *testing.T) {
 	for _, tc := range dnameDnssecTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)

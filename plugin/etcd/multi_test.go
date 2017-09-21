@@ -25,7 +25,7 @@ func TestMultiLookup(t *testing.T) {
 	for _, tc := range dnsTestCasesMulti {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := etc.ServeDNS(ctxt, rec, m)
 		if err != nil {
 			t.Errorf("expected no error, got %v\n", err)

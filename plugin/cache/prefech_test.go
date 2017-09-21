@@ -29,7 +29,7 @@ func TestPrefetch(t *testing.T) {
 	req := new(dns.Msg)
 	req.SetQuestion("lowttl.example.org.", dns.TypeA)
 
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	c.ServeDNS(ctx, rec, req)
 	p = true // prefetch should be true for the 2nd fetch

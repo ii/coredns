@@ -262,7 +262,7 @@ func TestLookup(t *testing.T) {
 	for _, tc := range dnsTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		etc.ServeDNS(ctxt, rec, m)
 
 		resp := rec.Msg

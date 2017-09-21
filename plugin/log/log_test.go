@@ -31,7 +31,7 @@ func TestLoggedStatus(t *testing.T) {
 	r := new(dns.Msg)
 	r.SetQuestion("example.org.", dns.TypeA)
 
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	rcode, _ := logger.ServeDNS(ctx, rec, r)
 	if rcode != 0 {
@@ -62,7 +62,7 @@ func TestLoggedClassDenial(t *testing.T) {
 	r := new(dns.Msg)
 	r.SetQuestion("example.org.", dns.TypeA)
 
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	logger.ServeDNS(ctx, rec, r)
 
@@ -90,7 +90,7 @@ func TestLoggedClassError(t *testing.T) {
 	r := new(dns.Msg)
 	r.SetQuestion("example.org.", dns.TypeA)
 
-	rec := dnstest.New(&test.ResponseWriter{})
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
 
 	logger.ServeDNS(ctx, rec, r)
 

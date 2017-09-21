@@ -89,7 +89,7 @@ func TestLookupWildcard(t *testing.T) {
 	for _, tc := range wildcardTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)
@@ -150,7 +150,7 @@ func TestLookupDoubleWildcard(t *testing.T) {
 	for _, tc := range wildcardDoubleTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)
@@ -205,7 +205,7 @@ func TestLookupApexWildcard(t *testing.T) {
 	for _, tc := range apexWildcardTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)
@@ -248,7 +248,7 @@ func TestLookupMultiWildcard(t *testing.T) {
 	for _, tc := range multiWildcardTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %v\n", err)

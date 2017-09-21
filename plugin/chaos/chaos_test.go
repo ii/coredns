@@ -59,7 +59,7 @@ func TestChaos(t *testing.T) {
 		req.Question[0].Qclass = dns.ClassCHAOS
 		em.Next = tc.next
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := em.ServeDNS(ctx, rec, req)
 
 		if err != tc.expectedErr {

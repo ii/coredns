@@ -95,7 +95,7 @@ func TestLookupZone(t *testing.T) {
 	for _, tc := range dnsTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := dh.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("expected no error, got %v\n", err)
@@ -118,7 +118,7 @@ func TestLookupDNSKEY(t *testing.T) {
 	for _, tc := range dnssecTestCases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := dh.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("expected no error, got %v\n", err)

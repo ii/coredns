@@ -165,7 +165,7 @@ func TestServeDNS(t *testing.T) {
 	for i, tc := range dnsTestCases {
 		r := tc.Msg()
 
-		w := dnstest.New(&test.ResponseWriter{})
+		w := dnstest.NewRecorder(&test.ResponseWriter{})
 
 		_, err := k.ServeDNS(ctx, w, r)
 		if err != tc.Error {

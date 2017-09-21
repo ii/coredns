@@ -162,7 +162,7 @@ func testDelegation(t *testing.T, z, origin string, testcases []test.Case) {
 	for _, tc := range testcases {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := fm.ServeDNS(ctx, rec, m)
 		if err != nil {
 			t.Errorf("Expected no error, got %q\n", err)

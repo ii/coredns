@@ -48,7 +48,7 @@ func TestErrors(t *testing.T) {
 	for i, tc := range tests {
 		em.Next = tc.next
 		buf.Reset()
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := em.ServeDNS(ctx, rec, req)
 
 		if err != tc.expectedErr {

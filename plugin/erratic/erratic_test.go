@@ -28,7 +28,7 @@ func TestErraticDrop(t *testing.T) {
 		req := new(dns.Msg)
 		req.SetQuestion("example.org.", dns.TypeA)
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := e.ServeDNS(ctx, rec, req)
 
 		if err != tc.expectedErr {
@@ -62,7 +62,7 @@ func TestErraticTruncate(t *testing.T) {
 		req := new(dns.Msg)
 		req.SetQuestion("example.org.", dns.TypeA)
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		code, err := e.ServeDNS(ctx, rec, req)
 
 		if err != tc.expectedErr {

@@ -51,7 +51,7 @@ func TestStubLookup(t *testing.T) {
 	for _, tc := range dnsTestCasesStub {
 		m := tc.Msg()
 
-		rec := dnstest.New(&test.ResponseWriter{})
+		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		_, err := etc.ServeDNS(ctxt, rec, m)
 		if err != nil && m.Question[0].Name == "example.org." {
 			// This is OK, we expect this backend to *not* work.
