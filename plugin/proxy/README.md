@@ -24,7 +24,7 @@ proxy FROM TO... {
     policy random|least_conn|round_robin
     fail_timeout DURATION
     max_fails INTEGER
-    health_check [DURATION]
+    health_check [DURATION] // TODO(miek) we can eat the old args to make it backward compat
     except IGNORED_NAMES...
     spray
     protocol [dns [force_tcp]|https_google [bootstrap ADDRESS...]|grpc [insecure|CACERT|KEY CERT|KEY CERT CACERT]]
@@ -135,7 +135,7 @@ With health checks and proxy headers to pass hostname, IP, and scheme upstream:
 . {
     proxy . 10.0.0.11:53 10.0.0.11:53 10.0.0.12:53 {
         policy round_robin
-        health_check /health:8080
+        health_check
     }
 }
 ~~~
