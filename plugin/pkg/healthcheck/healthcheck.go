@@ -30,9 +30,9 @@ type UpstreamHost struct {
 	CheckMu           sync.Mutex
 }
 
-// Down checks whether the upstream host is down or not.
-// Down will try to use uh.CheckDown first, and will fall
-// back to some default criteria if necessary.
+// Down checks whether the upstream host is down or not. Down will try to use
+// uh.CheckDown first, and will fall back to some default criteria if
+// necessary.
 func (uh *UpstreamHost) Down() bool {
 	if uh.CheckDown == nil {
 		// Default settings
@@ -67,7 +67,7 @@ type HealthCheck struct {
 	FailTimeout time.Duration
 	MaxFails    int32
 	Future      time.Duration
-	Path        string
+	Path        string // TODO(rename): use request.Request
 	Port        string
 	Interval    time.Duration
 }
