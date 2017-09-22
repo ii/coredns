@@ -198,7 +198,6 @@ func newUpstream(hosts []string, old *staticUpstream) Upstream {
 			Future:      60 * time.Second,
 		},
 		ex:                old.ex,
-		WithoutPathPrefix: old.WithoutPathPrefix,
 		IgnoredSubDomains: old.IgnoredSubDomains,
 	}
 
@@ -230,7 +229,6 @@ func newUpstream(hosts []string, old *staticUpstream) Upstream {
 					return down
 				}
 			}(upstream),
-			WithoutPathPrefix: upstream.WithoutPathPrefix,
 		}
 
 		upstream.Hosts[i] = uh

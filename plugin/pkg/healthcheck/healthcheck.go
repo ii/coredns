@@ -1,15 +1,14 @@
 package healthcheck
 
 import (
-	"io"
-	"io/ioutil"
 	"log"
 	"net"
-	"net/http"
-	"net/url"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/coredns/coredns/request"
+	"github.com/miekg/dns"
 )
 
 // UpstreamHostDownFunc can be used to customize how Down behaves.
@@ -17,17 +16,14 @@ type UpstreamHostDownFunc func(*UpstreamHost) bool
 
 // UpstreamHost represents a single proxy upstream
 type UpstreamHost struct {
-	Conns             int64  // must be first field to be 64-bit aligned on 32-bit systems
-	Name              string // IP address (and port) of this upstream host
-	Network           string // Network (tcp, unix, etc) of the host, default "" is "tcp"
-	Fails             int32
-	FailTimeout       time.Duration
-	OkUntil           time.Time
-	CheckDown         UpstreamHostDownFunc
-	CheckURL          string
-	WithoutPathPrefix string
-	Checking          bool
-	CheckMu           sync.Mutex
+	Conns       int64  // must be first field to be 64-bit aligned on 32-bit systems
+	Name        string // IP address (and port) of this upstream host
+	Fails       int32
+	FailTimeout time.Duration
+	OkUntil     time.Time
+	CheckDown   UpstreamHostDownFunc
+	Checking    bool
+	CheckMu     sync.Mutex
 }
 
 // Down checks whether the upstream host is down or not. Down will try to use
@@ -106,8 +102,7 @@ func (u *HealthCheck) Stop() error {
 // otherwise checks will back up, potentially a lot of them if a host is
 // absent for a long time.  This arrangement makes checks quickly see if
 // they are the only one running and abort otherwise.
-func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
-
+func Check(f Func, okUntil time.Time, host *UpstreamHost) {
 	// lock for our bool check.  We don't just defer the unlock because
 	// we don't want the lock held while the check runs.
 	host.CheckMu.Lock()
@@ -117,66 +112,38 @@ func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 		host.CheckMu.Unlock()
 		return
 	}
-
 	host.Checking = true
+
 	host.CheckMu.Unlock()
 
-	// Exchange the ping package. This has been moved into a go func
+	// Exchange the payload package. This has been moved into a go func
 	// because when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one fetch
 	// could last several check intervals
-	if r, err := http.Get(host.CheckURL); err == nil {
-		io.Copy(ioutil.Discard, r.Body)
-		r.Body.Close()
-
-		if r.StatusCode < 200 || r.StatusCode >= 400 {
-			log.Printf("[WARNING] Host %s health check returned HTTP code %d\n",
-				host.Name, r.StatusCode)
-			nextTs = time.Unix(0, 0)
-		}
-	} else {
+	if r, err := f(host.Name); err != nil {
 		log.Printf("[WARNING] Host %s health check probe failed: %v\n", host.Name, err)
-		nextTs = time.Unix(0, 0)
+		okUntil = time.Unix(0, 0)
+	} else {
+		if r.Rcode == dns.RcodeSuccess {
+			// add this??
+		}
+		atomic.StoreInt32(&host.Fails, 0) // reset Fails as well
 	}
 
 	host.CheckMu.Lock()
 	host.Checking = false
-	host.OkUntil = nextTs
+	host.OkUntil = okUntil
 	host.CheckMu.Unlock()
 }
 
 func (u *HealthCheck) healthCheck() {
 	for _, host := range u.Hosts {
 
-		if host.CheckURL == "" {
-			var hostName, checkPort string
-
-			// The DNS server might be an HTTP server.  If so, extract its name.
-			ret, err := url.Parse(host.Name)
-			if err == nil && len(ret.Host) > 0 {
-				hostName = ret.Host
-			} else {
-				hostName = host.Name
-			}
-
-			// Extract the port number from the parsed server name.
-			checkHostName, checkPort, err := net.SplitHostPort(hostName)
-			if err != nil {
-				checkHostName = hostName
-			}
-
-			if u.Port != "" {
-				checkPort = u.Port
-			}
-
-			host.CheckURL = "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
-		}
-
 		// calculate this before the get
-		nextTs := time.Now().Add(u.Future)
+		okUntil := time.Now().Add(u.Future)
 
 		// locks/bools should prevent requests backing up
-		go healthCheckURL(nextTs, host)
+		go Check(nil, okUntil, host)
 	}
 }
 
@@ -239,3 +206,23 @@ func (u *HealthCheck) Select() *UpstreamHost {
 	}
 	return u.Spray.Select(pool)
 }
+
+// payload is the default payload we send to the upstream. This is using tcp for the checking.
+var payload = func() request.Request {
+	m := new(dns.Msg)
+	m.SetQuestion(".", dns.TypeNS)
+	m.RecursionDesired = false
+
+	return request.Request{Req: m, W: &responseWriter{}}
+}()
+
+// Func is the function that gets called to perform healthchecks, it uses
+// payload is the default payload.
+type Func func(addr string) (*dns.Msg, error)
+
+// responseWriter is a health specific one that defaults to using a TCP transport.
+type responseWriter struct{ dns.ResponseWriter }
+
+func (r *responseWriter) LocalAddr() net.Addr { return &net.TCPAddr{IP: ip, Port: 53, Zone: ""} }
+
+var ip = net.ParseIP("127.0.0.1")

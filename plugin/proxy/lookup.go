@@ -61,7 +61,6 @@ func NewLookupWithOption(hosts []string, opts Options) Proxy {
 					return down
 				}
 			}(upstream),
-			WithoutPathPrefix: upstream.WithoutPathPrefix,
 		}
 
 		upstream.Hosts[i] = uh

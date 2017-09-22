@@ -20,7 +20,6 @@ type staticUpstream struct {
 
 	healthcheck.HealthCheck
 
-	WithoutPathPrefix string
 	IgnoredSubDomains []string
 	ex                Exchanger
 }
@@ -90,7 +89,6 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 						return down
 					}
 				}(upstream),
-				WithoutPathPrefix: upstream.WithoutPathPrefix,
 			}
 
 			upstream.Hosts[i] = uh
@@ -158,11 +156,6 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 				u.Future = 3 * time.Second
 			}
 		}
-	case "without":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		u.WithoutPathPrefix = c.Val()
 	case "except":
 		ignoredDomains := c.RemainingArgs()
 		if len(ignoredDomains) == 0 {

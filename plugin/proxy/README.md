@@ -24,7 +24,7 @@ proxy FROM TO... {
     policy random|least_conn|round_robin
     fail_timeout DURATION
     max_fails INTEGER
-    health_check PATH:PORT [DURATION]
+    health_check [DURATION]
     except IGNORED_NAMES...
     spray
     protocol [dns [force_tcp]|https_google [bootstrap ADDRESS...]|grpc [insecure|CACERT|KEY CERT|KEY CERT CACERT]]
@@ -41,10 +41,10 @@ proxy FROM TO... {
   communicate with it. The default value is 10 seconds ("10s").
 * `max_fails` is the number of failures within fail_timeout that are needed before considering
   a backend to be down. If 0, the backend will never be marked as down. Default is 1.
-* `health_check` will check path (on port) on each backend. If a backend returns a status code of
-  200-399, then that backend is marked healthy for double the healthcheck duration.  If it doesn't,
-  it is marked as unhealthy and no requests are routed to it.  If this option is not provided then
-  health checks are disabled.  The default duration is 30 seconds ("30s").
+* `health_check` will check each backend in band using `protocol`.
+  If a backend returns a status code of 200-399, then that backend is marked healthy for double the
+  healthcheck duration.  If it doesn't, it is marked as unhealthy and no requests are routed to it.
+  If this option is not provided then health checks are disabled.  The default duration is 30 seconds ("30s").
 * **IGNORED_NAMES** in `except` is a space-separated list of domains to exclude from proxying.
   Requests that match none of these names will be passed through.
 * `spray` when all backends are unhealthy, randomly pick one to send the traffic to. (This is
