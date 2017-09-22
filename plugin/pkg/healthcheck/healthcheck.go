@@ -109,10 +109,10 @@ func (u *HealthCheck) Stop() error {
 func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 
 	// lock for our bool check.  We don't just defer the unlock because
-	// we don't want the lock held while http.Get runs
+	// we don't want the lock held while the check runs.
 	host.CheckMu.Lock()
 
-	// are we mid check?  Don't run another one
+	// Are we mid check?  Don't run another one.
 	if host.Checking {
 		host.CheckMu.Unlock()
 		return
@@ -121,10 +121,10 @@ func healthCheckURL(nextTs time.Time, host *UpstreamHost) {
 	host.Checking = true
 	host.CheckMu.Unlock()
 
-	// fetch that url.  This has been moved into a go func because
-	// when the remote host is not merely not serving, but actually
-	// absent, then tcp syn timeouts can be very long, and so one
-	// fetch could last several check intervals
+	// Exchange the ping package. This has been moved into a go func
+	// because when the remote host is not merely not serving, but actually
+	// absent, then tcp syn timeouts can be very long, and so one fetch
+	// could last several check intervals
 	if r, err := http.Get(host.CheckURL); err == nil {
 		io.Copy(ioutil.Discard, r.Body)
 		r.Body.Close()
