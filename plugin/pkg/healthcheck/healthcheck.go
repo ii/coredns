@@ -63,21 +63,17 @@ type HealthCheck struct {
 	FailTimeout time.Duration
 	MaxFails    int32
 	Future      time.Duration
-	Path        string // TODO(rename): use request.Request
-	Port        string
 	Interval    time.Duration
 }
 
 // Start starts the healthcheck
 func (u *HealthCheck) Start() {
 	u.stop = make(chan struct{})
-	if u.Path != "" {
-		u.wg.Add(1)
-		go func() {
-			defer u.wg.Done()
-			u.healthCheckWorker(u.stop)
-		}()
-	}
+	u.wg.Add(1)
+	go func() {
+		defer u.wg.Done()
+		u.healthCheckWorker(u.stop)
+	}()
 }
 
 // Stop sends a signal to all goroutines started by this staticUpstream to exit

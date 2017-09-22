@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"net"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -134,14 +133,6 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 		}
 		u.MaxFails = int32(n)
 	case "health_check":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		var err error
-		u.HealthCheck.Path, u.HealthCheck.Port, err = net.SplitHostPort(c.Val())
-		if err != nil {
-			return err
-		}
 		u.HealthCheck.Interval = 30 * time.Second
 		if c.NextArg() {
 			dur, err := time.ParseDuration(c.Val())

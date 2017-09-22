@@ -174,7 +174,6 @@ func (k *Kubernetes) getClientConfig() (*rest.Config, error) {
 					FailTimeout: 3 * time.Second,
 					MaxFails:    1,
 					Future:      10 * time.Second,
-					Path:        "/",
 					Interval:    5 * time.Second,
 				},
 			},
