@@ -55,8 +55,9 @@ type HostPool []*UpstreamHost
 // on a collection of upstream hosts and select
 // one based on the policy.
 type HealthCheck struct {
-	wg          sync.WaitGroup // Used to wait for running goroutines to stop.
-	stop        chan struct{}  // Signals running goroutines to stop.
+	wg   sync.WaitGroup // Used to wait for running goroutines to stop.
+	stop chan struct{}  // Signals running goroutines to stop.
+
 	Hosts       HostPool
 	Policy      Policy
 	Spray       Policy
