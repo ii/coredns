@@ -119,8 +119,6 @@ func (uh *UpstreamHost) healthCheckURL(nextTs time.Time) {
 	uh.Checking = true
 	uh.Unlock()
 
-	//log.Printf("[DEBUG] Healthchecking %s, nextTs is %s\n", url, nextTs.Local())
-
 	// fetch that url.  This has been moved into a go func because
 	// when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one
@@ -130,14 +128,14 @@ func (uh *UpstreamHost) healthCheckURL(nextTs time.Time) {
 		r.Body.Close()
 
 		if r.StatusCode < 200 || r.StatusCode >= 400 {
-			log.Printf("[WARNING] Host %s health check returned HTTP code %d\n", uh.Name, r.StatusCode)
+			log.Printf("[WARNING] Host %s health check returned HTTP code %d", uh.Name, r.StatusCode)
 			nextTs = time.Unix(0, 0)
 		} else {
 			// We are healthy again, reset fails
 			atomic.StoreInt32(&uh.Fails, 0)
 		}
 	} else {
-		log.Printf("[WARNING] Host %s health check probe failed: %v\n", uh.Name, err)
+		log.Printf("[WARNING] Host %s health check probe failed: %v", uh.Name, err)
 		nextTs = time.Unix(0, 0)
 	}
 
