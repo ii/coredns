@@ -1,4 +1,4 @@
-package healthcheck
+package httphealth
 
 import (
 	"log"
@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// SupportedPolicies is the collection of policies registered.
+	// SupportedPolicies is the collection of policies registered
 	SupportedPolicies = make(map[string]func() Policy)
 )
 

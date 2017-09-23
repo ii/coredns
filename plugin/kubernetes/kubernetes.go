@@ -11,8 +11,8 @@ import (
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/etcd/msg"
+	"github.com/coredns/coredns/plugin/kubernetes/httphealth"
 	"github.com/coredns/coredns/plugin/pkg/dnsutil"
-	"github.com/coredns/coredns/plugin/pkg/healthcheck"
 	"github.com/coredns/coredns/plugin/proxy"
 	"github.com/coredns/coredns/request"
 
@@ -170,7 +170,7 @@ func (k *Kubernetes) getClientConfig() (*rest.Config, error) {
 		k.APIProxy = &apiProxy{
 			listener: listener,
 			handler: proxyHandler{
-				HealthCheck: healthcheck.HealthCheck{
+				HealthCheck: httphealth.HealthCheck{
 					FailTimeout: 3 * time.Second,
 					MaxFails:    1,
 					Future:      10 * time.Second,
@@ -178,14 +178,14 @@ func (k *Kubernetes) getClientConfig() (*rest.Config, error) {
 				},
 			},
 		}
-		k.APIProxy.handler.Hosts = make([]*healthcheck.UpstreamHost, len(k.APIServerList))
+		k.APIProxy.handler.Hosts = make([]*httphealth.UpstreamHost, len(k.APIServerList))
 		for i, entry := range k.APIServerList {
 
-			uh := &healthcheck.UpstreamHost{
+			uh := &httphealth.UpstreamHost{
 				Name: strings.TrimPrefix(entry, "http://"),
 
-				CheckDown: func(upstream *proxyHandler) healthcheck.UpstreamHostDownFunc {
-					return func(uh *healthcheck.UpstreamHost) bool {
+				CheckDown: func(upstream *proxyHandler) httphealth.UpstreamHostDownFunc {
+					return func(uh *httphealth.UpstreamHost) bool {
 
 						down := false
 

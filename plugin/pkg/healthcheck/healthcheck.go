@@ -23,7 +23,7 @@ type UpstreamHost struct {
 	OkUntil     time.Time
 	CheckDown   UpstreamHostDownFunc
 	Checking    bool
-	CheckMu     sync.Mutex
+	sync.Mutex
 }
 
 // Down checks whether the upstream host is down or not. Down will try to use
@@ -35,9 +35,9 @@ func (uh *UpstreamHost) Down() bool {
 		fails := atomic.LoadInt32(&uh.Fails)
 		after := false
 
-		uh.CheckMu.Lock()
+		uh.Lock()
 		until := uh.OkUntil
-		uh.CheckMu.Unlock()
+		uh.Unlock()
 
 		if !until.IsZero() && time.Now().After(until) {
 			after = true
@@ -68,20 +68,20 @@ type HealthCheck struct {
 }
 
 // Start starts the healthcheck
-func (u *HealthCheck) Start() {
-	u.stop = make(chan struct{})
-	u.wg.Add(1)
+func (h *HealthCheck) Start() {
+	h.stop = make(chan struct{})
+	h.wg.Add(1)
 	go func() {
-		defer u.wg.Done()
-		u.healthCheckWorker(u.stop)
+		defer h.wg.Done()
+		h.healthCheckWorker(h.stop)
 	}()
 }
 
 // Stop sends a signal to all goroutines started by this staticUpstream to exit
 // and waits for them to finish before returning.
-func (u *HealthCheck) Stop() error {
-	close(u.stop)
-	u.wg.Wait()
+func (h *HealthCheck) Stop() error {
+	close(h.stop)
+	h.wg.Wait()
 	return nil
 }
 
@@ -99,58 +99,58 @@ func (u *HealthCheck) Stop() error {
 // otherwise checks will back up, potentially a lot of them if a host is
 // absent for a long time.  This arrangement makes checks quickly see if
 // they are the only one running and abort otherwise.
-func Check(f Func, okUntil time.Time, host *UpstreamHost) {
+func (uh *UpstreamHost) Check(f Func, okUntil time.Time) {
 	// lock for our bool check.  We don't just defer the unlock because
 	// we don't want the lock held while the check runs.
-	host.CheckMu.Lock()
+	uh.Lock()
 
 	// Are we mid check?  Don't run another one.
-	if host.Checking {
-		host.CheckMu.Unlock()
+	if uh.Checking {
+		uh.Unlock()
 		return
 	}
-	host.Checking = true
+	uh.Checking = true
 
-	host.CheckMu.Unlock()
+	uh.Unlock()
 
 	// Exchange the payload package. This has been moved into a go func
 	// because when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one fetch
 	// could last several check intervals
-	if r, err := f(host.Name); err != nil {
-		log.Printf("[WARNING] Host %s health check probe failed: %v\n", host.Name, err)
+	if r, err := f(uh.Name); err != nil {
+		log.Printf("[WARNING] Host %s health check probe failed: %v\n", uh.Name, err)
 		okUntil = time.Unix(0, 0)
 	} else {
 		if r.Rcode == dns.RcodeSuccess {
-			// add this??
+			// add this?? I.e. should we check return code - any message back it good.
 		}
-		atomic.StoreInt32(&host.Fails, 0) // reset Fails as well
+		atomic.StoreInt32(&uh.Fails, 0) // reset Fails as well
 	}
 
-	host.CheckMu.Lock()
-	host.Checking = false
-	host.OkUntil = okUntil
-	host.CheckMu.Unlock()
+	uh.Lock()
+	uh.Checking = false
+	uh.OkUntil = okUntil
+	uh.Unlock()
 }
 
-func (u *HealthCheck) healthCheck() {
-	for _, host := range u.Hosts {
+func (h *HealthCheck) healthCheck() {
+	for _, host := range h.Hosts {
 
 		// calculate this before the get
-		okUntil := time.Now().Add(u.Future)
+		okUntil := time.Now().Add(h.Future)
 
 		// locks/bools should prevent requests backing up
-		go Check(nil, okUntil, host)
+		go host.Check(nil, okUntil)
 	}
 }
 
-func (u *HealthCheck) healthCheckWorker(stop chan struct{}) {
-	ticker := time.NewTicker(u.Interval)
-	u.healthCheck()
+func (h *HealthCheck) healthCheckWorker(stop chan struct{}) {
+	ticker := time.NewTicker(h.Interval)
+	h.healthCheck()
 	for {
 		select {
 		case <-ticker.C:
-			u.healthCheck()
+			h.healthCheck()
 		case <-stop:
 			ticker.Stop()
 			return
@@ -160,10 +160,10 @@ func (u *HealthCheck) healthCheckWorker(stop chan struct{}) {
 
 // Select selects an upstream host based on the policy
 // and the healthcheck result.
-func (u *HealthCheck) Select() *UpstreamHost {
-	pool := u.Hosts
+func (h *HealthCheck) Select() *UpstreamHost {
+	pool := h.Hosts
 	if len(pool) == 1 {
-		if pool[0].Down() && u.Spray == nil {
+		if pool[0].Down() && h.Spray == nil {
 			return nil
 		}
 		return pool[0]
@@ -176,32 +176,32 @@ func (u *HealthCheck) Select() *UpstreamHost {
 		}
 	}
 	if allDown {
-		if u.Spray == nil {
+		if h.Spray == nil {
 			return nil
 		}
-		return u.Spray.Select(pool)
+		return h.Spray.Select(pool)
 	}
 
-	if u.Policy == nil {
-		h := (&Random{}).Select(pool)
-		if h != nil {
-			return h
+	if h.Policy == nil {
+		p := (&Random{}).Select(pool)
+		if p != nil {
+			return p
 		}
-		if h == nil && u.Spray == nil {
+		if p == nil && h.Spray == nil {
 			return nil
 		}
-		return u.Spray.Select(pool)
+		return h.Spray.Select(pool)
 	}
 
-	h := u.Policy.Select(pool)
-	if h != nil {
-		return h
+	p := h.Policy.Select(pool)
+	if p != nil {
+		return p
 	}
 
-	if u.Spray == nil {
+	if h.Spray == nil {
 		return nil
 	}
-	return u.Spray.Select(pool)
+	return h.Spray.Select(pool)
 }
 
 // payload is the default payload we send to the upstream. This is using tcp for the checking.
@@ -213,8 +213,7 @@ var payload = func() request.Request {
 	return request.Request{Req: m, W: &responseWriter{}}
 }()
 
-// Func is the function that gets called to perform healthchecks, it uses
-// payload is the default payload.
+// Func is the function that gets called to perform healthchecks, 'payload' is the default payload.
 type Func func(addr string) (*dns.Msg, error)
 
 // responseWriter is a health specific one that defaults to using a TCP transport.

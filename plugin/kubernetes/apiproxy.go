@@ -7,12 +7,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/coredns/coredns/plugin/pkg/healthcheck"
+	"github.com/coredns/coredns/plugin/kubernetes/httphealth"
 )
 
-type proxyHandler struct {
-	healthcheck.HealthCheck
-}
+type proxyHandler struct{ httphealth.HealthCheck }
 
 type apiProxy struct {
 	http.Server
