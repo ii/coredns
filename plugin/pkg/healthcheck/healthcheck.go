@@ -204,14 +204,14 @@ func (h *HealthCheck) Select() *UpstreamHost {
 	return h.Spray.Select(pool)
 }
 
-// payload is the default payload we send to the upstream. This is using tcp for the checking.
-var payload = func() request.Request {
+// Payload is the default payload we send to the upstream.
+func Payload() request.Request {
 	m := new(dns.Msg)
 	m.SetQuestion(".", dns.TypeNS)
 	m.RecursionDesired = false
 
 	return request.Request{Req: m, W: &responseWriter{}}
-}()
+}
 
 // Func is the function that gets called to perform healthchecks, 'payload' is the default payload.
 type Func func(addr string) (*dns.Msg, error)

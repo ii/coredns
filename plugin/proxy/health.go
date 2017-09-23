@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"github.com/coredns/coredns/plugin/pkg/healthcheck"
+
+	"github.com/miekg/dns"
+	"golang.org/x/net/context"
 )
 
 // checkDownFunc is the default function to use for CheckDown.
@@ -27,4 +30,16 @@ var checkDownFunc = func(upstream *staticUpstream) healthcheck.UpstreamHostDownF
 		}
 		return down
 	}
+}
+
+func (d *dnsEx) HealthCheck(addr string) (*dns.Msg, error) {
+	return d.Exchange(context.TODO(), addr, healthcheck.Payload())
+}
+
+func (g *google) HealthCheck(addr string) (*dns.Msg, error) {
+	return g.Exchange(context.TODO(), addr, healthcheck.Payload())
+}
+
+func (g *grpcClient) HealthCheck(addr string) (*dns.Msg, error) {
+	return g.Exchange(context.TODO(), addr, healthcheck.Payload())
 }

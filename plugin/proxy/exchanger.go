@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/coredns/coredns/request"
+
 	"github.com/miekg/dns"
 )
 
@@ -19,6 +20,8 @@ type Exchanger interface {
 	// Transport returns the only transport protocol used by this Exchanger or "".
 	// If the return value is "", Exchange must use `state.Proto()`.
 	Transport() string
+
+	HealthCheck(string) (*dns.Msg, error)
 
 	OnStartup(*Proxy) error
 	OnShutdown(*Proxy) error
