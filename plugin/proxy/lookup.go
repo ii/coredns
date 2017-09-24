@@ -120,7 +120,7 @@ func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
 			}
 
 			if oe, ok := backendErr.(*net.OpError); ok {
-				if oe.Temporary() {
+				if oe.Timeout() { // see proxy.go for docs.
 					continue
 				}
 			}

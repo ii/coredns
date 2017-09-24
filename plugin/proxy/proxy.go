@@ -119,14 +119,11 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 			if oe, ok := backendErr.(*net.OpError); ok {
 				// Note this keeps looping and trying until tryDuration is hit, at which point our client
 				// might be long gone...
-				if oe.Temporary() {
+				if oe.Timeout() {
 					// Our upstream's upstream is problably messing up, continue with next selected
 					// host - which my be the *same* one as we don't set any uh.Fails.
 					continue
 				}
-
-				// question becomes: are the any backendErr that are *not* temporary? I.e. do we ever fall through
-				// the code below?
 			}
 
 			timeout := host.FailTimeout
