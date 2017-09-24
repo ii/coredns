@@ -5,6 +5,7 @@ package proxy
 import (
 	"context"
 	"fmt"
+	"net"
 	"sync/atomic"
 	"time"
 
@@ -26,9 +27,9 @@ func NewLookupWithOption(hosts []string, opts Options) Proxy {
 	upstream := &staticUpstream{
 		from: ".",
 		HealthCheck: healthcheck.HealthCheck{
-			FailTimeout: 10 * time.Second,
-			MaxFails:    3, // TODO(miek): disable error checking for simple lookups?
-			Future:      60 * time.Second,
+			FailTimeout: 5 * time.Second,
+			MaxFails:    3,
+			Future:      12 * time.Second,
 		},
 		ex: newDNSExWithOption(opts),
 	}
@@ -106,7 +107,7 @@ func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
 			}
 
 			// duplicated from proxy.go, but with a twist, we don't write the
-			// reply back to the client, we return it and there is no monitoring.
+			// reply back to the client, we return it and there is no monitoring to update here.
 
 			atomic.AddInt64(&host.Conns, 1)
 
@@ -117,11 +118,20 @@ func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
 			if backendErr == nil {
 				return reply, nil
 			}
+
+			if oe, ok := backendErr.(*net.OpError); ok {
+				if oe.Temporary() {
+					continue
+				}
+			}
+
 			timeout := host.FailTimeout
 			if timeout == 0 {
-				timeout = 10 * time.Second
+				timeout = 2 * time.Second
 			}
+
 			atomic.AddInt32(&host.Fails, 1)
+
 			go func(host *healthcheck.UpstreamHost, timeout time.Duration) {
 				time.Sleep(timeout)
 				atomic.AddInt32(&host.Fails, -1)
