@@ -131,7 +131,7 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 			u.Future = 2 * dur
 
 			// set a minimum of 3 seconds
-			if u.Future < (3 * time.Second) {
+			if u.Future < 3*time.Second {
 				u.Future = 3 * time.Second
 			}
 		}

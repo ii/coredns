@@ -104,13 +104,15 @@ func (u *HealthCheck) Stop() error {
 // otherwise checks will back up, potentially a lot of them if a host is
 // absent for a long time.  This arrangement makes checks quickly see if
 // they are the only one running and abort otherwise.
-func (uh *UpstreamHost) healthCheckURL(nextTs time.Time) {
+func (uh *UpstreamHost) HealthCheckURL() {
+	// calculate next timestamp before the get.
+	okUntil := time.Now().Add(uh.Future)
 
-	// lock for our bool check.  We don't just defer the unlock because
-	// we don't want the lock held while http.Get runs
+	// Lock for our bool check.  We don't just defer the unlock because
+	// we don't want the lock held while http.Get runs.
 	uh.Lock()
 
-	// are we mid check?  Don't run another one
+	// Are we mid check?  Don't run another one.
 	if uh.Checking {
 		uh.Unlock()
 		return
@@ -119,35 +121,37 @@ func (uh *UpstreamHost) healthCheckURL(nextTs time.Time) {
 	uh.Checking = true
 	uh.Unlock()
 
-	// fetch that url.  This has been moved into a go func because
+	// Fetch that url.  This has been moved into a go func because
 	// when the remote host is not merely not serving, but actually
 	// absent, then tcp syn timeouts can be very long, and so one
-	// fetch could last several check intervals
+	// fetch could last several check intervals.
+	// TODO(miek): this should work better with a time out.
 	if r, err := http.Get(uh.CheckURL); err == nil {
 		io.Copy(ioutil.Discard, r.Body)
 		r.Body.Close()
 
 		if r.StatusCode < 200 || r.StatusCode >= 400 {
 			log.Printf("[WARNING] Host %s health check returned HTTP code %d", uh.Name, r.StatusCode)
-			nextTs = time.Unix(0, 0)
+			okUntil = time.Unix(0, 0)
 		} else {
 			// We are healthy again, reset fails
 			atomic.StoreInt32(&uh.Fails, 0)
 		}
 	} else {
 		log.Printf("[WARNING] Host %s health check probe failed: %v", uh.Name, err)
-		nextTs = time.Unix(0, 0)
+		okUntil = time.Unix(0, 0)
 	}
 
 	uh.Lock()
 	uh.Checking = false
-	uh.OkUntil = nextTs
+	uh.OkUntil = okUntil
 	uh.Unlock()
 }
 
 func (u *HealthCheck) healthCheck() {
 	for _, host := range u.Hosts {
 
+		// Move to to initialization.
 		if host.CheckURL == "" {
 			var hostName, checkPort string
 
@@ -172,11 +176,8 @@ func (u *HealthCheck) healthCheck() {
 			host.CheckURL = "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
 		}
 
-		// calculate next timestamp before the get
-		nextTs := time.Now().Add(u.Future)
-
 		// locks/bools should prevent requests backing up
-		go host.healthCheckURL(nextTs)
+		go host.HealthCheckURL()
 	}
 }
 
