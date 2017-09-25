@@ -126,14 +126,14 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 				}
 			}
 
-			// Kick off healthcheck on eveyry third failur
+			// Kick off healthcheck on eveyry third failure.
 			if fails := atomic.LoadInt32(&host.Fails); fails%3 == 0 {
 				go host.HealthCheckURL()
 			}
 
 			timeout := host.FailTimeout
 			if timeout == 0 {
-				timeout = 2 * time.Second
+				timeout = defaultFailTimeout
 			}
 
 			atomic.AddInt32(&host.Fails, 1)
@@ -175,9 +175,6 @@ func (p Proxy) match(state request.Request) (u Upstream) {
 // Name implements the Handler interface.
 func (p Proxy) Name() string { return "proxy" }
 
-// defaultTimeout is the default networking timeout for DNS requests.
-const defaultTimeout = 5 * time.Second
-
 func toDnstap(ctx context.Context, host string, ex Exchanger, state request.Request, reply *dns.Msg, queryEpoch, respEpoch uint64) (err error) {
 	if tapper := dnstap.TapperFromContext(ctx); tapper != nil {
 		// Query
@@ -214,3 +211,8 @@ func toDnstap(ctx context.Context, host string, ex Exchanger, state request.Requ
 	}
 	return
 }
+
+const (
+	defaultFailTimeout = 2 * time.Second
+	defaultTimeout     = 5 * time.Second
+)

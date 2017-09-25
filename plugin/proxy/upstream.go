@@ -3,6 +3,7 @@ package proxy
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -33,7 +34,6 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 			HealthCheck: healthcheck.HealthCheck{
 				FailTimeout: 5 * time.Second,
 				MaxFails:    3,
-				Future:      12 * time.Second,
 			},
 			ex: newDNSEx(),
 		}
@@ -61,14 +61,14 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 		}
 
 		upstream.Hosts = make([]*healthcheck.UpstreamHost, len(toHosts))
+
 		for i, host := range toHosts {
 			uh := &healthcheck.UpstreamHost{
 				Name:        host,
-				Conns:       0,
-				Fails:       0,
 				FailTimeout: upstream.FailTimeout,
 				CheckDown:   checkDownFunc(upstream),
 			}
+			uh.CheckURL = normalizeCheckURL(host.Name, host.Port)
 
 			upstream.Hosts[i] = uh
 		}
@@ -128,12 +128,6 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 				return err
 			}
 			u.HealthCheck.Interval = dur
-			u.Future = 2 * dur
-
-			// set a minimum of 3 seconds
-			if u.Future < 3*time.Second {
-				u.Future = 3 * time.Second
-			}
 		}
 	case "except":
 		ignoredDomains := c.RemainingArgs()
@@ -204,3 +198,29 @@ func (u *staticUpstream) IsAllowedDomain(name string) bool {
 }
 
 func (u *staticUpstream) Exchanger() Exchanger { return u.ex }
+
+func normalizeCheckURL(u, p string) string {
+	checkURL := ""
+
+	var hostName, checkPort string
+
+	hostName = u
+	// The DNS server might be an HTTP server.  If so, extract its name.
+	ret, err := url.Parse(u)
+	if err == nil && len(ret.Host) > 0 {
+		hostName = ret.Host
+	}
+
+	// Extract the port number from the parsed server name.
+	checkHostName, checkPort, err := net.SplitHostPort(hostName)
+	if err != nil {
+		checkHostName = hostName
+	}
+
+	if p != "" {
+		checkPort = p
+	}
+
+	checkURL = "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
+	return checkURL
+}

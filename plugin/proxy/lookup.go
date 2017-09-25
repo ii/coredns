@@ -29,7 +29,6 @@ func NewLookupWithOption(hosts []string, opts Options) Proxy {
 		HealthCheck: healthcheck.HealthCheck{
 			FailTimeout: 5 * time.Second,
 			MaxFails:    3,
-			Future:      12 * time.Second,
 		},
 		ex: newDNSExWithOption(opts),
 	}
@@ -38,8 +37,6 @@ func NewLookupWithOption(hosts []string, opts Options) Proxy {
 	for i, host := range hosts {
 		uh := &healthcheck.UpstreamHost{
 			Name:        host,
-			Conns:       0,
-			Fails:       0,
 			FailTimeout: upstream.FailTimeout,
 			CheckDown:   checkDownFunc(upstream),
 		}
@@ -104,9 +101,14 @@ func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
 				}
 			}
 
+			// Kick off healthcheck on eveyry third failure.
+			if fails := atomic.LoadInt32(&host.Fails); fails%3 == 0 {
+				go host.HealthCheckURL()
+			}
+
 			timeout := host.FailTimeout
 			if timeout == 0 {
-				timeout = 2 * time.Second
+				timeout = defaultFailTimeout
 			}
 
 			atomic.AddInt32(&host.Fails, 1)

@@ -194,21 +194,21 @@ func newUpstream(hosts []string, old *staticUpstream) Upstream {
 		HealthCheck: healthcheck.HealthCheck{
 			FailTimeout: 5 * time.Second,
 			MaxFails:    3,
-			Future:      12 * time.Second,
 		},
 		ex:                old.ex,
 		IgnoredSubDomains: old.IgnoredSubDomains,
 	}
 
 	upstream.Hosts = make([]*healthcheck.UpstreamHost, len(hosts))
-	for i, h := range hosts {
+	for i, host := range hosts {
 		uh := &healthcheck.UpstreamHost{
-			Name:        h,
+			Name:        host,
 			Conns:       0,
 			Fails:       0,
 			FailTimeout: upstream.FailTimeout,
 			CheckDown:   checkDownFunc(upstream),
 		}
+		uh.CheckURL = normalizeCheckURL(host.Name, host.Port)
 
 		upstream.Hosts[i] = uh
 	}
