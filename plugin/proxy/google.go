@@ -208,8 +208,6 @@ func newUpstream(hosts []string, old *staticUpstream) Upstream {
 			FailTimeout: upstream.FailTimeout,
 			CheckDown:   checkDownFunc(upstream),
 		}
-		uh.CheckURL = normalizeCheckURL(host.Name, host.Port)
-
 		upstream.Hosts[i] = uh
 	}
 	return upstream

@@ -4,7 +4,9 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -57,6 +59,10 @@ type HealthCheck struct {
 
 // Start starts the healthcheck
 func (u *HealthCheck) Start() {
+	for i, h := range u.Hosts {
+		u.Hosts[i].CheckURL = u.normalizeCheckURL(h.Name)
+	}
+
 	u.stop = make(chan struct{})
 	if u.Path != "" {
 		u.wg.Add(1)
@@ -197,6 +203,29 @@ func (u *HealthCheck) Select() *UpstreamHost {
 		return nil
 	}
 	return u.Spray.Select(pool)
+}
+
+// normalizeCheckURL creates a proper URL for the health check.
+func (u *HealthCheck) normalizeCheckURL(name string) string {
+	// The DNS server might be an HTTP server.  If so, extract its name.
+	hostName := name
+	ret, err := url.Parse(name)
+	if err == nil && len(ret.Host) > 0 {
+		hostName = ret.Host
+	}
+
+	// Extract the port number from the parsed server name.
+	checkHostName, checkPort, err := net.SplitHostPort(hostName)
+	if err != nil {
+		checkHostName = hostName
+	}
+
+	if u.Port != "" {
+		checkPort = u.Port
+	}
+
+	checkURL := "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
+	return checkURL
 }
 
 var healthClient = func() *http.Client { return &http.Client{Timeout: 5 * time.Second} }()

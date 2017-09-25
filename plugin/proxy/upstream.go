@@ -3,7 +3,6 @@ package proxy
 import (
 	"fmt"
 	"net"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -68,8 +67,6 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 				FailTimeout: upstream.FailTimeout,
 				CheckDown:   checkDownFunc(upstream),
 			}
-			uh.CheckURL = normalizeCheckURL(host.Name, host.Port)
-
 			upstream.Hosts[i] = uh
 		}
 		upstream.Start()
@@ -198,29 +195,3 @@ func (u *staticUpstream) IsAllowedDomain(name string) bool {
 }
 
 func (u *staticUpstream) Exchanger() Exchanger { return u.ex }
-
-func normalizeCheckURL(u, p string) string {
-	checkURL := ""
-
-	var hostName, checkPort string
-
-	hostName = u
-	// The DNS server might be an HTTP server.  If so, extract its name.
-	ret, err := url.Parse(u)
-	if err == nil && len(ret.Host) > 0 {
-		hostName = ret.Host
-	}
-
-	// Extract the port number from the parsed server name.
-	checkHostName, checkPort, err := net.SplitHostPort(hostName)
-	if err != nil {
-		checkHostName = hostName
-	}
-
-	if p != "" {
-		checkPort = p
-	}
-
-	checkURL = "http://" + net.JoinHostPort(checkHostName, checkPort) + u.Path
-	return checkURL
-}
