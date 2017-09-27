@@ -6,6 +6,7 @@ import (
 	"github.com/mholt/caddy"
 )
 
+// Fuzz fuzzes proxy.
 func Fuzz(data []byte) int {
 	c := caddy.NewTestController("dns", "proxy . 8.8.8.8:53")
 	up, err := NewStaticUpstreams(&c.Dispenser)

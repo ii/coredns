@@ -7,6 +7,7 @@ import (
 	"github.com/coredns/coredns/plugin/test"
 )
 
+// Fuzz fuzzes file.
 func Fuzz(data []byte) int {
 	name := "miek.nl."
 	zone, _ := Parse(strings.NewReader(fuzzMiekNL), name, "stdin", 0)
