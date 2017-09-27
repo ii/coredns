@@ -1,0 +1,19 @@
+# Makefile for fuzzing
+#
+#$ go get github.com/dvyukov/go-fuzz/go-fuzz
+#$ go get github.com/dvyukov/go-fuzz/go-fuzz-build
+
+REPO:="github.com/coredns/coredns/plugin"
+
+FUZZ:=$(dir $(wildcard plugin/*/fuzz.go)) # plugin/cache/
+PLUGINS:=$(foreach f,$(FUZZ),$(subst plugin, ,$(f:/=))) # > /cache
+PLUGINS:=$(foreach f,$(PLUGINS),$(subst /, ,$(f))) # > cache
+
+.PHONY: echo
+echo:
+	@echo fuzz targets: $(PLUGINS)
+
+.PHONY: $(PLUGINS)
+$(PLUGINS): echo
+	go-fuzz-build $(REPO)/$(@)
+	go-fuzz -bin=./$(@)-fuzz.zip -workdir=fuzz/$(@)
