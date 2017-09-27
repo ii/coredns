@@ -29,4 +29,5 @@ $(PLUGINS): echo
 	go-fuzz -bin=./$(@)-fuzz.zip -workdir=fuzz/$(@)
 
 .PHONY: clean
+clean:
 	rm *-fuzz.zip
