@@ -11,7 +11,7 @@ func Fuzz(data []byte) int {
 	c := caddy.NewTestController("dns", "proxy . 8.8.8.8:53")
 	up, err := NewStaticUpstreams(&c.Dispenser)
 	if err != nil {
-		panic("fuzz: should not panic:" + err.Error())
+		return 0
 	}
 	p := &Proxy{Upstreams: &up}
 
