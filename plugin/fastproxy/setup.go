@@ -55,14 +55,11 @@ func (p *P) Start(addr string, port int) (err error) {
 }
 
 func (p *P) Close() error {
-	p.udp.connectionsLock.Lock()
+	p.udp.Lock()
 	p.udp.closed = true
 	for _, conn := range p.udp.connsMap {
 		conn.udp.Close()
 	}
-	if p.udp.listenerConn != nil {
-		p.udp.listenerConn.Close()
-	}
-	p.udp.connectionsLock.Unlock()
+	p.udp.Unlock()
 	return nil
 }

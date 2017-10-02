@@ -46,17 +46,16 @@ type packet struct {
 type Proxy struct {
 	UpstreamAddress        string
 	UpstreamPort           int
-	listenerConn           *net.UDPConn
 	client                 *net.UDPAddr
 	upstream               *net.UDPAddr
 	BufferSize             int
 	ConnTimeout            time.Duration
 	ResolveTTL             time.Duration
 	connsMap               map[string]connection
-	connectionsLock        *sync.RWMutex
 	closed                 bool
 	clientMessageChannel   chan (packet)
 	upstreamMessageChannel chan (packet)
+	sync.RWMutex
 }
 
 func New(upstreamAddress string, upstreamPort, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
@@ -65,7 +64,6 @@ func New(upstreamAddress string, upstreamPort, bufferSize int, connTimeout, reso
 		ConnTimeout:            connTimeout,
 		UpstreamAddress:        upstreamAddress,
 		UpstreamPort:           upstreamPort,
-		connectionsLock:        new(sync.RWMutex),
 		connsMap:               make(map[string]connection),
 		closed:                 false,
 		ResolveTTL:             resolveTTL,
@@ -77,13 +75,13 @@ func New(upstreamAddress string, upstreamPort, bufferSize int, connTimeout, reso
 }
 
 func (p *Proxy) updateClientLastActivity(clientAddrString string) {
-	p.connectionsLock.Lock()
+	p.Lock()
 	if _, found := p.connsMap[clientAddrString]; found {
 		connWrapper := p.connsMap[clientAddrString]
 		connWrapper.lastActivity = time.Now()
 		p.connsMap[clientAddrString] = connWrapper
 	}
-	p.connectionsLock.Unlock()
+	p.Unlock()
 }
 
 func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPConn, w dns.ResponseWriter) {
@@ -92,10 +90,10 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 		buffer := make([]byte, p.BufferSize)
 		size, _, err := upstreamConn.ReadFromUDP(buffer)
 		if err != nil {
-			p.connectionsLock.Lock()
+			p.Lock()
 			upstreamConn.Close()
 			delete(p.connsMap, clientAddrString)
-			p.connectionsLock.Unlock()
+			p.Unlock()
 			return
 		}
 
@@ -114,8 +112,6 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 func (p *Proxy) handlerUpstreamPackets() {
 	for pa := range p.upstreamMessageChannel {
 		pa.w.WriteMsg(pa.data)
-		//		buf, _ := pa.data.Pack()
-		//		p.listenerConn.WriteTo(buf, pa.src)
 	}
 }
 
@@ -123,9 +119,9 @@ func (p *Proxy) handleClientPackets() {
 	for pa := range p.clientMessageChannel {
 		packetSourceString := pa.src.String()
 
-		p.connectionsLock.RLock()
+		p.RLock()
 		conn, found := p.connsMap[packetSourceString]
-		p.connectionsLock.RUnlock()
+		p.RUnlock()
 
 		buf, _ := pa.data.Pack()
 
@@ -135,19 +131,19 @@ func (p *Proxy) handleClientPackets() {
 				return
 			}
 
-			p.connectionsLock.Lock()
+			p.Lock()
 			p.connsMap[packetSourceString] = connection{
 				udp:          conn,
 				w:            pa.w,
 				lastActivity: time.Now(),
 			}
-			p.connectionsLock.Unlock()
+			p.Unlock()
 
 			conn.Write(buf)
 			go p.clientConnectionReadLoop(pa.src, conn, pa.w)
 		} else {
 			conn.udp.Write(buf)
-			p.connectionsLock.RLock()
+			p.RLock()
 			shouldUpdateLastActivity := false
 			if _, found := p.connsMap[packetSourceString]; found {
 				if p.connsMap[packetSourceString].lastActivity.Before(
@@ -155,7 +151,7 @@ func (p *Proxy) handleClientPackets() {
 					shouldUpdateLastActivity = true
 				}
 			}
-			p.connectionsLock.RUnlock()
+			p.RUnlock()
 			if shouldUpdateLastActivity {
 				p.updateClientLastActivity(packetSourceString)
 			}
@@ -181,19 +177,19 @@ func (p *Proxy) freeIdleSocketsLoop() {
 		time.Sleep(p.ConnTimeout)
 		var clientsToTimeout []string
 
-		p.connectionsLock.RLock()
+		p.RLock()
 		for client, conn := range p.connsMap {
 			if conn.lastActivity.Before(time.Now().Add(-p.ConnTimeout)) {
 				clientsToTimeout = append(clientsToTimeout, client)
 			}
 		}
-		p.connectionsLock.RUnlock()
+		p.RUnlock()
 
-		p.connectionsLock.Lock()
+		p.Lock()
 		for _, client := range clientsToTimeout {
 			p.connsMap[client].udp.Close()
 			delete(p.connsMap, client)
 		}
-		p.connectionsLock.Unlock()
+		p.Unlock()
 	}
 }
