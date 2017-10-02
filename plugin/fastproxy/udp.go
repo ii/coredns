@@ -33,17 +33,17 @@ import (
 
 type connection struct {
 	udp          *net.UDPConn
+	w            dns.ResponseWriter
 	lastActivity time.Time
 }
 
 type packet struct {
 	src  net.Addr
+	w    dns.ResponseWriter
 	data *dns.Msg
 }
 
 type Proxy struct {
-	BindPort               int
-	BindAddress            string
 	UpstreamAddress        string
 	UpstreamPort           int
 	listenerConn           *net.UDPConn
@@ -86,7 +86,7 @@ func (p *Proxy) updateClientLastActivity(clientAddrString string) {
 	p.connectionsLock.Unlock()
 }
 
-func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPConn) {
+func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPConn, w dns.ResponseWriter) {
 	clientAddrString := addr.String()
 	for {
 		buffer := make([]byte, p.BufferSize)
@@ -106,14 +106,16 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 		p.upstreamMessageChannel <- packet{
 			src:  addr,
 			data: ret,
+			w:    w,
 		}
 	}
 }
 
 func (p *Proxy) handlerUpstreamPackets() {
 	for pa := range p.upstreamMessageChannel {
-		buf, _ := pa.data.Pack()
-		p.listenerConn.WriteTo(buf, pa.src)
+		pa.w.WriteMsg(pa.data)
+		//		buf, _ := pa.data.Pack()
+		//		p.listenerConn.WriteTo(buf, pa.src)
 	}
 }
 
@@ -136,12 +138,13 @@ func (p *Proxy) handleClientPackets() {
 			p.connectionsLock.Lock()
 			p.connsMap[packetSourceString] = connection{
 				udp:          conn,
+				w:            pa.w,
 				lastActivity: time.Now(),
 			}
 			p.connectionsLock.Unlock()
 
 			conn.Write(buf)
-			go p.clientConnectionReadLoop(pa.src, conn)
+			go p.clientConnectionReadLoop(pa.src, conn, pa.w)
 		} else {
 			conn.udp.Write(buf)
 			p.connectionsLock.RLock()
@@ -193,41 +196,4 @@ func (p *Proxy) freeIdleSocketsLoop() {
 		}
 		p.connectionsLock.Unlock()
 	}
-}
-
-func (p *Proxy) Close() {
-	p.connectionsLock.Lock()
-	p.closed = true
-	for _, conn := range p.connsMap {
-		conn.udp.Close()
-	}
-	if p.listenerConn != nil {
-		p.listenerConn.Close()
-	}
-	p.connectionsLock.Unlock()
-}
-
-func (p *Proxy) Start() {
-	ProxyAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", p.BindAddress, p.BindPort))
-	if err != nil {
-		return
-	}
-	p.upstream, err = net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", p.UpstreamAddress, p.UpstreamPort))
-	p.client = &net.UDPAddr{
-		IP:   ProxyAddr.IP,
-		Port: 0,
-		Zone: ProxyAddr.Zone,
-	}
-	p.listenerConn, err = net.ListenUDP("udp", ProxyAddr)
-	if err != nil {
-		return
-	}
-	if p.ConnTimeout.Nanoseconds() > 0 {
-		go p.freeIdleSocketsLoop()
-	}
-	if p.ResolveTTL.Nanoseconds() > 0 {
-		go p.resolveUpstreamLoop()
-	}
-	go p.handlerUpstreamPackets()
-	go p.handleClientPackets()
 }

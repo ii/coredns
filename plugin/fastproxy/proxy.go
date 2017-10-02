@@ -19,6 +19,7 @@ func (p P) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int,
 
 	p.udp.clientMessageChannel <- packet{
 		src:  w.RemoteAddr(),
+		w:    w,
 		data: r,
 	}
 
