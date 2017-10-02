@@ -16,5 +16,11 @@ type P struct {
 func (p P) Name() string { return "fastproxy" }
 
 func (p P) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+
+	p.udp.clientMessageChannel <- packet{
+		src:  w.RemoteAddr(),
+		data: r,
+	}
+
 	return 0, nil
 }

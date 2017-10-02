@@ -27,6 +27,8 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/miekg/dns"
 )
 
 type connection struct {
@@ -35,8 +37,8 @@ type connection struct {
 }
 
 type packet struct {
-	src  *net.UDPAddr
-	data []byte
+	src  net.Addr
+	data *dns.Msg
 }
 
 type Proxy struct {
@@ -57,10 +59,8 @@ type Proxy struct {
 	upstreamMessageChannel chan (packet)
 }
 
-func New(bindPort int, bindAddress string, upstreamAddress string, upstreamPort int, bufferSize int, connTimeout time.Duration, resolveTTL time.Duration) *Proxy {
+func New(upstreamAddress string, upstreamPort, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
 	proxy := &Proxy{
-		BindPort:               bindPort,
-		BindAddress:            bindAddress,
 		BufferSize:             bufferSize,
 		ConnTimeout:            connTimeout,
 		UpstreamAddress:        upstreamAddress,
@@ -86,8 +86,8 @@ func (p *Proxy) updateClientLastActivity(clientAddrString string) {
 	p.connectionsLock.Unlock()
 }
 
-func (p *Proxy) clientConnectionReadLoop(clientAddr *net.UDPAddr, upstreamConn *net.UDPConn) {
-	clientAddrString := clientAddr.String()
+func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPConn) {
+	clientAddrString := addr.String()
 	for {
 		buffer := make([]byte, p.BufferSize)
 		size, _, err := upstreamConn.ReadFromUDP(buffer)
@@ -98,17 +98,22 @@ func (p *Proxy) clientConnectionReadLoop(clientAddr *net.UDPAddr, upstreamConn *
 			p.connectionsLock.Unlock()
 			return
 		}
+
+		ret := new(dns.Msg)
+		ret.Unpack(buffer[:size])
+
 		p.updateClientLastActivity(clientAddrString)
 		p.upstreamMessageChannel <- packet{
-			src:  clientAddr,
-			data: buffer[:size],
+			src:  addr,
+			data: ret,
 		}
 	}
 }
 
 func (p *Proxy) handlerUpstreamPackets() {
 	for pa := range p.upstreamMessageChannel {
-		p.listenerConn.WriteTo(pa.data, pa.src)
+		buf, _ := pa.data.Pack()
+		p.listenerConn.WriteTo(buf, pa.src)
 	}
 }
 
@@ -119,6 +124,8 @@ func (p *Proxy) handleClientPackets() {
 		p.connectionsLock.RLock()
 		conn, found := p.connsMap[packetSourceString]
 		p.connectionsLock.RUnlock()
+
+		buf, _ := pa.data.Pack()
 
 		if !found {
 			conn, err := net.DialUDP("udp", p.client, p.upstream)
@@ -133,10 +140,10 @@ func (p *Proxy) handleClientPackets() {
 			}
 			p.connectionsLock.Unlock()
 
-			conn.Write(pa.data)
+			conn.Write(buf)
 			go p.clientConnectionReadLoop(pa.src, conn)
 		} else {
-			conn.udp.Write(pa.data)
+			conn.udp.Write(buf)
 			p.connectionsLock.RLock()
 			shouldUpdateLastActivity := false
 			if _, found := p.connsMap[packetSourceString]; found {
@@ -149,20 +156,6 @@ func (p *Proxy) handleClientPackets() {
 			if shouldUpdateLastActivity {
 				p.updateClientLastActivity(packetSourceString)
 			}
-		}
-	}
-}
-
-func (p *Proxy) readLoop() {
-	for !p.closed {
-		buffer := make([]byte, p.BufferSize)
-		size, srcAddress, err := p.listenerConn.ReadFromUDP(buffer)
-		if err != nil {
-			continue
-		}
-		p.clientMessageChannel <- packet{
-			src:  srcAddress,
-			data: buffer[:size],
 		}
 	}
 }
@@ -237,5 +230,4 @@ func (p *Proxy) Start() {
 	}
 	go p.handlerUpstreamPackets()
 	go p.handleClientPackets()
-	go p.readLoop()
 }

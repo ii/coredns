@@ -1,6 +1,8 @@
 package fastproxy
 
 import (
+	"time"
+
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
 
@@ -15,11 +17,9 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	//	udp := New(
-	//func New(bindPort int, bindAddress string, upstreamAddress string, upstreamPort int, bufferSize int, connTimeout time.Duration, resolveTTL time.Duration) *Proxy {
-	//)
-	p := P{}
-	//	p = P{udp: New()}
+	timeout := time.Second
+	udp := New("8.8.8.8", 53, 4096, timeout, timeout)
+	p := P{udp: udp}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		p.Next = next
