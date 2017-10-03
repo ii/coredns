@@ -23,7 +23,6 @@
 package forward
 
 import (
-	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -44,8 +43,7 @@ type packet struct {
 }
 
 type Proxy struct {
-	UpstreamAddress        string
-	UpstreamPort           int
+	addr                   string
 	client                 *net.UDPAddr
 	upstream               *net.UDPAddr
 	BufferSize             int
@@ -58,12 +56,11 @@ type Proxy struct {
 	sync.RWMutex
 }
 
-func New(upstreamAddress string, upstreamPort, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
+func New(addr string, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
 	proxy := &Proxy{
 		BufferSize:             bufferSize,
 		ConnTimeout:            connTimeout,
-		UpstreamAddress:        upstreamAddress,
-		UpstreamPort:           upstreamPort,
+		addr:                   addr,
 		connsMap:               make(map[string]connection),
 		closed:                 false,
 		ResolveTTL:             resolveTTL,
@@ -162,7 +159,7 @@ func (p *Proxy) handleClientPackets() {
 func (p *Proxy) resolveUpstreamLoop() {
 	for !p.closed {
 		time.Sleep(p.ResolveTTL)
-		upstreamAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", p.UpstreamAddress, p.UpstreamPort))
+		upstreamAddr, err := net.ResolveUDPAddr("udp", p.addr)
 		if err != nil {
 			continue
 		}

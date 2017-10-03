@@ -1,12 +1,12 @@
 package forward
 
 import (
-	"fmt"
 	"net"
 	"time"
 
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 
 	"github.com/mholt/caddy"
 )
@@ -19,8 +19,13 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
+	upstream, err := parseForward(c)
+	if err != nil {
+		return err
+	}
+
 	timeout := time.Second
-	udp := New("8.8.8.8", 53, 4096, timeout, timeout)
+	udp := New(upstream.to[0].addr, 4096, timeout, timeout)
 	p := P{udp: udp}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
@@ -29,7 +34,7 @@ func setup(c *caddy.Controller) error {
 	})
 
 	c.OnStartup(func() error {
-		return p.Start("8.8.8.8", 53)
+		return p.Start(upstream.to[0].addr)
 	})
 	c.OnShutdown(func() error {
 		return p.Close()
@@ -38,8 +43,8 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
-func (p *P) Start(addr string, port int) (err error) {
-	p.udp.upstream, err = net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", addr, port))
+func (p *P) Start(addr string) (err error) {
+	p.udp.upstream, err = net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return err
 	}
@@ -61,5 +66,40 @@ func (p *P) Close() error {
 		conn.udp.Close()
 	}
 	p.udp.Unlock()
+	return nil
+}
+
+func parseForward(c *caddy.Controller) (upstream, error) {
+	u := upstream{}
+	for c.Next() {
+		if !c.Args(&u.from) {
+			return u, c.ArgErr()
+		}
+		u.from = plugin.Host(u.from).Normalize()
+
+		to := c.RemainingArgs()
+		if len(to) == 0 {
+			return u, c.ArgErr()
+		}
+		toHosts, err := dnsutil.ParseHostPortOrFile(to...)
+		if err != nil {
+			return u, err
+		}
+		u.to = toHost(toHosts)
+
+		for c.NextBlock() {
+			if err := parseBlock(c, &u); err != nil {
+				return u, err
+			}
+		}
+	}
+	return u, nil
+}
+
+func parseBlock(c *caddy.Controller, u *upstream) error {
+	switch c.Val() {
+	default:
+		return c.Errf("unknown property '%s'", c.Val())
+	}
 	return nil
 }
