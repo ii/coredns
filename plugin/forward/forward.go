@@ -52,9 +52,9 @@ type Proxy struct {
 	sync.RWMutex
 }
 
-func New(addr string, bufferSize int, connTimeout time.Duration) *Proxy {
+func New(addr string, connTimeout time.Duration) *Proxy {
 	proxy := &Proxy{
-		BufferSize:   bufferSize,
+		BufferSize:   udpBufSize,
 		ConnTimeout:  connTimeout,
 		addr:         addr,
 		connsMap:     make(map[string]connection),
@@ -172,3 +172,5 @@ func (p *Proxy) freeIdleSocketsLoop() {
 		p.Unlock()
 	}
 }
+
+const udpBufSize = 4096

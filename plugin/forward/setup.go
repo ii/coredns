@@ -24,7 +24,7 @@ func setup(c *caddy.Controller) error {
 	}
 
 	timeout := time.Second
-	udp := New(upstream.to[0].addr, 4096, timeout)
+	udp := New(upstream.to[0].addr, timeout)
 	p := P{udp: udp}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
