@@ -43,29 +43,29 @@ type packet struct {
 }
 
 type Proxy struct {
-	addr                   string
-	client                 *net.UDPAddr
-	upstream               *net.UDPAddr
-	BufferSize             int
-	ConnTimeout            time.Duration
-	ResolveTTL             time.Duration
-	connsMap               map[string]connection
-	closed                 bool
-	clientMessageChannel   chan (packet)
-	upstreamMessageChannel chan (packet)
+	addr         string
+	client       *net.UDPAddr
+	upstream     *net.UDPAddr
+	BufferSize   int
+	ConnTimeout  time.Duration
+	ResolveTTL   time.Duration
+	connsMap     map[string]connection
+	closed       bool
+	clientChan   chan (packet)
+	upstreamChan chan (packet)
 	sync.RWMutex
 }
 
 func New(addr string, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
 	proxy := &Proxy{
-		BufferSize:             bufferSize,
-		ConnTimeout:            connTimeout,
-		addr:                   addr,
-		connsMap:               make(map[string]connection),
-		closed:                 false,
-		ResolveTTL:             resolveTTL,
-		clientMessageChannel:   make(chan packet),
-		upstreamMessageChannel: make(chan packet),
+		BufferSize:   bufferSize,
+		ConnTimeout:  connTimeout,
+		addr:         addr,
+		connsMap:     make(map[string]connection),
+		closed:       false,
+		ResolveTTL:   resolveTTL,
+		clientChan:   make(chan packet),
+		upstreamChan: make(chan packet),
 	}
 
 	return proxy
@@ -98,7 +98,7 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 		ret.Unpack(buffer[:size])
 
 		p.updateClientLastActivity(clientAddrString)
-		p.upstreamMessageChannel <- packet{
+		p.upstreamChan <- packet{
 			src:  addr,
 			data: ret,
 			w:    w,
@@ -107,13 +107,13 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 }
 
 func (p *Proxy) handlerUpstreamPackets() {
-	for pa := range p.upstreamMessageChannel {
+	for pa := range p.upstreamChan {
 		pa.w.WriteMsg(pa.data)
 	}
 }
 
 func (p *Proxy) handleClientPackets() {
-	for pa := range p.clientMessageChannel {
+	for pa := range p.clientChan {
 		packetSourceString := pa.src.String()
 
 		p.RLock()
