@@ -43,7 +43,7 @@ type packet struct {
 
 type Proxy struct {
 	addr         string
-	BufferSize   int // can go
+	BufferSize   int
 	ConnTimeout  time.Duration
 	connsMap     map[string]connection
 	closed       bool
