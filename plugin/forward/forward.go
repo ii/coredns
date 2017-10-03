@@ -48,7 +48,6 @@ type Proxy struct {
 	upstream     *net.UDPAddr
 	BufferSize   int
 	ConnTimeout  time.Duration
-	ResolveTTL   time.Duration
 	connsMap     map[string]connection
 	closed       bool
 	clientChan   chan (packet)
@@ -56,14 +55,13 @@ type Proxy struct {
 	sync.RWMutex
 }
 
-func New(addr string, bufferSize int, connTimeout, resolveTTL time.Duration) *Proxy {
+func New(addr string, bufferSize int, connTimeout time.Duration) *Proxy {
 	proxy := &Proxy{
 		BufferSize:   bufferSize,
 		ConnTimeout:  connTimeout,
 		addr:         addr,
 		connsMap:     make(map[string]connection),
 		closed:       false,
-		ResolveTTL:   resolveTTL,
 		clientChan:   make(chan packet),
 		upstreamChan: make(chan packet),
 	}
@@ -152,19 +150,6 @@ func (p *Proxy) handleClientPackets() {
 			if shouldUpdateLastActivity {
 				p.updateClientLastActivity(packetSourceString)
 			}
-		}
-	}
-}
-
-func (p *Proxy) resolveUpstreamLoop() {
-	for !p.closed {
-		time.Sleep(p.ResolveTTL)
-		upstreamAddr, err := net.ResolveUDPAddr("udp", p.addr)
-		if err != nil {
-			continue
-		}
-		if p.upstream.String() != upstreamAddr.String() {
-			p.upstream = upstreamAddr
 		}
 	}
 }

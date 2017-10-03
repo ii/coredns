@@ -1,7 +1,6 @@
 package forward
 
 import (
-	"net"
 	"time"
 
 	"github.com/coredns/coredns/core/dnsserver"
@@ -25,7 +24,7 @@ func setup(c *caddy.Controller) error {
 	}
 
 	timeout := time.Second
-	udp := New(upstream.to[0].addr, 4096, timeout, timeout)
+	udp := New(upstream.to[0].addr, 4096, timeout)
 	p := P{udp: udp}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
@@ -44,16 +43,14 @@ func setup(c *caddy.Controller) error {
 }
 
 func (p *P) Start(addr string) (err error) {
-	p.udp.upstream, err = net.ResolveUDPAddr("udp", addr)
+	p.udp.addr = addr
 	if err != nil {
 		return err
 	}
 	if p.udp.ConnTimeout.Nanoseconds() > 0 {
 		go p.udp.freeIdleSocketsLoop()
 	}
-	if p.udp.ResolveTTL.Nanoseconds() > 0 {
-		go p.udp.resolveUpstreamLoop()
-	}
+
 	go p.udp.handlerUpstreamPackets()
 	go p.udp.handleClientPackets()
 	return nil
