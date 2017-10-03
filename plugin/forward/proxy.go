@@ -17,11 +17,7 @@ func (p P) Name() string { return "forward" }
 
 func (p P) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
-	p.udp.clientChan <- packet{
-		src:  w.RemoteAddr(),
-		w:    w,
-		data: r,
-	}
+	p.udp.clientChan <- packet{w: w, data: r}
 
 	return 0, nil
 }

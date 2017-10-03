@@ -37,7 +37,6 @@ type connection struct {
 }
 
 type packet struct {
-	src  net.Addr
 	w    dns.ResponseWriter
 	data *dns.Msg
 }
@@ -77,8 +76,8 @@ func (p *Proxy) updateClientLastActivity(clientAddrString string) {
 	p.Unlock()
 }
 
-func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPConn, w dns.ResponseWriter) {
-	clientAddrString := addr.String()
+func (p *Proxy) clientConnectionReadLoop(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
+	clientAddrString := w.RemoteAddr().String()
 	for {
 		buffer := make([]byte, p.BufferSize)
 		size, _, err := upstreamConn.ReadFromUDP(buffer)
@@ -95,7 +94,6 @@ func (p *Proxy) clientConnectionReadLoop(addr net.Addr, upstreamConn *net.UDPCon
 
 		p.updateClientLastActivity(clientAddrString)
 		p.upstreamChan <- packet{
-			src:  addr,
 			data: ret,
 			w:    w,
 		}
@@ -110,7 +108,7 @@ func (p *Proxy) handlerUpstreamPackets() {
 
 func (p *Proxy) handleClientPackets() {
 	for pa := range p.clientChan {
-		packetSourceString := pa.src.String()
+		packetSourceString := pa.w.RemoteAddr().String()
 
 		p.RLock()
 		conn, found := p.connsMap[packetSourceString]
@@ -134,7 +132,7 @@ func (p *Proxy) handleClientPackets() {
 			p.Unlock()
 
 			conn.Write(buf)
-			go p.clientConnectionReadLoop(pa.src, conn, pa.w)
+			go p.clientConnectionReadLoop(conn, pa.w)
 		} else {
 			conn.udp.Write(buf)
 			p.RLock()

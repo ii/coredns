@@ -16,10 +16,12 @@ forward FROM TO...
 * **FROM** is the base domain to match for the request to be forwared.
 * **TO...** are the destination endpoints to forward to.
 
-By default health checks are performed every 0.5s. After two failed checks the upstream is considered
-unhealthy. The health checks use a a non recursive DNS query (`. IN NS`) to get upstream health. Any
-reponse that indicates the server is active (REFUSED, NOTIMPL, NXDOMAIN, SUCCESS) is taken as
-a healthy upstream.
+By default health checks are performed every 0.5s. After two failed checks the upstream is
+considered unhealthy. The health checks use a a non recursive DNS query (`. IN NS`) to get upstream
+health. Any reponse that indicates the server is active (REFUSED, NOTIMPL, NXDOMAIN, SUCCESS) is
+taken as a healthy upstream.
+
+It uses a fixed buffer size of 4096 bytes for UDP packets.
 
 Extra knobs are available with an expanded syntax:
 
