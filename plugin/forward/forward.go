@@ -44,9 +44,7 @@ type packet struct {
 
 type Proxy struct {
 	addr         string
-	client       *net.UDPAddr
-	upstream     *net.UDPAddr
-	BufferSize   int
+	BufferSize   int // can go
 	ConnTimeout  time.Duration
 	connsMap     map[string]connection
 	closed       bool
@@ -121,15 +119,16 @@ func (p *Proxy) handleClientPackets() {
 		buf, _ := pa.data.Pack()
 
 		if !found {
-			conn, err := net.DialUDP("udp", p.client, p.upstream)
+			c, err := net.Dial("udp", p.addr)
 			if err != nil {
 				return
 			}
+			conn := c.(*net.UDPConn)
 
 			p.Lock()
 			p.connsMap[packetSourceString] = connection{
 				udp:          conn,
-				w:            pa.w,
+				w:            pa.w, // We're setting this once for this socket, is that safe?
 				lastActivity: time.Now(),
 			}
 			p.Unlock()
