@@ -2,6 +2,7 @@ package forward
 
 import (
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
@@ -17,7 +18,7 @@ func (p P) Name() string { return "forward" }
 
 func (p P) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
-	p.udp.clientChan <- packet{w: w, data: r}
+	p.udp.clientChan <- request.Request{W: w, Req: r}
 
 	return 0, nil
 }

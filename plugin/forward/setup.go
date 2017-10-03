@@ -48,7 +48,7 @@ func (p *P) Start(addr string) (err error) {
 		return err
 	}
 	if p.udp.ConnTimeout.Nanoseconds() > 0 {
-		go p.udp.freeIdleSocketsLoop()
+		go p.udp.free()
 	}
 
 	go p.udp.handlerUpstreamPackets()
@@ -59,7 +59,7 @@ func (p *P) Start(addr string) (err error) {
 func (p *P) Close() error {
 	p.udp.Lock()
 	p.udp.closed = true
-	for _, conn := range p.udp.connsMap {
+	for _, conn := range p.udp.conns {
 		conn.udp.Close()
 	}
 	p.udp.Unlock()

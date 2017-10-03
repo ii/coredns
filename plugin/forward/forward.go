@@ -27,28 +27,25 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coredns/coredns/request"
+
 	"github.com/miekg/dns"
 )
 
 type connection struct {
-	udp          *net.UDPConn
-	w            dns.ResponseWriter
-	lastActivity time.Time
-}
-
-type packet struct {
+	udp  *net.UDPConn
 	w    dns.ResponseWriter
-	data *dns.Msg
+	used time.Time
 }
 
 type Proxy struct {
 	addr         string
 	BufferSize   int
 	ConnTimeout  time.Duration
-	connsMap     map[string]connection
+	conns        map[string]connection
 	closed       bool
-	clientChan   chan (packet)
-	upstreamChan chan (packet)
+	clientChan   chan (request.Request)
+	upstreamChan chan (request.Request)
 	sync.RWMutex
 }
 
@@ -57,26 +54,26 @@ func New(addr string, connTimeout time.Duration) *Proxy {
 		BufferSize:   udpBufSize,
 		ConnTimeout:  connTimeout,
 		addr:         addr,
-		connsMap:     make(map[string]connection),
+		conns:        make(map[string]connection),
 		closed:       false,
-		clientChan:   make(chan packet),
-		upstreamChan: make(chan packet),
+		clientChan:   make(chan request.Request),
+		upstreamChan: make(chan request.Request),
 	}
 
 	return proxy
 }
 
-func (p *Proxy) updateClientLastActivity(clientAddrString string) {
+func (p *Proxy) setUsed(clientAddrString string) {
 	p.Lock()
-	if _, found := p.connsMap[clientAddrString]; found {
-		connWrapper := p.connsMap[clientAddrString]
-		connWrapper.lastActivity = time.Now()
-		p.connsMap[clientAddrString] = connWrapper
+	if _, found := p.conns[clientAddrString]; found {
+		connWrapper := p.conns[clientAddrString]
+		connWrapper.used = time.Now()
+		p.conns[clientAddrString] = connWrapper
 	}
 	p.Unlock()
 }
 
-func (p *Proxy) clientConnectionReadLoop(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
+func (p *Proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
 	clientAddrString := w.RemoteAddr().String()
 	for {
 		buffer := make([]byte, p.BufferSize)
@@ -84,7 +81,7 @@ func (p *Proxy) clientConnectionReadLoop(upstreamConn *net.UDPConn, w dns.Respon
 		if err != nil {
 			p.Lock()
 			upstreamConn.Close()
-			delete(p.connsMap, clientAddrString)
+			delete(p.conns, clientAddrString)
 			p.Unlock()
 			return
 		}
@@ -92,29 +89,26 @@ func (p *Proxy) clientConnectionReadLoop(upstreamConn *net.UDPConn, w dns.Respon
 		ret := new(dns.Msg)
 		ret.Unpack(buffer[:size])
 
-		p.updateClientLastActivity(clientAddrString)
-		p.upstreamChan <- packet{
-			data: ret,
-			w:    w,
-		}
+		p.setUsed(clientAddrString)
+		p.upstreamChan <- request.Request{Req: ret, W: w}
 	}
 }
 
 func (p *Proxy) handlerUpstreamPackets() {
 	for pa := range p.upstreamChan {
-		pa.w.WriteMsg(pa.data)
+		pa.W.WriteMsg(pa.Req)
 	}
 }
 
 func (p *Proxy) handleClientPackets() {
 	for pa := range p.clientChan {
-		packetSourceString := pa.w.RemoteAddr().String()
+		packetSourceString := pa.W.RemoteAddr().String()
 
 		p.RLock()
-		conn, found := p.connsMap[packetSourceString]
+		conn, found := p.conns[packetSourceString]
 		p.RUnlock()
 
-		buf, _ := pa.data.Pack()
+		buf, _ := pa.Req.Pack()
 
 		if !found {
 			c, err := net.Dial("udp", p.addr)
@@ -124,41 +118,43 @@ func (p *Proxy) handleClientPackets() {
 			conn := c.(*net.UDPConn)
 
 			p.Lock()
-			p.connsMap[packetSourceString] = connection{
-				udp:          conn,
-				w:            pa.w, // We're setting this once for this socket, is that safe?
-				lastActivity: time.Now(),
+			p.conns[packetSourceString] = connection{
+				udp:  conn,
+				w:    pa.W, // We're setting this once for this socket, is that safe?
+				used: time.Now(),
 			}
 			p.Unlock()
 
 			conn.Write(buf)
-			go p.clientConnectionReadLoop(conn, pa.w)
+			go p.clientRead(conn, pa.W)
 		} else {
 			conn.udp.Write(buf)
+
 			p.RLock()
-			shouldUpdateLastActivity := false
-			if _, found := p.connsMap[packetSourceString]; found {
-				if p.connsMap[packetSourceString].lastActivity.Before(
+			updateUsed := false
+			if _, ok := p.conns[packetSourceString]; ok {
+				if p.conns[packetSourceString].used.Before(
 					time.Now().Add(-p.ConnTimeout / 4)) {
-					shouldUpdateLastActivity = true
+					updateUsed = true
 				}
 			}
 			p.RUnlock()
-			if shouldUpdateLastActivity {
-				p.updateClientLastActivity(packetSourceString)
+
+			if updateUsed {
+				p.setUsed(packetSourceString)
 			}
 		}
 	}
 }
 
-func (p *Proxy) freeIdleSocketsLoop() {
+func (p *Proxy) free() {
 	for !p.closed {
 		time.Sleep(p.ConnTimeout)
 		var clientsToTimeout []string
 
 		p.RLock()
-		for client, conn := range p.connsMap {
-			if conn.lastActivity.Before(time.Now().Add(-p.ConnTimeout)) {
+		for client, conn := range p.conns {
+			if conn.used.Before(time.Now().Add(-p.ConnTimeout)) {
 				clientsToTimeout = append(clientsToTimeout, client)
 			}
 		}
@@ -166,8 +162,8 @@ func (p *Proxy) freeIdleSocketsLoop() {
 
 		p.Lock()
 		for _, client := range clientsToTimeout {
-			p.connsMap[client].udp.Close()
-			delete(p.connsMap, client)
+			p.conns[client].udp.Close()
+			delete(p.conns, client)
 		}
 		p.Unlock()
 	}
