@@ -1,4 +1,4 @@
-package fastproxy
+package forward
 
 import (
 	"github.com/coredns/coredns/plugin"
@@ -13,7 +13,7 @@ type P struct {
 	Next plugin.Handler
 }
 
-func (p P) Name() string { return "fastproxy" }
+func (p P) Name() string { return "forward" }
 
 func (p P) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 

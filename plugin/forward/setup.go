@@ -1,4 +1,4 @@
-package fastproxy
+package forward
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	caddy.RegisterPlugin("fastproxy", caddy.Plugin{
+	caddy.RegisterPlugin("forward", caddy.Plugin{
 		ServerType: "dns",
 		Action:     setup,
 	})
