@@ -111,7 +111,7 @@ func (p *Proxy) handleClientPackets() {
 		buf, _ := pa.Req.Pack()
 
 		if !found {
-			c, err := net.Dial("udp", p.addr)
+			c, err := net.DialTimeout("udp", p.addr, dialTimeout)
 			if err != nil {
 				return
 			}
@@ -169,4 +169,7 @@ func (p *Proxy) free() {
 	}
 }
 
-const udpBufSize = 4096
+const (
+	udpBufSize  = 4096
+	dialTimeout = 1 * time.Second()
+)

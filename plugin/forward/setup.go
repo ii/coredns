@@ -18,82 +18,85 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	upstream, err := parseForward(c)
+	f, err := parseForward(c)
 	if err != nil {
 		return err
 	}
 
 	timeout := time.Second
-	udp := New(upstream.to[0].addr, timeout)
-	p := P{udp: udp}
+
+	udp := New(f.udp.to[0].addr, timeout)
+	f.udp = udp
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		p.Next = next
-		return p
+		f.Next = next
+		return f
 	})
 
 	c.OnStartup(func() error {
-		return p.Start(upstream.to[0].addr)
+		return f.Start(upstream.to[0].addr)
 	})
 	c.OnShutdown(func() error {
-		return p.Close()
+		return f.Close()
 	})
 
 	return nil
 }
 
-func (p *P) Start(addr string) (err error) {
-	p.udp.addr = addr
+func (f *Forward) Start(addr string) (err error) {
+	f.udp.addr = addr
 	if err != nil {
 		return err
 	}
-	if p.udp.ConnTimeout.Nanoseconds() > 0 {
-		go p.udp.free()
+	if f.udp.ConnTimeout.Nanoseconds() > 0 {
+		go f.udp.free()
 	}
 
-	go p.udp.handlerUpstreamPackets()
-	go p.udp.handleClientPackets()
+	go f.udp.handlerUpstreamPackets()
+	go f.udp.handleClientPackets()
 	return nil
 }
 
-func (p *P) Close() error {
-	p.udp.Lock()
-	p.udp.closed = true
-	for _, conn := range p.udp.conns {
+func (f *Forward) Close() error {
+	f.udp.Lock()
+	f.udp.closed = true
+	for _, conn := range f.udp.conns {
 		conn.udp.Close()
 	}
-	p.udp.Unlock()
+	f.udp.Unlock()
 	return nil
 }
 
-func parseForward(c *caddy.Controller) (upstream, error) {
+func parseForward(c *caddy.Controller) (Forward, error) {
+	f := Forward{}
 	u := upstream{}
 	for c.Next() {
-		if !c.Args(&u.from) {
-			return u, c.ArgErr()
+		if !c.Args(&f.from) {
+			return f, c.ArgErr()
 		}
-		u.from = plugin.Host(u.from).Normalize()
+		f.from = plugin.Host(f.from).Normalize()
 
 		to := c.RemainingArgs()
 		if len(to) == 0 {
-			return u, c.ArgErr()
+			return f, c.ArgErr()
 		}
 		toHosts, err := dnsutil.ParseHostPortOrFile(to...)
 		if err != nil {
-			return u, err
+			return f, err
 		}
 		u.to = toHost(toHosts)
 
 		for c.NextBlock() {
-			if err := parseBlock(c, &u); err != nil {
-				return u, err
+			if err := parseBlock(c, &f); err != nil {
+				return f, err
 			}
 		}
 	}
-	return u, nil
+	f.udp = u
+	return f, nil
 }
 
-func parseBlock(c *caddy.Controller, u *upstream) error {
+func parseBlock(c *caddy.Controller, f *Forward) error {
 	switch c.Val() {
 	default:
 		return c.Errf("unknown property '%s'", c.Val())

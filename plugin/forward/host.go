@@ -1,7 +1,17 @@
 package forward
 
+import "sync"
+
+type upstream struct {
+	to []host
+	// hc + downfunction
+}
+
 type host struct {
-	addr string
+	fails int // use atomic here?
+	addr  string
+	sync.RWMutex
+	checking bool
 }
 
 func toHost(addr []string) []host {
@@ -10,9 +20,4 @@ func toHost(addr []string) []host {
 		h[i].addr = addr[i]
 	}
 	return h
-}
-
-type upstream struct {
-	from string
-	to   []host
 }
