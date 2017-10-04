@@ -2,6 +2,7 @@ package forward
 
 import "sync"
 
+// upstream is not needed
 type upstream struct {
 	to []host
 	// hc + downfunction
@@ -9,7 +10,9 @@ type upstream struct {
 
 type host struct {
 	fails int // use atomic here?
-	addr  string
+
+	addr string
+
 	sync.RWMutex
 	checking bool
 }
@@ -21,3 +24,7 @@ func toHost(addr []string) []host {
 	}
 	return h
 }
+
+// Down function?
+
+// Select - not down - round robin fashsion
