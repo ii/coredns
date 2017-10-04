@@ -26,6 +26,10 @@ func toHost(addr []string) []host {
 }
 
 // Down function?
-
 // Select - not down - round robin fashsion
 // Select return all up hosts in randomized
+/*
+can't really do this in ServeDNS because then we might select one for which we don't have a socket,
+otoh if the upstream is down, we can use it, but do to randomization I don't want to ranmize I need to
+now where I sent this client before
+*/
