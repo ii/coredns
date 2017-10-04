@@ -20,10 +20,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Lost of changes for CoreDNS:
-// Make it work with TCP as well, use net.DialTimeout to connect to upstream,
-// simplications and using constructs we already have in CoreDNS.
-
 package forward
 
 import (
