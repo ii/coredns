@@ -5,7 +5,7 @@ import "github.com/miekg/dns"
 // For HC we send to . IN NS +norec message to the upstream. Dial timeouts and empty
 // replies are considered fails, basically anything else constitutes a healthy upstream.
 
-func (h host) Check() {
+func (h *host) Check() {
 	h.Lock()
 
 	if h.checking {
@@ -19,7 +19,7 @@ func (h host) Check() {
 	return
 }
 
-func (h host) send() (*dns.Msg, error) {
+func (h *host) send() (*dns.Msg, error) {
 	hcping := new(dns.Msg)
 	hcping.SetQuestion(".", dns.TypeNS)
 	hcping.RecursionDesired = false

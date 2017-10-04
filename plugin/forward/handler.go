@@ -14,15 +14,17 @@ import (
 
 // Forward represents a plugin instance that can proxy requests to another (DNS) server.
 type Forward struct {
-	proxies []*Proxy
+	proxies []*proxy
 
 	from string
 
 	Next plugin.Handler
 }
 
+// Name implements plugin.Handler.
 func (f Forward) Name() string { return "forward" }
 
+// ServeDNS implements plugin.Handler.
 func (f Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
 	f.proxies[0].clientChan <- request.Request{W: w, Req: r}

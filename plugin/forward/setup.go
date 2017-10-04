@@ -36,6 +36,7 @@ func setup(c *caddy.Controller) error {
 	return nil
 }
 
+// Start starts a goroutines for all proxies.
 func (f *Forward) Start() (err error) {
 	if f.proxies[0].ConnTimeout.Nanoseconds() > 0 {
 		go f.proxies[0].free()
@@ -46,6 +47,7 @@ func (f *Forward) Start() (err error) {
 	return nil
 }
 
+// Close stops all configures proxies.
 func (f *Forward) Close() error {
 	f.proxies[0].Lock()
 	f.proxies[0].closed = true
@@ -73,7 +75,7 @@ func parseForward(c *caddy.Controller) (Forward, error) {
 			return f, err
 		}
 		for _, h := range toHosts {
-			p := NewProxy(h)
+			p := newProxy(h)
 			f.proxies = append(f.proxies, p)
 
 		}
@@ -92,5 +94,5 @@ func parseBlock(c *caddy.Controller, f *Forward) error {
 	default:
 		return c.Errf("unknown property '%s'", c.Val())
 	}
-	return nil
+	//return nil
 }

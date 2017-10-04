@@ -38,8 +38,8 @@ type connection struct {
 	used time.Time
 }
 
-type Proxy struct {
-	host         host
+type proxy struct {
+	host         *host
 	BufferSize   int
 	ConnTimeout  time.Duration
 	conns        map[string]connection
@@ -49,8 +49,8 @@ type Proxy struct {
 	sync.RWMutex
 }
 
-func NewProxy(addr string) *Proxy {
-	proxy := &Proxy{
+func newProxy(addr string) *proxy {
+	proxy := &proxy{
 		host:         newHost(addr),
 		BufferSize:   udpBufSize,
 		ConnTimeout:  connTimeout,
@@ -63,7 +63,7 @@ func NewProxy(addr string) *Proxy {
 	return proxy
 }
 
-func (p *Proxy) setUsed(clientAddrString string) {
+func (p *proxy) setUsed(clientAddrString string) {
 	p.Lock()
 	if _, found := p.conns[clientAddrString]; found {
 		connWrapper := p.conns[clientAddrString]
@@ -73,7 +73,7 @@ func (p *Proxy) setUsed(clientAddrString string) {
 	p.Unlock()
 }
 
-func (p *Proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
+func (p *proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
 	clientAddrString := w.RemoteAddr().String()
 	for {
 		buffer := make([]byte, p.BufferSize)
@@ -94,13 +94,13 @@ func (p *Proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
 	}
 }
 
-func (p *Proxy) handlerUpstreamPackets() {
+func (p *proxy) handlerUpstreamPackets() {
 	for pa := range p.upstreamChan {
 		pa.W.WriteMsg(pa.Req)
 	}
 }
 
-func (p *Proxy) handleClientPackets() {
+func (p *proxy) handleClientPackets() {
 	for pa := range p.clientChan {
 		packetSourceString := pa.W.RemoteAddr().String()
 
@@ -149,7 +149,7 @@ func (p *Proxy) handleClientPackets() {
 	}
 }
 
-func (p *Proxy) free() {
+func (p *proxy) free() {
 	for !p.closed {
 		time.Sleep(p.ConnTimeout)
 		var clientsToTimeout []string
