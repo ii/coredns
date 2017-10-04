@@ -53,7 +53,7 @@ func NewProxy(addr string) *Proxy {
 	proxy := &Proxy{
 		host:         newHost(addr),
 		BufferSize:   udpBufSize,
-		ConnTimeout:  proxyTimeout,
+		ConnTimeout:  connTimeout,
 		closed:       false,
 		conns:        make(map[string]connection),
 		clientChan:   make(chan request.Request),
@@ -172,7 +172,7 @@ func (p *Proxy) free() {
 }
 
 const (
-	udpBufSize   = 4096
-	dialTimeout  = 1 * time.Second
-	proxyTimeout = 1000 * time.Microsecond
+	udpBufSize  = 4096
+	dialTimeout = 1 * time.Second
+	connTimeout = 2 * time.Second
 )
