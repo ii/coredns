@@ -28,3 +28,4 @@ func toHost(addr []string) []host {
 // Down function?
 
 // Select - not down - round robin fashsion
+// Select return all up hosts in randomized
