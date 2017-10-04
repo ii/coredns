@@ -113,6 +113,8 @@ func (p *Proxy) handleClientPackets() {
 		if !found {
 			c, err := net.DialTimeout("udp", p.host.addr, dialTimeout)
 			if err != nil {
+				// return err err
+				// Wait return???
 				return
 			}
 			conn := c.(*net.UDPConn)
@@ -120,7 +122,7 @@ func (p *Proxy) handleClientPackets() {
 			p.Lock()
 			p.conns[packetSourceString] = connection{
 				udp:  conn,
-				w:    pa.W, // We're setting this once for this socket, is that safe?
+				w:    pa.W,
 				used: time.Now(),
 			}
 			p.Unlock()
