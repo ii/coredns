@@ -8,12 +8,12 @@ import "github.com/miekg/dns"
 func (h host) Check() {
 	h.Lock()
 
-	if h.Checking {
+	if h.checking {
 		h.Unlock()
 		return
 	}
 
-	h.Checking = true
+	h.checking = true
 	h.Unlock()
 
 	return
@@ -24,12 +24,13 @@ func (h host) send() (*dns.Msg, error) {
 	hcping.SetQuestion(".", dns.TypeNS)
 	hcping.RecursionDesired = false
 
-	m, e := hcclient.Exchange()
+	// track rtt as well?
+	m, _, e := hcclient.Exchange(hcping, h.addr)
 	return m, e
 }
 
 var hcclient = func() *dns.Client {
 	c := new(dns.Client)
-	c.net = "tcp"
+	c.Net = "tcp"
 	return c
 }()

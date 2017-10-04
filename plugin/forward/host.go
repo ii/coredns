@@ -2,12 +2,6 @@ package forward
 
 import "sync"
 
-// upstream is not needed
-type upstream struct {
-	to []host
-	// hc + downfunction
-}
-
 type host struct {
 	fails int // use atomic here?
 
@@ -17,6 +11,8 @@ type host struct {
 	checking bool
 }
 
+func newHost(addr string) host { return host{addr: addr} }
+
 func toHost(addr []string) []host {
 	h := make([]host, len(addr))
 	for i := range addr {
@@ -24,6 +20,9 @@ func toHost(addr []string) []host {
 	}
 	return h
 }
+
+// Proxies has Select() returns in random order, but if conn is known that is first
+// check Down function on healthyness of each upstream, use when healthy
 
 // Down function?
 // Select - not down - round robin fashsion

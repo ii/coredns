@@ -43,7 +43,7 @@ type connection struct {
 }
 
 type Proxy struct {
-	addr         string
+	host         host
 	BufferSize   int
 	ConnTimeout  time.Duration
 	conns        map[string]connection
@@ -53,13 +53,13 @@ type Proxy struct {
 	sync.RWMutex
 }
 
-func New(addr string, connTimeout time.Duration) *Proxy {
+func NewProxy(addr string) *Proxy {
 	proxy := &Proxy{
+		host:         newHost(addr),
 		BufferSize:   udpBufSize,
-		ConnTimeout:  connTimeout,
-		addr:         addr,
-		conns:        make(map[string]connection),
+		ConnTimeout:  proxyTimeout,
 		closed:       false,
+		conns:        make(map[string]connection),
 		clientChan:   make(chan request.Request),
 		upstreamChan: make(chan request.Request),
 	}
@@ -115,7 +115,7 @@ func (p *Proxy) handleClientPackets() {
 		buf, _ := pa.Req.Pack()
 
 		if !found {
-			c, err := net.DialTimeout("udp", p.addr, dialTimeout)
+			c, err := net.DialTimeout("udp", p.host.addr, dialTimeout)
 			if err != nil {
 				return
 			}
@@ -174,6 +174,7 @@ func (p *Proxy) free() {
 }
 
 const (
-	udpBufSize  = 4096
-	dialTimeout = 1 * time.Second()
+	udpBufSize   = 4096
+	dialTimeout  = 1 * time.Second
+	proxyTimeout = 1000 * time.Microsecond
 )

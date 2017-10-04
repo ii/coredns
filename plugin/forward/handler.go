@@ -14,7 +14,7 @@ import (
 
 // Forward represents a plugin instance that can proxy requests to another (DNS) server.
 type Forward struct {
-	udp *Proxy
+	proxies []*Proxy
 
 	from string
 
@@ -25,7 +25,7 @@ func (f Forward) Name() string { return "forward" }
 
 func (f Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
-	f.udp.clientChan <- request.Request{W: w, Req: r}
+	f.proxies[0].clientChan <- request.Request{W: w, Req: r}
 
 	return 0, nil
 }
