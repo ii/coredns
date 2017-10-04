@@ -44,8 +44,8 @@ type proxy struct {
 	ConnTimeout  time.Duration
 	conns        map[string]connection
 	closed       bool
-	clientChan   chan (request.Request)
-	upstreamChan chan (request.Request)
+	clientChan   chan request.Request
+	upstreamChan chan request.Request
 	sync.RWMutex
 }
 

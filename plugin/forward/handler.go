@@ -17,6 +17,7 @@ type Forward struct {
 	proxies []*proxy
 
 	from string
+	// ignoredNames here
 
 	Next plugin.Handler
 }
@@ -27,31 +28,23 @@ func (f Forward) Name() string { return "forward" }
 // ServeDNS implements plugin.Handler.
 func (f Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
-	f.proxies[0].clientChan <- request.Request{W: w, Req: r}
+	state := request.Request{W: w, Req: r}
+	if !f.match(state) {
+		return plugin.NextOrFailure(f.Name(), f.Next, ctx, w, r)
+	}
+
+	f.proxies[0].clientChan <- state
+	// inspect w is something is written?? If that is hard because way may use an old w in the forward code...
 
 	return 0, nil
 }
 
-/*
-func (f Forwward) match(state request.Request) (u Upstream) {
-	if p.Upstreams == nil {
-		return nil
+func (f Forward) match(state request.Request) bool {
+	from := f.from
+
+	if !plugin.Name(from).Matches(state.Name()) { // || !upstream.IsAllowedDomain(state.Name()) {
+		return false
 	}
 
-	longestMatch := 0
-	for _, upstream := range *p.Upstreams {
-		from := upstream.From()
-
-		if !plugin.Name(from).Matches(state.Name()) || !upstream.IsAllowedDomain(state.Name()) {
-			continue
-		}
-
-		if lf := len(from); lf > longestMatch {
-			longestMatch = lf
-			u = upstream
-		}
-	}
-	return u
-
+	return true
 }
-*/
