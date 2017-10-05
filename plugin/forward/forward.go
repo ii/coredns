@@ -32,8 +32,8 @@ import (
 	"github.com/miekg/dns"
 )
 
-type connection struct {
-	udp  *net.UDPConn
+type conn struct {
+	c    net.Conn
 	w    dns.ResponseWriter
 	used time.Time
 }
@@ -42,7 +42,7 @@ type proxy struct {
 	host         *host
 	BufferSize   int
 	ConnTimeout  time.Duration
-	conns        map[string]connection
+	conns        map[string]conn
 	closed       bool
 	clientChan   chan request.Request
 	upstreamChan chan request.Request
@@ -55,7 +55,7 @@ func newProxy(addr string) *proxy {
 		BufferSize:   udpBufSize,
 		ConnTimeout:  connTimeout,
 		closed:       false,
-		conns:        make(map[string]connection),
+		conns:        make(map[string]conn),
 		clientChan:   make(chan request.Request),
 		upstreamChan: make(chan request.Request),
 	}
@@ -63,25 +63,25 @@ func newProxy(addr string) *proxy {
 	return proxy
 }
 
-func (p *proxy) setUsed(clientAddrString string) {
+func (p *proxy) setUsed(clientID string) {
 	p.Lock()
-	if _, found := p.conns[clientAddrString]; found {
-		connWrapper := p.conns[clientAddrString]
+	if _, found := p.conns[clientID]; found {
+		connWrapper := p.conns[clientID]
 		connWrapper.used = time.Now()
-		p.conns[clientAddrString] = connWrapper
+		p.conns[clientID] = connWrapper
 	}
 	p.Unlock()
 }
 
-func (p *proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
-	clientAddrString := w.RemoteAddr().String()
+func (p *proxy) clientRead(upstreamConn net.Conn, w dns.ResponseWriter) {
+	clientID, _ := clientID(w)
 	for {
 		buffer := make([]byte, p.BufferSize)
-		size, _, err := upstreamConn.ReadFromUDP(buffer)
+		size, err := upstreamConn.Read(buffer)
 		if err != nil {
 			p.Lock()
 			upstreamConn.Close()
-			delete(p.conns, clientAddrString)
+			delete(p.conns, clientID)
 			p.Unlock()
 			return
 		}
@@ -89,7 +89,7 @@ func (p *proxy) clientRead(upstreamConn *net.UDPConn, w dns.ResponseWriter) {
 		ret := new(dns.Msg)
 		ret.Unpack(buffer[:size])
 
-		p.setUsed(clientAddrString)
+		p.setUsed(clientID)
 		p.upstreamChan <- request.Request{Req: ret, W: w}
 	}
 }
@@ -102,73 +102,67 @@ func (p *proxy) handlerUpstreamPackets() {
 
 func (p *proxy) handleClientPackets() {
 	for pa := range p.clientChan {
-		packetSourceString := pa.W.RemoteAddr().String()
+		clientID, proto := clientID(pa.W)
 
 		p.RLock()
-		conn, found := p.conns[packetSourceString]
+		c, found := p.conns[clientID]
 		p.RUnlock()
 
 		buf, _ := pa.Req.Pack()
 
 		if !found {
-			c, err := net.DialTimeout("udp", p.host.addr, dialTimeout)
+			c, err := net.DialTimeout(proto, p.host.addr, dialTimeout)
 			if err != nil {
-				// return err err
-				// Wait return???
-				return
+				continue
 			}
-			conn := c.(*net.UDPConn)
 
 			p.Lock()
-			p.conns[packetSourceString] = connection{
-				udp:  conn,
+			p.conns[clientID] = conn{
+				c:    c,
 				w:    pa.W,
 				used: time.Now(),
 			}
 			p.Unlock()
 
-			conn.Write(buf)
-			go p.clientRead(conn, pa.W)
-		} else {
-			conn.udp.Write(buf)
+			c.Write(buf)
 
-			p.RLock()
-			updateUsed := false
-			if _, ok := p.conns[packetSourceString]; ok {
-				if p.conns[packetSourceString].used.Before(
-					time.Now().Add(-p.ConnTimeout / 4)) {
-					updateUsed = true
-				}
-			}
-			p.RUnlock()
+			go p.clientRead(c, pa.W)
+			continue
+		}
 
-			if updateUsed {
-				p.setUsed(packetSourceString)
+		c.c.Write(buf)
+
+		p.RLock()
+		if _, ok := p.conns[clientID]; ok {
+			if p.conns[clientID].used.Before(
+				time.Now().Add(-p.ConnTimeout / 4)) {
+				p.setUsed(clientID)
 			}
 		}
+		p.RUnlock()
 	}
 }
 
 func (p *proxy) free() {
 	for !p.closed {
 		time.Sleep(p.ConnTimeout)
-		var clientsToTimeout []string
 
 		p.RLock()
 		for client, conn := range p.conns {
 			if conn.used.Before(time.Now().Add(-p.ConnTimeout)) {
-				clientsToTimeout = append(clientsToTimeout, client)
+				delete(p.conns, client)
 			}
 		}
 		p.RUnlock()
-
-		p.Lock()
-		for _, client := range clientsToTimeout {
-			p.conns[client].udp.Close()
-			delete(p.conns, client)
-		}
-		p.Unlock()
 	}
+}
+
+// clientID returns a string that identifies this particular client's 3-tuple.
+func clientID(w dns.ResponseWriter) (id, proto string) {
+	if _, ok := w.RemoteAddr().(*net.UDPAddr); ok {
+		return w.RemoteAddr().String() + "udp", "udp"
+	}
+	return w.RemoteAddr().String() + "tcp", "tcp"
 }
 
 const (

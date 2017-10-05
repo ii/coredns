@@ -52,7 +52,7 @@ func (f *Forward) Close() error {
 	f.proxies[0].Lock()
 	f.proxies[0].closed = true
 	for _, conn := range f.proxies[0].conns {
-		conn.udp.Close()
+		conn.c.Close()
 	}
 	f.proxies[0].Unlock()
 	return nil
