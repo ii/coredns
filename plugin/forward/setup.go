@@ -1,6 +1,9 @@
 package forward
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/dnsutil"
@@ -105,6 +108,26 @@ func parseBlock(c *caddy.Controller, f *Forward) error {
 			ignore[i] = plugin.Host(ignore[i]).Normalize()
 		}
 		f.ignored = ignore
+	case "max_fails":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		n, err := strconv.Atoi(c.Val())
+		if err != nil {
+			return err
+		}
+		f.maxfails = uint32(n)
+	case "health_check":
+		if !c.NextArg() {
+			return c.ArgErr()
+		}
+		dur, err := time.ParseDuration(c.Val())
+		if err != nil {
+			return err
+		}
+		for i := range f.proxies {
+			f.proxies[i].hcInterval = dur
+		}
 	default:
 		return c.Errf("unknown property '%s'", c.Val())
 	}
