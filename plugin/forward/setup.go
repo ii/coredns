@@ -38,23 +38,28 @@ func setup(c *caddy.Controller) error {
 
 // Start starts a goroutines for all proxies.
 func (f *Forward) Start() (err error) {
-	if f.proxies[0].ConnTimeout.Nanoseconds() > 0 {
-		go f.proxies[0].free()
-	}
+	for _, p := range f.proxies {
+		if p.ConnTimeout.Nanoseconds() > 0 {
+			go p.free()
+		}
 
-	go f.proxies[0].handlerUpstreamPackets()
-	go f.proxies[0].handleClientPackets()
+		go p.handlerUpstreamPackets()
+		go p.handleClientPackets()
+		go p.healthCheck()
+	}
 	return nil
 }
 
 // Close stops all configures proxies.
 func (f *Forward) Close() error {
-	f.proxies[0].Lock()
-	f.proxies[0].closed = true
-	for _, conn := range f.proxies[0].conns {
-		conn.c.Close()
+	for _, p := range f.proxies {
+		p.Lock()
+		p.closed = true
+		for _, conn := range p.conns {
+			conn.c.Close()
+		}
+		p.Unlock()
 	}
-	f.proxies[0].Unlock()
 	return nil
 }
 
@@ -91,8 +96,17 @@ func parseForward(c *caddy.Controller) (Forward, error) {
 
 func parseBlock(c *caddy.Controller, f *Forward) error {
 	switch c.Val() {
+	case "except":
+		ignore := c.RemainingArgs()
+		if len(ignore) == 0 {
+			return c.ArgErr()
+		}
+		for i := 0; i < len(ignore); i++ {
+			ignore[i] = plugin.Host(ignore[i]).Normalize()
+		}
+		f.ignored = ignore
 	default:
 		return c.Errf("unknown property '%s'", c.Val())
 	}
-	//return nil
+	return nil
 }

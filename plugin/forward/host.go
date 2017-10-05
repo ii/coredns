@@ -3,10 +3,9 @@ package forward
 import "sync"
 
 type host struct {
-	fails int // use atomic here?
-
 	addr string
 
+	fails uint32
 	sync.RWMutex
 	checking bool
 }

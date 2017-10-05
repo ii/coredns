@@ -40,24 +40,25 @@ type conn struct {
 
 type proxy struct {
 	host         *host
-	BufferSize   int
 	ConnTimeout  time.Duration
 	conns        map[string]conn
 	closed       bool
 	clientChan   chan request.Request
 	upstreamChan chan request.Request
+	hcInterval   time.Duration // healthCheck duration
+
 	sync.RWMutex
 }
 
 func newProxy(addr string) *proxy {
 	proxy := &proxy{
 		host:         newHost(addr),
-		BufferSize:   udpBufSize,
 		ConnTimeout:  connTimeout,
 		closed:       false,
 		conns:        make(map[string]conn),
 		clientChan:   make(chan request.Request),
 		upstreamChan: make(chan request.Request),
+		hcInterval:   hcDuration,
 	}
 
 	return proxy
@@ -76,7 +77,7 @@ func (p *proxy) setUsed(clientID string) {
 func (p *proxy) clientRead(upstreamConn net.Conn, w dns.ResponseWriter) {
 	clientID, _ := clientID(w)
 	for {
-		buffer := make([]byte, p.BufferSize)
+		buffer := make([]byte, udpBufSize)
 		size, err := upstreamConn.Read(buffer)
 		if err != nil {
 			p.Lock()
@@ -111,7 +112,7 @@ func (p *proxy) handleClientPackets() {
 		buf, _ := pa.Req.Pack()
 
 		if !found {
-			c, err := net.DialTimeout(proto, p.host.addr, dialTimeout)
+			c, err := dns.DialTimeout(proto, p.host.addr, dialTimeout)
 			if err != nil {
 				continue
 			}
@@ -157,6 +158,22 @@ func (p *proxy) free() {
 	}
 }
 
+func (p *proxy) healthCheck() {
+	for !p.closed {
+		time.Sleep(p.hcInterval)
+
+		go p.host.Check()
+	}
+}
+
+// knownClient returns true when this particular client has been seen by this proxy.
+func (p *proxy) knownClient(id string) bool {
+	p.RLock()
+	_, ok := p.conns[id]
+	p.RUnlock()
+	return ok
+}
+
 // clientID returns a string that identifies this particular client's 3-tuple.
 func clientID(w dns.ResponseWriter) (id, proto string) {
 	if _, ok := w.RemoteAddr().(*net.UDPAddr); ok {
@@ -169,4 +186,5 @@ const (
 	udpBufSize  = 4096
 	dialTimeout = 1 * time.Second
 	connTimeout = 2 * time.Second
+	hcDuration  = 500 * time.Millisecond
 )

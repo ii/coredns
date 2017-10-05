@@ -29,7 +29,8 @@ Extra knobs are available with an expanded syntax:
 proxy FROM TO... {
     except IGNORED_NAMES...
     force_tcp
-    health_check [DURATION]
+    health_check DURATION
+    max_fails INTEGER
 }
 ~~~
 
@@ -38,6 +39,8 @@ proxy FROM TO... {
   Requests that match none of these names will be passed through.
 * `force_tcp`, use TCP even when the request comes in over UDP.
 * `health_checks`, use a different **DURATION** for health checking, the default duration is 500ms.
+* `max_fails` is the number of subsequent failed health checks that are needed before considering
+  a backend to be down. If 0, the backend will never be marked as down. Default is 2.
 
 ## Metrics
 
