@@ -25,12 +25,14 @@ If not specified, ADDRESS defaults to localhost:6053.
 Enable pprof endpoints:
 
 ~~~
-pprof
+. {
+    pprof
+}
 ~~~
 
 Listen on an alternate address:
 
-~~~ corefile
+~~~ txt
 . {
     pprof 10.9.8.7:6060
 }
@@ -38,7 +40,7 @@ Listen on an alternate address:
 
 Listen on an all addresses on port 6060:
 
-~~~ corefile
+~~~ txt
 . {
     pprof :6060
 }
