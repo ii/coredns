@@ -25,8 +25,17 @@ func TestMinMsgTTL(t *testing.T) {
 	if mt != response.NoData {
 		t.Fatalf("Expected type to be response.NoData, got %s", 0, mt)
 	}
-
 	dur := minMsgTTL(m, mt) // minTTL on msg is 3600 (neg. ttl on SOA)
+	if dur != time.Duration(3600*time.Second) {
+		t.Fatalf("Expected minttl duration to be %d, got %d", 3600, dur)
+	}
+
+	m.Rcode = dns.RcodeNameError
+	mt, _ = response.Typify(m, utc)
+	if mt != response.NameError {
+		t.Fatalf("Expected type to be response.NameError, got %s", 0, mt)
+	}
+	dur = minMsgTTL(m, mt) // minTTL on msg is 3600 (neg. ttl on SOA)
 	if dur != time.Duration(3600*time.Second) {
 		t.Fatalf("Expected minttl duration to be %d, got %d", 3600, dur)
 	}
