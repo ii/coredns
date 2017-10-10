@@ -19,10 +19,26 @@ autopath [ZONE...] RESOLV-CONF
   plugin. For instance `@kubernetes`, will call out to the kubernetes plugin (for each
   query) to retrieve the search list it should use.
 
-Currently the following set of plugin has implemented *autopath*:
+If I want to specify a specific namespace you'll have to use the slightly longer form:
+
+~~~
+autopath [ZONE...] RESOLV-CONF {
+    namespace NAMESPACE
+}
+~~~
+
+* **NAMESPACE** perform *autopathing* only for this namespaces.
+
+Currently the following set of plugins has implemented *autopath*:
 
 * *kubernetes*
 * *erratic*
+
+## Metrics
+
+If monitoring is enabled (via the *prometheus* directive) then the following metric is exported:
+
+* `coredns_autopath_success_count_total{}` - counter of successfully autopath-ed queries.
 
 ## Examples
 
@@ -42,4 +58,4 @@ Use the search path dynamically retrieved from the kubernetes plugin.
 ## Bugs
 
 When the *cache* plugin is enabled it is possible for pods in different namespaces to get the
-same answer.
+same answer, unless you have specific a single namespace.

@@ -26,6 +26,8 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("autopath", err)
 	}
 
+	c.OnStartup(OnStartupMetrics)
+
 	// Do this in OnStartup, so all plugin has been initialized.
 	c.OnStartup(func() error {
 		m := dnsserver.GetConfig(c).Handler(mw)
@@ -87,6 +89,17 @@ func autoPathParse(c *caddy.Controller) (*AutoPath, string, error) {
 		}
 		for i, str := range ap.Zones {
 			ap.Zones[i] = plugin.Host(str).Normalize()
+		}
+
+		for c.NextBlock() {
+			switch c.Val() {
+			case "namespace":
+				ns := c.RemainingArgs()
+				if len(ns) != 1 {
+					return ap, "", c.ArgErr()
+				}
+				ap.namespace = ns[0]
+			}
 		}
 	}
 	return ap, mw, nil

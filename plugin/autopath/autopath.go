@@ -21,19 +21,17 @@ through the search path.
 It is assume the search path ordering is identical between server and client.
 
 Midldeware implementing autopath, must have a function called `AutoPath` of type
-autopath.Func. Note the searchpath must be ending with the empty string.
+autopath.Func. Note that the returned search path MUST be ending with the empty string.
 
 I.e:
 
-func (m Plugins ) AutoPath(state request.Request) []string {
+func (m Plugins ) AutoPath(state request.Request, namespaces string) ([]string, error) {
 	return []string{"first", "second", "last", ""}
 }
 */
 package autopath
 
 import (
-	"log"
-
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 	"github.com/coredns/coredns/plugin/pkg/nonwriter"
@@ -46,7 +44,9 @@ import (
 // Func defines the function plugin should implement to return a search
 // path to the autopath plugin. The last element of the slice must be the empty string.
 // If Func returns a nil slice, no autopathing will be done.
-type Func func(request.Request) []string
+// If namespaces is not empty, it will be used to check if the pod's namespace should be allowed
+// to do autopathing.
+type Func func(request.Request, string) ([]string, error)
 
 // AutoPath perform autopath: service side search path completion.
 type AutoPath struct {
@@ -56,6 +56,7 @@ type AutoPath struct {
 	// Search always includes "" as the last element, so we try the base query with out any search paths added as well.
 	search     []string
 	searchFunc Func
+	namespace  string
 }
 
 // ServeDNS implements the plugin.Handle interface.
@@ -72,12 +73,10 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	searchpath := a.search
 
 	if a.searchFunc != nil {
-		searchpath = a.searchFunc(state)
-	}
-
-	if len(searchpath) == 0 {
-		log.Printf("[WARNING] No search path available for autopath")
-		return plugin.NextOrFailure(a.Name(), a.Next, ctx, w, r)
+		searchpath, err := a.searchFunc(state, a.namespace)
+		if len(searchpath) == 0 || err != nil {
+			return plugin.NextOrFailure(a.Name(), a.Next, ctx, w, r)
+		}
 	}
 
 	if !firstInSearchPath(state.Name(), searchpath) {
@@ -87,7 +86,7 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	origQName := state.QName()
 
 	// Establish base name of the query. I.e what was originally asked.
-	base, err := dnsutil.TrimZone(state.QName(), searchpath[0]) // TODO(miek): we loose the original case of the query here.
+	base, err := dnsutil.TrimZone(state.QName(), searchpath[0])
 	if err != nil {
 		return dns.RcodeServerFailure, err
 	}
@@ -128,6 +127,7 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 
 		// Write whatever non-nxdomain answer we've found.
 		w.WriteMsg(msg)
+		AutoPathCount.WithLabelValues().Add(1)
 		return rcode, err
 
 	}
