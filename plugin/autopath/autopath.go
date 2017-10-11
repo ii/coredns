@@ -74,9 +74,10 @@ func (a *AutoPath) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 
 	if a.searchFunc != nil {
 		searchpath, err = a.searchFunc(state, a.namespace)
-		if len(searchpath) == 0 || err != nil {
-			return plugin.NextOrFailure(a.Name(), a.Next, ctx, w, r)
-		}
+	}
+
+	if len(searchpath) == 0 || err != nil {
+		return plugin.NextOrFailure(a.Name(), a.Next, ctx, w, r)
 	}
 
 	if !firstInSearchPath(state.Name(), searchpath) {
