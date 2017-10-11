@@ -23,25 +23,17 @@ func TestSetupAutoPath(t *testing.T) {
 		shouldErr          bool
 		expectedZone       string
 		expectedMw         string   // expected plugin.
-		expectedNs         string   // expected namespace.
 		expectedSearch     []string // expected search path
 		expectedErrContent string   // substring from the expected error. Empty for positive cases.
 	}{
 		// positive
-		{`autopath @kubernetes`, false, "", "kubernetes", "", nil, ""},
-		{`autopath @kubernetes`, false, "", "kubernetes", "", nil, ""},
-		{`autopath @kubernetes {
-			namespace kube-system
-		}`, false, "", "kubernetes", "kube-system", nil, ""},
-		{`autopath example.org @kubernetes`, false, "example.org.", "kubernetes", "", nil, ""},
-		{`autopath 10.0.0.0/8 @kubernetes`, false, "10.in-addr.arpa.", "kubernetes", "", nil, ""},
-		{`autopath ` + resolv, false, "", "", "", []string{"bar.com.", "baz.com.", ""}, ""},
+		{`autopath @kubernetes`, false, "", "kubernetes", nil, ""},
+		{`autopath example.org @kubernetes`, false, "example.org.", "kubernetes", nil, ""},
+		{`autopath 10.0.0.0/8 @kubernetes`, false, "10.in-addr.arpa.", "kubernetes", nil, ""},
+		{`autopath ` + resolv, false, "", "", []string{"bar.com.", "baz.com.", ""}, ""},
 		// negative
-		{`autopath kubernetes`, true, "", "", "", nil, "open kubernetes: no such file or directory"},
-		{`autopath`, true, "", "", "", nil, "no resolv-conf"},
-		{`autopath @kubernetes {
-			namespace
-		}`, true, "", "", "", nil, "rong argument count or"},
+		{`autopath kubernetes`, true, "", "", nil, "open kubernetes: no such file or directory"},
+		{`autopath`, true, "", "", nil, "no resolv-conf"},
 	}
 
 	for i, test := range tests {
