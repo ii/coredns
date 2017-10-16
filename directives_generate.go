@@ -34,17 +34,17 @@ func main() {
 			// ignore empty lines
 			continue
 		}
-		name := items[0]
+		name, repo := items[0], items[1]
 
 		if _, ok := mi[name]; ok {
 			log.Fatalf("Duplicate entry %q", name)
 		}
 
-		md = append(md, items[0])
-		mi[items[0]] = pluginPath + items[1] // Default, unless overridden by 3rd arg
+		md = append(md, name)
+		mi[name] = pluginPath + repo // Default, unless overridden by 3rd arg
 
-		if _, err := os.Stat(pluginFSPath + items[1]); err != nil { // External package has been given
-			mi[items[0]] = items[1]
+		if _, err := os.Stat(pluginFSPath + repo); err != nil { // External package has been given
+			mi[name] = repo
 		}
 	}
 
