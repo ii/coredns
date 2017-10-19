@@ -120,7 +120,7 @@ func TestZoneSigningDelegation(t *testing.T) {
 
 	}
 	if !section(m.Extra, 0) {
-		t.Errorf("Answer section should have 0 RRSIG")
+		t.Errorf("Answer section should have 0 RRSIGs")
 		t.Logf("%v\n", m)
 	}
 }
@@ -135,7 +135,7 @@ func TestSigningDname(t *testing.T) {
 	// We sign *everything* we see, also the synthesized CNAME.
 	m = d.Sign(state, "miek.nl.", time.Now().UTC())
 	if !section(m.Answer, 3) {
-		t.Errorf("Answer section should have 3 RRSIG")
+		t.Errorf("Answer section should have 3 RRSIGs")
 	}
 }
 
@@ -149,7 +149,7 @@ func TestSigningEmpty(t *testing.T) {
 	state := request.Request{Req: m}
 	m = d.Sign(state, "miek.nl.", time.Now().UTC())
 	if !section(m.Ns, 2) {
-		t.Errorf("Authority section should have 2 RRRRSIG")
+		t.Errorf("Authority section should have 2 RRSIGs")
 	}
 }
 
