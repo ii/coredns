@@ -38,6 +38,7 @@ type dnsController interface {
 	GetNodeByName(string) (*api.Node, error)
 
 	Run()
+	HasSynced() bool
 	Stop() error
 }
 
@@ -264,6 +265,17 @@ func (dns *dnsControl) Run() {
 		go dns.podController.Run(dns.stopCh)
 	}
 	<-dns.stopCh
+}
+
+// Calls HasSynced on all controllers.
+func (dns *dnsControl) HasSynced() bool {
+	a := dns.svcController.HasSynced()
+	b := dns.epController.HasSynced()
+	c := true
+	if dns.podController != nil {
+		c = dns.podController.HasSynced()
+	}
+	return a && b && c
 }
 
 func (dns *dnsControl) ServiceList() (svcs []*api.Service) {
