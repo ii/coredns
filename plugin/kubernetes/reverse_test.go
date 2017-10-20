@@ -14,13 +14,9 @@ import (
 
 type APIConnReverseTest struct{}
 
-func (APIConnReverseTest) Run()                                  { return }
-func (APIConnReverseTest) Stop() error                           { return nil }
-func (APIConnReverseTest) PodIndex(string) []*api.Pod            { return nil }
-func (APIConnReverseTest) SvcIndex(string) []*api.Service        { return nil }
-func (APIConnReverseTest) SvcIndexReverse(string) []*api.Service { return nil }
-func (APIConnReverseTest) EpIndex(string) []*api.Endpoints       { return nil }
-func (APIConnReverseTest) EndpointsList() []*api.Endpoints       { return nil }
+func (APIConnReverseTest) Run()                       { return }
+func (APIConnReverseTest) Stop() error                { return nil }
+func (APIConnReverseTest) PodIndex(string) []*api.Pod { return nil }
 
 func (APIConnReverseTest) ServiceList() []*api.Service {
 	svcs := []*api.Service{
@@ -42,7 +38,7 @@ func (APIConnReverseTest) ServiceList() []*api.Service {
 	return svcs
 }
 
-func (APIConnReverseTest) EpIndexReverse(string) []*api.Endpoints {
+func (APIConnReverseTest) EndpointsList() []*api.Endpoints {
 	eps := []*api.Endpoints{
 		{
 			Subsets: []api.EndpointSubset{
