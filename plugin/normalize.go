@@ -80,7 +80,8 @@ func (h Host) Normalize() string {
 }
 
 // SplitHostPort splits s up in a host and port portion, taking reverse address notation into account.
-// String the string s should *not* be prefixed with any protocols, i.e. dns://
+// String the string s should *not* be prefixed with any protocols, i.e. dns://. The returned cidr is usually
+// 0, except when the zone is a reverse and the netmask given is *not* a multiple of 8.
 func SplitHostPort(s string) (host, port string, cidr int, err error) {
 	// If there is: :[0-9]+ on the end we assume this is the port. This works for (ascii) domain
 	// names and our reverse syntax, which always needs a /mask *before* the port.

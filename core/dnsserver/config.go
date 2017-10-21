@@ -30,9 +30,10 @@ type Config struct {
 	// DNS-over-TLS or DNS-over-gRPC.
 	Transport string
 
-	// If the zone is a reverse zone, this will hold its cidr range. For all forward
-	// zones this will be 0.
-	Cidr int
+	// If the zone is a reverse zone, and the cidr's mask with not a
+	// multiple of 8 this will hold it's netmask. For all forward zones
+	// this will be 0.
+	Mask int
 
 	// TLSConfig when listening for encrypted connections (gRPC, DNS-over-TLS).
 	TLSConfig *tls.Config

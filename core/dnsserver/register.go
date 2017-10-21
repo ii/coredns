@@ -71,7 +71,7 @@ func (h *dnsContext) InspectServerBlocks(sourceFile string, serverBlocks []caddy
 				Zone:      za.Zone,
 				Port:      za.Port,
 				Transport: za.Transport,
-				Cidr:      za.Cidr,
+				Mask:      za.Mask,
 			}
 			h.saveConfig(za.String(), cfg)
 		}

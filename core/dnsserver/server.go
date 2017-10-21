@@ -225,14 +225,14 @@ func (s *Server) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 		if h, ok := s.zones[string(b[:l])]; ok {
 			if r.Question[0].Qtype != dns.TypeDS {
-				if h.Cidr == 0 {
+				if h.Mask == 0 {
 					rcode, _ := h.pluginChain.ServeDNS(ctx, w, r)
 					if !plugin.ClientWrite(rcode) {
 						DefaultErrorFunc(w, r, rcode)
 					}
 					return
 				}
-				// Cidr has been set, so this is a reverse zone, we know need to double check
+				// Mask has been set, so this is a reverse zone, we know need to double check
 				// if this reverse want to handle this request.
 			}
 			// The type is DS, keep the handler, but keep on searching as maybe we are serving
