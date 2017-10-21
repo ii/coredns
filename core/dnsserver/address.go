@@ -50,7 +50,7 @@ func normalizeZone(str string) (zoneAddr, error) {
 		str = str[len(TransportGRPC+"://"):]
 	}
 
-	host, port, err := plugin.SplitHostPort(str)
+	host, port, _ /* cidr */, err := plugin.SplitHostPort(str)
 	if err != nil {
 		return zoneAddr{}, err
 	}

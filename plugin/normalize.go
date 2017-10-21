@@ -75,13 +75,13 @@ func (h Host) Normalize() string {
 
 	// The error can be ignore here, because this function is called after the corefile
 	// has already been vetted.
-	host, _, _ := SplitHostPort(s)
+	host, _, _, _ := SplitHostPort(s)
 	return Name(host).Normalize()
 }
 
 // SplitHostPort splits s up in a host and port portion, taking reverse address notation into account.
 // String the string s should *not* be prefixed with any protocols, i.e. dns://
-func SplitHostPort(s string) (host, port string, err error) {
+func SplitHostPort(s string) (host, port string, cidr int, err error) {
 	// If there is: :[0-9]+ on the end we assume this is the port. This works for (ascii) domain
 	// names and our reverse syntax, which always needs a /mask *before* the port.
 	// So from the back, find first colon, and then check if its a number.
@@ -89,7 +89,7 @@ func SplitHostPort(s string) (host, port string, err error) {
 
 	colon := strings.LastIndex(s, ":")
 	if colon == len(s)-1 {
-		return "", "", fmt.Errorf("expecting data after last colon: %q", s)
+		return "", "", 0, fmt.Errorf("expecting data after last colon: %q", s)
 	}
 	if colon != -1 {
 		if p, err := strconv.Atoi(s[colon+1:]); err == nil {
@@ -100,12 +100,12 @@ func SplitHostPort(s string) (host, port string, err error) {
 
 	// TODO(miek): this should take escaping into account.
 	if len(host) > 255 {
-		return "", "", fmt.Errorf("specified zone is too long: %d > 255", len(host))
+		return "", "", 0, fmt.Errorf("specified zone is too long: %d > 255", len(host))
 	}
 
 	_, d := dns.IsDomainName(host)
 	if !d {
-		return "", "", fmt.Errorf("zone is not a valid domain name: %s", host)
+		return "", "", 0, fmt.Errorf("zone is not a valid domain name: %s", host)
 	}
 
 	// Check if it parses as a reverse zone, if so we use that. Must be fully
@@ -126,7 +126,7 @@ func SplitHostPort(s string) (host, port string, err error) {
 			}
 		}
 	}
-	return host, port, nil
+	return host, port, 0, nil
 }
 
 // Duplicated from core/dnsserver/address.go !
