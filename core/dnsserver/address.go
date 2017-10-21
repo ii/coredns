@@ -12,6 +12,7 @@ type zoneAddr struct {
 	Zone      string
 	Port      string
 	Transport string // dns, tls or grpc
+	Cidr      int    // if reverse zone, this hold the cidr /8, /11 etc, 0 for everything else.
 }
 
 // String return the string representation of z.
@@ -50,7 +51,7 @@ func normalizeZone(str string) (zoneAddr, error) {
 		str = str[len(TransportGRPC+"://"):]
 	}
 
-	host, port, _ /* cidr */, err := plugin.SplitHostPort(str)
+	host, port, cidr, err := plugin.SplitHostPort(str)
 	if err != nil {
 		return zoneAddr{}, err
 	}
@@ -67,7 +68,7 @@ func normalizeZone(str string) (zoneAddr, error) {
 		}
 	}
 
-	return zoneAddr{Zone: dns.Fqdn(host), Port: port, Transport: trans}, nil
+	return zoneAddr{Zone: dns.Fqdn(host), Port: port, Transport: trans, Cidr: cidr}, nil
 }
 
 // Supported transports.
