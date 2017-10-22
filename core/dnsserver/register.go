@@ -71,11 +71,12 @@ func (h *dnsContext) InspectServerBlocks(sourceFile string, serverBlocks []caddy
 				Zone:      za.Zone,
 				Port:      za.Port,
 				Transport: za.Transport,
-				// Only set this is we have a non-mod 8 netmask.
-				FilterFunc: func(s string) bool {
+			}
+			if za.HostBits != 0 {
+				cfg.FilterFunc = func(s string) bool {
 					// Take reverse of s, get IP address, check mask to see if ok.
-					return za.Mask == 0
-				},
+					return za.HostBits%8 == 0
+				}
 			}
 			h.saveConfig(za.String(), cfg)
 		}

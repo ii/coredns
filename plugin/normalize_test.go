@@ -82,3 +82,26 @@ func TestHostNormalize(t *testing.T) {
 		}
 	}
 }
+
+func TestSplitHostPortReverse(t *testing.T) {
+	tests := map[string]int{
+		"example.org.": 0,
+		"10.0.0.0/9":   32 - 9,
+		"10.0.0.0/8":   32 - 8,
+		"10.0.0.0/17":  32 - 17,
+		"10.0.0.0/0":   32 - 0,
+		"10.0.0.0/64":  0,
+		"10.0.0.0":     0,
+		"10.0.0":       0,
+		"2003::1/65":   128 - 65,
+	}
+	for in, expect := range tests {
+		_, _, cidr, err := SplitHostPort(in)
+		if err != nil {
+			t.Errorf("Expected no error, got %q for %s", in, err)
+		}
+		if cidr != expect {
+			t.Errorf("Expected %d, got %d for %s", expect, cidr, in)
+		}
+	}
+}

@@ -80,9 +80,9 @@ func (h Host) Normalize() string {
 }
 
 // SplitHostPort splits s up in a host and port portion, taking reverse address notation into account.
-// String the string s should *not* be prefixed with any protocols, i.e. dns://. The returned cidr is usually
-// 0, except when the zone is a reverse and the netmask given is *not* a multiple of 8.
-func SplitHostPort(s string) (host, port string, cidr int, err error) {
+// String the string s should *not* be prefixed with any protocols, i.e. dns://. The returned hostbits is the
+// number of bits used for hosts when the zone is a reverse and a netmask is given.
+func SplitHostPort(s string) (host, port string, hostbits int, err error) {
 	// If there is: :[0-9]+ on the end we assume this is the port. This works for (ascii) domain
 	// names and our reverse syntax, which always needs a /mask *before* the port.
 	// So from the back, find first colon, and then check if its a number.
@@ -112,9 +112,10 @@ func SplitHostPort(s string) (host, port string, cidr int, err error) {
 	// Check if it parses as a reverse zone, if so we use that. Must be fully
 	// specified IP and mask and mask % 8 = 0.
 	ip, net, err := net.ParseCIDR(host)
+	ones, bits := 0, 0
 	if err == nil {
 		if rev, e := dns.ReverseAddr(ip.String()); e == nil {
-			ones, bits := net.Mask.Size()
+			ones, bits = net.Mask.Size()
 			if (bits-ones)%8 == 0 {
 				offset, end := 0, false
 				for i := 0; i < (bits-ones)/8; i++ {
@@ -127,7 +128,7 @@ func SplitHostPort(s string) (host, port string, cidr int, err error) {
 			}
 		}
 	}
-	return host, port, 0, nil
+	return host, port, bits - ones, nil
 }
 
 // Duplicated from core/dnsserver/address.go !
