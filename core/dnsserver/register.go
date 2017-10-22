@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyfile"
@@ -74,8 +75,12 @@ func (h *dnsContext) InspectServerBlocks(sourceFile string, serverBlocks []caddy
 			}
 			if za.HostBits != 0 {
 				cfg.FilterFunc = func(s string) bool {
-					// Take reverse of s, get IP address, check mask to see if ok.
-					return za.HostBits%8 == 0
+					addr := dnsutil.ExtractAddressFromReverse(s)
+					if addr == "" {
+						return true
+					}
+					// za.HostBits
+					return false
 				}
 			}
 			h.saveConfig(za.String(), cfg)
