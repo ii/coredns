@@ -225,15 +225,21 @@ func (s *Server) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 
 		if h, ok := s.zones[string(b[:l])]; ok {
 			if r.Question[0].Qtype != dns.TypeDS {
-				if h.Mask == 0 {
+				if h.FilterFunc == nil {
 					rcode, _ := h.pluginChain.ServeDNS(ctx, w, r)
 					if !plugin.ClientWrite(rcode) {
 						DefaultErrorFunc(w, r, rcode)
 					}
 					return
 				}
-				// Mask has been set, so this is a reverse zone, we know need to double check
-				// if this reverse want to handle this request.
+				// FilterFunc is set, call it to see if we should use this handler.
+				if h.FilterFunc(string(b[:l])) {
+					rcode, _ := h.pluginChain.ServeDNS(ctx, w, r)
+					if !plugin.ClientWrite(rcode) {
+						DefaultErrorFunc(w, r, rcode)
+					}
+					return
+				}
 			}
 			// The type is DS, keep the handler, but keep on searching as maybe we are serving
 			// the parent as well and the DS should be routed to it - this will probably *misroute* DS

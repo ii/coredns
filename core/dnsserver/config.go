@@ -30,10 +30,10 @@ type Config struct {
 	// DNS-over-TLS or DNS-over-gRPC.
 	Transport string
 
-	// If the zone is a reverse zone, and the cidr's mask with not a
-	// multiple of 8 this will hold it's netmask. For all forward zones
-	// this will be 0.
-	Mask int
+	// If this function is not nil it will be used to further filter access
+	// to this handler. The primary use is to limit access to a reverse zone
+	// on a non-octet boundary, i.e. /17
+	FilterFunc func(string) bool
 
 	// TLSConfig when listening for encrypted connections (gRPC, DNS-over-TLS).
 	TLSConfig *tls.Config
