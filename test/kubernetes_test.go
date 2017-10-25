@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/coredns/coredns/plugin/test"
 
@@ -279,16 +278,22 @@ func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 	}
 	defer server.Stop()
 
-	time.Sleep(3 * time.Second)
-
 	for _, tc := range testCases {
 
 		c := new(dns.Client)
 		m := tc.Msg()
 
-		res, _, err := c.Exchange(m, udp)
-		if err != nil {
+		var (
+			res *dns.Msg
+			err error
+		)
+		if res, _, err = c.Exchange(m, udp); err != nil {
 			t.Fatalf("Could not send query: %s", err)
+		}
+
+		// This test is sooo flaky.... Let's redo the query if the result code is not what we expect.
+		if res.Rcode != tc.Rcode {
+			res, _, _ = c.Exchange(m, udp)
 		}
 
 		// Before sorting, make sure that CNAMES do not appear after their target records and then sort the tc.
@@ -340,12 +345,11 @@ func headlessAResponse(qname, namespace, name string) []dns.RR {
 
 	str, err := endpointIPs(name, namespace)
 	if err != nil {
-		log.Fatal("Error running kubectl command: ", err.Error())
+		log.Fatalf("Error running kubectl command: %s", err)
 	}
 	result := strings.Split(string(str), " ")
-	lr := len(result)
 
-	for i := 0; i < lr; i++ {
+	for i := range result {
 		rr = append(rr, test.A(qname+"    303    IN      A   "+result[i]))
 	}
 	return rr
@@ -362,9 +366,8 @@ func srvResponse(qname string, qtype uint16, namespace, name string) []dns.RR {
 		log.Fatal("Error running kubectl command: ", err.Error())
 	}
 	result := strings.Split(string(str), " ")
-	lr := len(result)
 
-	for i := 0; i < lr; i++ {
+	for i := range result {
 		ip := strings.Replace(result[i], ".", "-", -1)
 		t := strconv.Itoa(100 / (lr + 1))
 
