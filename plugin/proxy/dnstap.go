@@ -6,7 +6,6 @@ import (
 	"github.com/coredns/coredns/plugin/dnstap"
 	"github.com/coredns/coredns/request"
 
-	tap "github.com/dnstap/golang-dnstap"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 )
@@ -29,16 +28,16 @@ func toDnstap(ctx context.Context, host string, ex Exchanger, state request.Requ
 		t = state.Proto()
 	}
 	if t == "tcp" {
-		b.SocketProto = tap.SocketProtocol_TCP
+		b.SocketProto = dnstap.SocketProtocolTCP
 	} else {
-		b.SocketProto = tap.SocketProtocol_UDP
+		b.SocketProto = dnstap.SocketProtocolUDP
 	}
 
 	if err := b.Msg(state.Req); err != nil {
 		return err
 	}
 
-	if err := tapper.TapMessage(b.ToOutsideQuery(tap.Message_FORWARDER_QUERY)); err != nil {
+	if err := tapper.TapMessage(b.ToOutsideQuery(dnstap.MessageForwarderQuery)); err != nil {
 		return err
 	}
 
@@ -48,7 +47,7 @@ func toDnstap(ctx context.Context, host string, ex Exchanger, state request.Requ
 		if err := b.Msg(reply); err != nil {
 			return err
 		}
-		return tapper.TapMessage(b.ToOutsideResponse(tap.Message_FORWARDER_RESPONSE))
+		return tapper.TapMessage(b.ToOutsideResponse(dnstap.MessageForwarderResponse))
 	}
 	return nil
 }
