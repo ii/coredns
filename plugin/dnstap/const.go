@@ -7,8 +7,8 @@ import (
 	tap "github.com/dnstap/golang-dnstap"
 )
 
+// Mirror constants from the golang-dnstap package.
 const (
-	// Mirror constants from the golang-dnstap package.
 	SocketProtocolTCP        = tap.SocketProtocol_TCP
 	SocketProtocolUDP        = tap.SocketProtocol_UDP
 	MessageForwarderQuery    = tap.Message_FORWARDER_QUERY
