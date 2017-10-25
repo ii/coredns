@@ -369,7 +369,7 @@ func srvResponse(qname string, qtype uint16, namespace, name string) []dns.RR {
 
 	for i := range result {
 		ip := strings.Replace(result[i], ".", "-", -1)
-		t := strconv.Itoa(100 / (lr + 1))
+		t := strconv.Itoa(100 / (len(result) + 1))
 
 		switch qtype {
 		case dns.TypeA:
