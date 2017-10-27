@@ -83,7 +83,7 @@ build:
 	@echo Building: ppc64  $(VERSION)
 	mkdir -p build/linux/ppc64 && $(MAKE) coredns BINARY=build/linux/ppc64/$(NAME) SYSTEM="GOOS=linux GOARCH=ppc64le"
 	@echo Building: s390x  $(VERSION)
-	mkdir -p build/linux/ppc64 && $(MAKE) coredns BINARY=build/linux/s390/$(NAME) SYSTEM="GOOS=linux GOARCH=s390x"
+	mkdir -p build/linux/s390 && $(MAKE) coredns BINARY=build/linux/s390/$(NAME) SYSTEM="GOOS=linux GOARCH=s390x"
 
 .PHONY: tar
 tar:
