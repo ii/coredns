@@ -77,7 +77,7 @@ aws-cluster:
         exit 0
       else
         apt update && apt install -y jq
-        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[AWS_CLOUD]=aws" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[AWS_CLOUD]=aws" -F "variable=[KUBERNETES_BRANCH]=ci-v1.7.0" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
         echo 'Wait for Cluster "FIX ME / HACK"'
         until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
@@ -100,7 +100,7 @@ gce-cluster:
       if [ "$BUILD_TRIGGER" == "yes" ]; then
         exit 0
       else
-        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[GCE_CLOUD]=gce" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[GCE_CLOUD]=gce" -F "variable=[KUBERNETES_BRANCH]=ci-v1.7.0" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
         echo 'Wait for Cluster "FIX ME / HACK"'
         until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .id')
@@ -147,7 +147,7 @@ packet-cluster:
       if [ "$BUILD_TRIGGER" == "yes" ]; then
         exit 0
       else
-        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[PACKET_CLOUD]=packet" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=ci-stable-v0.2.0 -F "variables[PACKET_CLOUD]=packet" -F "variable=[KUBERNETES_BRANCH]=ci-v1.7.0" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
         echo 'Wait for Cluster "FIX ME / HACK"'
         until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .id')
