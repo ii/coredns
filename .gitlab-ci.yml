@@ -82,7 +82,7 @@ kubernetes-cluster:
 
         #AWS 
         JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .status')"
-        until [ "$JOB_STATUS" == '"success"' ]; do $JOB_STATUS ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/aws-stable-v0-2-0-integrations/kubeconfig"
@@ -90,7 +90,7 @@ kubernetes-cluster:
 
         #GCE
         JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .status')"
-        until [ "$JOB_STATUS" == '"success"' ]; do $JOB_STATUS ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gce_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gce-stable-v0-2-0-integrations/kubeconfig"
@@ -98,15 +98,16 @@ kubernetes-cluster:
 
         #GKE
         JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gke_k8s_deploy") | .status')"
-        until [ "$JOB_STATUS" == '"success"' ]; do $JOB_STATUS ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gke_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        echo $PROJECT_PIPELINE
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="gke_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/gke-stable-v0-2-0-integrations/kubeconfig"
         cat ./kubeconfig | base64 | tee ./gke-kubeconfig
 
         #Packet
-        JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')" 
-        until [ "$JOB_STATUS" == '"success"' ]; do $JOB_STATUS ; sleep 0.5 ; done ; echo 'Cluster Ready'
+        JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')"
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
         PROJECT_JOB=$(curl --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="packet_k8s_deploy") | .id')
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/packet-stable-v0-2-0-integrations/kubeconfig"
