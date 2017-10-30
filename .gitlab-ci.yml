@@ -70,7 +70,7 @@ container:
 
 aws-cluster:
   stage: Cross-Cloud/Project
-  image: golang:1.8.1
+  image: buildpack-deps:stretch
   script:
     - >
       if [ "$BUILD_TRIGGER" == "yes" ]; then
@@ -84,6 +84,14 @@ aws-cluster:
         export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
         curl -s -o kubeconfig -L "$BASE_URL/cncf/cross-cloud/-/jobs/${PROJECT_JOB}/artifacts/raw/data/aws-stable-v0-2-0-integrations/kubeconfig"
         cat ./kubeconfig | base64 | tee ./aws-kubeconfig
+
+        echo 'Trigger Cross-Project'
+        AWS_KUBECONFIG=$(cat ./aws-kubeconfig | tr -d '\n')
+        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[COREDNS_COMMIT]=fb7473ec" -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
+    
+        echo 'Verify Project Deployment'
+        JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_coredns_deploy") | .status')"
+        until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws-coredns-deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
       fi
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
@@ -91,29 +99,27 @@ aws-cluster:
     paths:
       - aws-kubeconfig
 
-aws-deploy:
-  stage: Cross-Cloud/Project
-  image: buildpack-deps:stretch
-  script:
-    - apt update && apt install -y jq
-    - AWS_KUBECONFIG=$(cat ./aws-kubeconfig | tr -d '\n')
-    # - GCE_KUBECONFIG=$(cat ./gce-kubeconfig | tr -d '\n')
-    # - GKE_KUBECONFIG=$(cat ./gke-kubeconfig | tr -d '\n')
-    # - PACKET_KUBECONFIG=$( cat ./packet-kubeconfig | tr -d '\n')
-    - PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[COREDNS_COMMIT]=fb7473ec" -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
+# aws-deploy:
+#   stage: Cross-Cloud/Project
+#   image: buildpack-deps:stretch
+#   script:
+#     - apt update && apt install -y jq
+#     - AWS_KUBECONFIG=$(cat ./aws-kubeconfig | tr -d '\n')
+#     # - GCE_KUBECONFIG=$(cat ./gce-kubeconfig | tr -d '\n')
+#     # - GKE_KUBECONFIG=$(cat ./gke-kubeconfig | tr -d '\n')
+#     # - PACKET_KUBECONFIG=$( cat ./packet-kubeconfig | tr -d '\n')
+#     - PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_PROJECT_CI_JOB_TOKEN -F ref=master -F "variables[COREDNS_COMMIT]=fb7473ec" -F "variables[AWS_KUBECONFIG]="${AWS_KUBECONFIG}"" https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline | jq '.id')
     
-    #AWS
-    - JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_coredns_deploy") | .status')"
-    - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws-coredns-deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
-  dependencies:
-    - aws-cluster
-  artifacts:
-    name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
-    expire_in: 5 weeks
-    paths:
-      - aws-kubeconfig
-
-
+#     #AWS
+#     - JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws_coredns_deploy") | .status')"
+#     - until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/45/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="aws-coredns-deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
+#   dependencies:
+#     - aws-cluster
+#   artifacts:
+#     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
+#     expire_in: 5 weeks
+#     paths:
+#       - aws-kubeconfig
 
 gce-cluster:
   stage: Cross-Cloud/Project 
