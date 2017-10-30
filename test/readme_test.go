@@ -17,7 +17,7 @@ import (
 // As we use the filesystem as-is, these files need to exist ON DISK for the readme test to work. This is especially
 // useful for the *file* and *dnssec* plugins as their Corefiles are now tested as well. We create empty files in the
 // current dir for all these, meaning the example READMEs my use relative path in their READMEs.
-var fileToTouch = []string{
+var filesToTouch = []string{
 	"Kexample.org.+013+45330.key",
 	"Kexample.org.+013+45330.private",
 	"Kcluster.local+013+45129.key",
@@ -37,8 +37,8 @@ func TestReadme(t *testing.T) {
 	caddy.Quiet = true
 	dnsserver.Quiet = true
 
-	touch()
-	defer remove()
+	touch(filesToTouch)
+	defer remove(filesToTouch)
 
 	log.SetOutput(ioutil.Discard)
 
