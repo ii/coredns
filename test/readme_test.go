@@ -14,7 +14,17 @@ import (
 	"github.com/mholt/caddy"
 )
 
-// TestReadme parses all README.md's of the plugins and checks if every example Corefile
+// As we use the filesystem as-is, these files need to exist ON DISK for the readme test to work. This is especially
+// useful for the *file* and *dnssec* plugins as their Corefiles are now tested as well. We create empty files in the
+// current dir for all these, meaning the example READMEs my use relative path in their READMEs.
+var fileToTouch = []string{
+	"Kexample.org.+013+45330.key",
+	"Kexample.org.+013+45330.private",
+	"Kcluster.local+013+45129.key",
+	"Kcluster.local+013+45129.private",
+}
+
+// TestReadme parses all README.mds of the plugins and checks if every example Corefile
 // actually works. Each corefile snippet is only used if the language is set to 'corefile':
 //
 // ~~~ corefile
@@ -26,6 +36,9 @@ func TestReadme(t *testing.T) {
 	port := 30053
 	caddy.Quiet = true
 	dnsserver.Quiet = true
+
+	touch()
+	defer remove()
 
 	log.SetOutput(ioutil.Discard)
 
@@ -98,4 +111,16 @@ func corefileFromReadme(readme string) ([]*Input, error) {
 		return nil, err
 	}
 	return input, nil
+}
+
+func touch(names []string) {
+	for i := range names {
+		os.Create(names[i])
+	}
+}
+
+func remove(names []string) {
+	for i := range names {
+		os.Remove(names[i])
+	}
 }
