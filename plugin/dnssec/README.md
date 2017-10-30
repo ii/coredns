@@ -48,7 +48,7 @@ If monitoring is enabled (via the *prometheus* directive) then the following met
 Sign responses for `example.org` with the key "Kexample.org.+013+45330.key".
 
 ~~~ corefile
-example.org:53 {
+example.org {
     dnssec {
         key file Kexample.org.+013+45330
     }
@@ -59,10 +59,10 @@ example.org:53 {
 Sign responses for a kubernetes zone with the key "Kcluster.local+013+45129.key".
 
 ~~~
-cluster.local:53 {
-    kubernetes cluster.local
-    dnssec cluster.local {
-      key file /etc/coredns/Kcluster.local+013+45129
+cluster.local {
+    kubernetes
+    dnssec {
+      key file Kcluster.local+013+45129
     }
 }
 ~~~
@@ -73,7 +73,7 @@ Multiple *dnssec* plugins inside one server stanza will silently overwrite earli
 `example.local` will overwrite the one for `cluster.org`.
 
 ~~~
-.:53 {
+. {
     kubernetes cluster.local
     dnssec cluster.local {
       key file Kcluster.local+013+45129
@@ -81,6 +81,5 @@ Multiple *dnssec* plugins inside one server stanza will silently overwrite earli
     dnssec example.org {
       key file Kexample.org.+013+45330
     }
-    whoami
 }
 ~~~

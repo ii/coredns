@@ -15,14 +15,22 @@ import (
 )
 
 // As we use the filesystem as-is, these files need to exist ON DISK for the readme test to work. This is especially
-// useful for the *file* and *dnssec* plugins as their Corefiles are now tested as well. We create empty files in the
-// current dir for all these, meaning the example READMEs my use relative path in their READMEs.
-var filesToTouch = []string{
-	"Kexample.org.+013+45330.key",
-	"Kexample.org.+013+45330.private",
-	"Kcluster.local+013+45129.key",
-	"Kcluster.local+013+45129.private",
+// useful for the *file* and *dnssec* plugins as their Corefiles are now tested as well. We create files in the
+// current dir for all these, meaning the example READMEs MUST use relative path in their READMEs.
+var contents = map[string]string{
+	"Kexample.org.+013+45330.key":     examplePub,
+	"Kexample.org.+013+45330.private": examplePriv,
+	"example.org.signed":              exampleOrg, // not signed, but does not matter for this test.
 }
+
+const (
+	examplePub = `example.org. IN DNSKEY 256 3 13 eNMYFZYb6e0oJOV47IPo5f/UHy7wY9aBebotvcKakIYLyyGscBmXJQhbKLt/LhrMNDE2Q96hQnI5PdTBeOLzhQ==
+`
+	examplePriv = `Private-key-format: v1.3
+Algorithm: 13 (ECDSAP256SHA256)
+PrivateKey: f03VplaIEA+KHI9uizlemUSbUJH86hPBPjmcUninPoM=
+`
+)
 
 // TestReadme parses all README.mds of the plugins and checks if every example Corefile
 // actually works. Each corefile snippet is only used if the language is set to 'corefile':
@@ -37,8 +45,8 @@ func TestReadme(t *testing.T) {
 	caddy.Quiet = true
 	dnsserver.Quiet = true
 
-	touch(filesToTouch)
-	defer remove(filesToTouch)
+	create(contents)
+	defer remove(contents)
 
 	log.SetOutput(ioutil.Discard)
 
@@ -113,14 +121,14 @@ func corefileFromReadme(readme string) ([]*Input, error) {
 	return input, nil
 }
 
-func touch(names []string) {
-	for i := range names {
-		os.Create(names[i])
+func create(c map[string]string) {
+	for name, content := range c {
+		ioutil.WriteFile(name, []byte(content), 0644)
 	}
 }
 
-func remove(names []string) {
-	for i := range names {
-		os.Remove(names[i])
+func remove(c map[string]string) {
+	for name, _ := range c {
+		os.Remove(name)
 	}
 }
