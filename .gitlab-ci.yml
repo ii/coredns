@@ -196,6 +196,5 @@ test-cluster:
   image: golang:1.8.1
   script:
     - apt update && apt install -y jq
-    - curl -X POST -F token=$CI_JOB_TOKEN -F ref=ci-stable-v0.2.0-integrations https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
+    - curl -X POST -F token=$CI_JOB_TOKEN -F ref=master https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
     - curl -X POST -F token=$CI_JOB_TOKEN -F ref=master https://gitlab.cncf.ci/api/v4/projects/45/trigger/pipeline
-
