@@ -11,7 +11,7 @@ compile:
   image: golang:1.8.1
   stage: build
   script:
-    - echo 'test'
+    #- echo 'test'
     - ln -s /builds /go/src/github.com
     - cd /go/src/github.com/coredns/coredns
     - go get github.com/mholt/caddy
