@@ -6,6 +6,8 @@ stages:
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
+  - curl -H "Content-Type: application/json"   -X POST   -d '{"source_key_project_monitor": {"source_project_id":"${CI_PROJECT_ID},"source_pipeline_id":"${CI_PIPELINE_ID}","pipeline_release_type":"head", "source_job_id":"${CI_JOB_ID}"} }'   https://requestb.in/1mtvcee1
+  
 
 compile:
   image: golang:1.8.1
