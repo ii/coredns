@@ -10,8 +10,8 @@
 # the plugins's ServeDNS and used the plugin/pkg/fuzz for the Do function.
 #
 # Installing go-fuzz
-#$ go get github.com/dvyukov/go-fuzz/go-fuzz
-#$ go get github.com/dvyukov/go-fuzz/go-fuzz-build
+# $ go get github.com/dvyukov/go-fuzz/go-fuzz
+# $ go get github.com/dvyukov/go-fuzz/go-fuzz-build
 
 REPO:="github.com/coredns/coredns/plugin"
 
@@ -25,8 +25,13 @@ echo:
 
 .PHONY: $(PLUGINS)
 $(PLUGINS): echo
-	go-fuzz-build $(REPO)/$(@)
+	go-fuzz-build -tags fuzz $(REPO)/$(@)
 	go-fuzz -bin=./$(@)-fuzz.zip -workdir=fuzz/$(@)
+
+.PHONY: get
+get:
+	go get github.com/dvyukov/go-fuzz/go-fuzz
+	go get github.com/dvyukov/go-fuzz/go-fuzz-build
 
 .PHONY: clean
 clean:
