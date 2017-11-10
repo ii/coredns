@@ -70,7 +70,7 @@ container:
 
 # Deploy Template used for Cross-Cloud API Call
 .cross-cloud: &cross-cloud
-  allow_failure: true
+  allow_failure: false
   image: buildpack-deps:stretch
   stage: Cross-Cloud
   variables:
@@ -102,9 +102,9 @@ container:
 
 # Deploy Template used for Cross-Project API Call
 .cross-project: &cross-project
-  allow_failure: true
+  allow_failure: false
   image: buildpack-deps:stretch
-  stage: Cross-Cloud
+  stage: Cross-Project
   variables:
     COREDNS_BRANCH: CAN BE SET
     COREDNS_COMMIT: CAN BE SET
