@@ -11,7 +11,7 @@ import (
 func Fuzz(data []byte) int {
 	name := "miek.nl."
 	zone, _ := Parse(strings.NewReader(fuzzMiekNL), name, "stdin", 0)
-	f := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{name: zone}, Names: []string{name}}}
+	f := &File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{name: zone}, Names: []string{name}}}
 
 	return fuzz.Do(f, data)
 }

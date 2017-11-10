@@ -95,7 +95,7 @@ func TestLookupDNAME(t *testing.T) {
 		t.Fatalf("Expect no error when reading zone, got %q", err)
 	}
 
-	fm := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{testzone: zone}, Names: []string{testzone}}}
+	fm := &File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{testzone: zone}, Names: []string{testzone}}}
 	ctx := context.TODO()
 
 	for _, tc := range dnameTestCases {
@@ -148,7 +148,7 @@ func TestLookupDNAMEDNSSEC(t *testing.T) {
 		t.Fatalf("Expect no error when reading zone, got %q", err)
 	}
 
-	fm := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{"example.org.": zone}, Names: []string{"example.org."}}}
+	fm := &File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{"example.org.": zone}, Names: []string{"example.org."}}}
 	ctx := context.TODO()
 
 	for _, tc := range dnameDnssecTestCases {

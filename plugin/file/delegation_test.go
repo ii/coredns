@@ -156,7 +156,7 @@ func testDelegation(t *testing.T, z, origin string, testcases []test.Case) {
 		t.Fatalf("Expect no error when reading zone, got %q", err)
 	}
 
-	fm := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{origin: zone}, Names: []string{origin}}}
+	fm := &File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{origin: zone}, Names: []string{origin}}}
 	ctx := context.TODO()
 
 	for _, tc := range testcases {
