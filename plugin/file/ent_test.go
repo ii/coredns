@@ -36,7 +36,7 @@ func TestLookupEnt(t *testing.T) {
 		t.Fatalf("expect no error when reading zone, got %q", err)
 	}
 
-	fm := &File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{testzone: zone}, Names: []string{testzone}}}
+	fm := File{Next: test.ErrorHandler(), Zones: Zones{Z: map[string]*Zone{testzone: zone}, Names: []string{testzone}}}
 	ctx := context.TODO()
 
 	for _, tc := range entTestCases {

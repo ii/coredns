@@ -40,18 +40,8 @@ func setup(c *caddy.Controller) error {
 		})
 	}
 
-	file := &File{Zones: zones, synced: false}
-
-	c.OnStartup(func() error {
-		file.Lock()
-		file.synced = true
-		file.Unlock()
-		return nil
-	})
-
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		file.Next = next
-		return file
+		return File{Next: next, Zones: zones}
 	})
 
 	return nil

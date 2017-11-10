@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/request"
@@ -19,9 +18,6 @@ type (
 	File struct {
 		Next  plugin.Handler
 		Zones Zones
-
-		sync.Mutex
-		synced bool
 	}
 
 	// Zones maps zone names to a *Zone.
@@ -32,7 +28,7 @@ type (
 )
 
 // ServeDNS implements the plugin.Handle interface.
-func (f *File) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (f File) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	state := request.Request{W: w, Req: r}
 
 	qname := state.Name()
@@ -107,7 +103,7 @@ func (f *File) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 }
 
 // Name implements the Handler interface.
-func (f *File) Name() string { return "file" }
+func (f File) Name() string { return "file" }
 
 type serialErr struct {
 	err    string
