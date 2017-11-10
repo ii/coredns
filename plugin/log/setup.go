@@ -57,7 +57,7 @@ func logParse(c *caddy.Controller) ([]Rule, error) {
 		} else if len(args) == 1 {
 			// Only an output file specified, can only be *stdout*
 			if args[0] != "stdout" {
-				return nil, fmt.Errorf("invalid log file: %s, only %s is allowed", args[0], "stdout")
+				return nil, fmt.Errorf("only stdout is allowed: %s", args[0])
 			}
 			rules = append(rules, Rule{
 				NameScope: ".",
@@ -80,7 +80,7 @@ func logParse(c *caddy.Controller) ([]Rule, error) {
 			}
 
 			if args[1] != "stdout" {
-				return nil, fmt.Errorf("invalid log file: %s, only %s is allowed", args[1], "stdout")
+				return nil, fmt.Errorf("only stdout is allowed: %s", args[1])
 			}
 
 			rules = append(rules, Rule{
