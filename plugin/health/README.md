@@ -21,7 +21,6 @@ supports health checks has a section "Health" in their README.
 The following plugins report health to the health plugin:
 
 * erratic
-* file
 * kubernetes
 
 ## Examples
