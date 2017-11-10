@@ -84,7 +84,7 @@ container:
         apt update && apt install -y jq
         # PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=stable-v0.2.0-integrations -F "variables[KUBERNETES_BRANCH]=${KUBERNETES_BRANCH}" -F "variables[CLOUD]=aws" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
         # PROJECT_PIPELINE=$(
-        curl -X POST -F token=$CI_JOB_TOKEN -F ref=ci-stable-v0.2.0-integrations https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
+        curl -X POST -F token=$CI_JOB_TOKEN -F ref=ci-stable-v0.1.0 https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline
 
         echo 'Wait for Cluster "FIX ME / HACK"'
         # until [ "$JOB_STATUS" == '"success"' ]; do JOB_STATUS="$(curl -s --header "PRIVATE-TOKEN:${TOKEN}" "https://gitlab.cncf.ci/api/v4/projects/2/pipelines/${PROJECT_PIPELINE}/jobs?scope=success" | jq '.[] | select(.name=="$CLOUD_k8s_deploy") | .status')" ; sleep 0.5 ; done ; echo 'Cluster Ready'
