@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/request"
@@ -18,6 +19,9 @@ type (
 	File struct {
 		Next  plugin.Handler
 		Zones Zones
+
+		sync.Mutex
+		synced bool
 	}
 
 	// Zones maps zone names to a *Zone.

@@ -39,6 +39,10 @@ file DBFILE [ZONES... ] {
   normal authoritative serving you don't need *or* want to use this. **ADDRESS** can be an IP
   address, and IP:port or a string pointing to a file that is structured as /etc/resolv.conf.
 
+## Health
+
+This plugins support health checks. After the initial zone loading it will export a healthy status.
+
 ## Examples
 
 Load the `example.org` zone from `example.org.signed` and allow transfers to the internet, but send
