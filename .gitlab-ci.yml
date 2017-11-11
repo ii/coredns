@@ -82,7 +82,7 @@ container:
         exit 0
       else
         apt update && apt install -y jq
-        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=stable-v0.2.0-integrations -F "variables[KUBERNETES_BRANCH]=${KUBERNETES_BRANCH}" -F "variables[CLOUD]=aws" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
+        PROJECT_PIPELINE=$(curl -X POST -F token=$CROSS_CLOUD_CI_JOB_TOKEN -F ref=stable-v0.2.0-integrations -F "variables[KUBERNETES_BRANCH]="${KUBERNETES_BRANCH}"" -F "variables[CLOUD]="${CLOUD}"" https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
         # PROJECT_PIPELINE=$(curl -X POST -F token=$CI_JOB_TOKEN -F ref=stable-v0.2.0-integrations https://gitlab.cncf.ci/api/v4/projects/2/trigger/pipeline | jq '.id')
 
         echo 'Wait for Cluster "FIX ME / HACK"'
