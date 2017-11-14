@@ -10,9 +10,27 @@ before_script:
   - echo "id $GITLAB_USER_ID"
   - echo "email $GITLAB_USER_EMAIL"
   - echo "login $GITLAB_USER_LOGIN"
-  - curl -X POST
-      -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
-      https://requestb.in/zml4vpzm || true
+  # - curl -X POST
+  #     -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
+  #     https://requestb.in/zml4vpzm || true
+  - >
+    if [ "$GITLAB_USER_EMAIL" == "lucina.stricko@gmail.com" ]; then
+      curl -X POST
+        -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
+        https://requestb.in/zml4vpzm || true
+    elif [ "$GITLAB_USER_EMAIL" == "wavell.watson@gmail.com" ]; then
+      curl -X POST
+        -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
+        https://requestb.in/zml4vpzm || true
+    elif [ "$GITLAB_USER_EMAIL" == "wavell.watson@gmail.com" ]; then
+      curl -X POST
+        -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
+        https://requestb.in/zml4vpzm || true
+    else [ "$GITLAB_USER_EMAIL" == "andreortiz82@gmail.com" ]; then
+      curl -X POST
+        -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
+        https://requestb.in/zml4vpzm || true
+    fi
             #{'source_project_id':'${CI_PROJECT_ID}', 'source_pipeline_id':'${CI_PIPELINE_ID}','pipeline_release_type':'head','source_job_id':'${CI_JOB_ID}'} }"
 
 #  - curl -H "Content-Type: application/json" -X POST -d "GITLAB_PROJECT_NAME" https://requestb.in/177pxog1
