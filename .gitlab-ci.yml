@@ -6,10 +6,10 @@ stages:
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
-  - echo "name: $GITLAB_USER_NAME"
-  - echo "id: $GITLAB_USER_ID"
-  - echo "email: $GITLAB_USER_EMAIL"
-  - echo "login: $GITLAB_USER_LOGIN"
+  - echo "name $GITLAB_USER_NAME"
+  - echo "id $GITLAB_USER_ID"
+  - echo "email $GITLAB_USER_EMAIL"
+  - echo "login $GITLAB_USER_LOGIN"
   - curl -X POST
       -d "{'source_key_project_monitor':true, 'user':'$GITLAB_USER_NAME'}"
       https://requestb.in/zml4vpzm || true
