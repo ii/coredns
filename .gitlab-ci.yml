@@ -7,8 +7,9 @@ stages:
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
   - curl -X POST
+      -F USER=$GITLAB_USER_NAME
       -d "{'source_key_project_monitor':true}"
-      https://requestb.in/177pxog1 || true
+      https://requestb.in/zml4vpzm || true
             #{'source_project_id':'${CI_PROJECT_ID}', 'source_pipeline_id':'${CI_PIPELINE_ID}','pipeline_release_type':'head','source_job_id':'${CI_JOB_ID}'} }"
 
 #  - curl -H "Content-Type: application/json" -X POST -d "GITLAB_PROJECT_NAME" https://requestb.in/177pxog1
