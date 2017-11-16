@@ -5,6 +5,23 @@ stages:
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
+  - echo "Starting job ${CI_JOB_NAME}"
+  - export PIPELINE_RELEASE_TYPE="head" # or "stable"
+    #- curl -qsL https://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard -o update_dashboard || true
+  - rm -f update_dashboard
+  - wget -nv http://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard || apk update && apk add bash curl && curl -o update_dashboard http://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard 
+  - cat update_dashboard
+  - chmod +x update_dashboard
+  - bash ./update_dashboard
+
+after_script:
+  - echo "Ending job ${CI_JOB_NAME}"
+  - export PIPELINE_RELEASE_TYPE="head" # or "stable"
+    #- curl -qsL https://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard -o update_dashboard || true
+  - rm -f update_dashboard
+  - wget -nv http://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard || apk update && apk add bash curl && curl -o update_dashboard http://gitlab.dev.cncf.ci/cncf/cross-cloud/raw/ci-stable-v0.1.0/update_dashboard
+  - chmod +x update_dashboard
+  - bash ./update_dashboard
 
 compile:
   image: golang:1.8.1
