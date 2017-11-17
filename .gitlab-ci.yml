@@ -6,7 +6,7 @@ stages:
 variables:
   DASHBOARD_STABLE_REF_NAME: "ci-v008"
   DASHBOARD_MASTER_REF_NAME: "ci-master"
-  DASHBOARD_HEAD_REF_NAME: "$MASTER_REF_NAME"
+  DASHBOARD_HEAD_REF_NAME: "$DASHBOARD_MASTER_REF_NAME"
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
