@@ -364,8 +364,9 @@ func optsEqual(a, b []dns.EDNS0) bool {
 				if !bytes.Equal(aa.Address, bb.Address) {
 					return false
 				}
+			} else {
+				return false
 			}
-			return false
 
 		default:
 			return false
