@@ -83,6 +83,16 @@ var dnsTestCases = []test.Case{
 		Extra: []dns.RR{test.OPT(4096, true)},
 	},
 	{
+		Qname: "miek.nl.", Qtype: dns.TypeHINFO, Do: true,
+		Ns: []dns.RR{
+			test.NSEC("miek.nl.	1800	IN	NSEC	\000.miek.nl. A NS SOA MX TXT AAAA LOC SRV CERT SSHFP RRSIG NSEC DNSKEY TLSA HIP OPENPGPKEY SPF"),
+			test.RRSIG("miek.nl.	1800	IN	RRSIG	NSEC 13 2 3600 20171220141741 20171212111741 18512 miek.nl. GuXROL7Uu+UiPcg=="),
+			test.RRSIG("miek.nl.	1800	IN	RRSIG	SOA 13 2 3600 20171220141741 20171212111741 18512 miek.nl. 8bLTReqmuQtw=="),
+			test.SOA("miek.nl.	1800	IN	SOA	linode.atoom.net. miek.miek.nl. 1282630057 14400 3600 604800 14400"),
+		},
+		Extra: []dns.RR{test.OPT(4096, true)},
+	},
+	{
 		Qname: "www.example.org.", Qtype: dns.TypeAAAA, Do: true,
 		Rcode: dns.RcodeServerFailure,
 		// Extra: []dns.RR{test.OPT(4096, true)}, // test.ErrorHandler is a simple handler that does not do EDNS on ServerFailure

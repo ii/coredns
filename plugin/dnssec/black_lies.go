@@ -17,7 +17,11 @@ func (d Dnssec) nsec(state request.Request, zone string, ttl, incep, expir uint3
 	nsec := &dns.NSEC{}
 	nsec.Hdr = dns.RR_Header{Name: state.QName(), Ttl: ttl, Class: dns.ClassINET, Rrtype: dns.TypeNSEC}
 	nsec.NextDomain = "\\000." + state.QName()
-	nsec.TypeBitMap = filter(state.QType(), defaultBitmap)
+	if state.Name() == zone {
+		nsec.TypeBitMap = filter18(state.QType(), apexBitmap)
+	} else {
+		nsec.TypeBitMap = filter14(state.QType(), zoneBitmap)
+	}
 
 	sigs, err := d.sign([]dns.RR{nsec}, zone, ttl, incep, expir)
 	if err != nil {
@@ -27,16 +31,28 @@ func (d Dnssec) nsec(state request.Request, zone string, ttl, incep, expir uint3
 	return append(sigs, nsec), nil
 }
 
-// defaultBitmap is the default bitmap every NSEC reply gets. We filter out the actual type ask for
-// if it was in the map.
-var defaultBitmap = [...]uint16{dns.TypeA, dns.TypeHINFO, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
+// The nsec bit maps we return
+var (
+	zoneBitmap = [...]uint16{dns.TypeA, dns.TypeHINFO, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
+	apexBitmap = [...]uint16{dns.TypeA, dns.TypeNS, dns.TypeSOA, dns.TypeHINFO, dns.TypeMX, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeDNSKEY, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
+)
 
-// filter filters out t from bitmap (if it exists).
-func filter(t uint16, bitmap [14]uint16) []uint16 { // 14 is len(defaultBitmap)
+// filter14 filters out t from bitmap (if it exists).
+func filter14(t uint16, bitmap [14]uint16) []uint16 {
 	for i := range bitmap {
 		if bitmap[i] == t {
 			return append(bitmap[:i], bitmap[i+1:]...)
 		}
 	}
-	return defaultBitmap[:] // make a slice
+	return zoneBitmap[:] // make a slice
+}
+
+// filter18 filters out t from bitmap (if it exists).
+func filter18(t uint16, bitmap [18]uint16) []uint16 {
+	for i := range bitmap {
+		if bitmap[i] == t {
+			return append(bitmap[:i], bitmap[i+1:]...)
+		}
+	}
+	return apexBitmap[:] // make a slice
 }
