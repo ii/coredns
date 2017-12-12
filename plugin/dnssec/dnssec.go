@@ -74,7 +74,7 @@ func (d Dnssec) Sign(state request.Request, zone string, now time.Time) *dns.Msg
 		if sigs, err := d.sign(req.Ns, zone, ttl, incep, expir); err == nil {
 			req.Ns = append(req.Ns, sigs...)
 		}
-		if sigs, err := d.nsec(state.Name(), zone, ttl, incep, expir); err == nil {
+		if sigs, err := d.nsec(state, zone, ttl, incep, expir); err == nil {
 			req.Ns = append(req.Ns, sigs...)
 		}
 		if len(req.Ns) > 1 { // actually added nsec and sigs, reset the rcode
