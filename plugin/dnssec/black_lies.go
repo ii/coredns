@@ -32,14 +32,14 @@ func (d Dnssec) nsec(state request.Request, mt response.Type, ttl, incep, expir 
 	return append(sigs, nsec), nil
 }
 
-// The nsec bit maps we return
+// The NSEC bit maps we return.
 var (
 	zoneBitmap = [...]uint16{dns.TypeA, dns.TypeHINFO, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
 	apexBitmap = [...]uint16{dns.TypeA, dns.TypeNS, dns.TypeSOA, dns.TypeHINFO, dns.TypeMX, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeDNSKEY, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
 )
 
 // filter14 filters out t from bitmap (if it exists). If mt is not an NODATA response, just
-// return entire bitmap
+// return the entire bitmap.
 func filter14(t uint16, bitmap [14]uint16, mt response.Type) []uint16 {
 	if mt != response.NoData {
 		return zoneBitmap[:]
