@@ -71,7 +71,7 @@ func TestMetrics(t *testing.T) {
 			t.Fatalf("Test %d: Expected no error, but got %s", i, err)
 		}
 
-		result := mtest.Scrape(t, "http://"+ListenAddr+"/metrics")
+		result := mtest.Scrape(t, "http://"+met.ln.Addr().String()+"/metrics")
 
 		if tc.expectedValue != "" {
 			got, _ := mtest.MetricValue(tc.metric, result)
