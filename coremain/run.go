@@ -98,7 +98,7 @@ func Run() {
 
 	logVersion()
 	if !dnsserver.Quiet {
-		showVersion()
+		showLogoVersion()
 	}
 
 	// Twiddle your thumbs
@@ -168,6 +168,11 @@ func showVersion() {
 	if devBuild && gitShortStat != "" {
 		fmt.Printf("%s\n%s\n", gitShortStat, gitFilesModified)
 	}
+}
+
+// showLogoVersion prints the version in a nice logo when starting.
+func showLogoVersion() {
+	fmt.Printf(logo, versionString(), releaseString())
 }
 
 // versionString returns the CoreDNS version as a string.
