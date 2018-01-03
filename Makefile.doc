@@ -1,0 +1,13 @@
+ORG:=-organization=CoreDNS
+RONN:=ronn -r
+PLUGINS:=$(wildcard plugin/*/README.md)
+PLUGINS:=$(subst plugin/,corendns-,$(PLUGINS))
+PLUGINS:=$(subst /README.md,(7),$(PLUGINS))
+
+all: coredns.1
+
+coredns.1: coredns-manual.1.md
+	sed -e 's/^\(#.*\)/\U\1/' $< > $@.md
+	sed -ie "s/@@PLUGINS@@/$(PLUGINS)/" $@.md
+	$(RONN) --manual=coredns $(ORG) --manual='CoreDNS' $@.md
+	rm -f $@.md
