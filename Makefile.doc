@@ -6,7 +6,7 @@ READMES:=$(subst /README.md,,$(READMES))
 PLUGINS:=$(subst plugin/,corendns-,$(PLUGINS))
 PLUGINS:=$(subst /README.md,(7),$(PLUGINS))
 
-all: man/coredns.1
+all: man/coredns.1 plugins
 
 man/coredns.1: coredns.1.md
 	sed -e 's/^\(#.*\)/\U\1/' $< > $@.md
@@ -17,8 +17,7 @@ man/coredns.1: coredns.1.md
 .PHONY: plugins
 plugins:
 	for README in $(READMES); do \
-	    echo $$README; \
-	    $(MAKE) man/$$README.7
+	    $(MAKE) -f Makefile.doc man/coredns-$$README.7; \
 	done
 
 man/coredns-%.7: plugin/%/README.md
