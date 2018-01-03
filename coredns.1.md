@@ -4,7 +4,7 @@
 
 ## Synopsis
 
-*coredns* **[OPTION]**...
+*coredns* *[OPTION]*...
 
 ## Description
 
