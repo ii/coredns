@@ -1,6 +1,12 @@
 # health
 
-*health* enables a simple health check endpoint.
+## Name
+
+*health* - enables a simple health check endpoint.
+
+## Description
+
+TODO
 
 By default, it listens on port 8080.
 

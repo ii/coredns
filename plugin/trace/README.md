@@ -1,6 +1,11 @@
 # trace
 
-*trace* enables OpenTracing-based tracing of DNS requests as they go through the plugin chain.
+## Name
+*trace* - enables OpenTracing-based tracing of DNS requests as they go through the plugin chain.
+
+## Description
+
+TODO
 
 ## Syntax
 

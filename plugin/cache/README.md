@@ -1,6 +1,12 @@
 # cache
 
-*cache* enables a frontend cache. It will cache all records except zone transfers and metadata records.
+## Name
+
+*cache* - enables a frontend cache.
+
+## Description
+
+It will cache all records except zone transfers and metadata records.
 
 ## Syntax
 

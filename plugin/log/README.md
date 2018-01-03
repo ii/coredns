@@ -1,6 +1,12 @@
 # log
 
+## Name
+
 *log* enables query logging to standard output.
+
+## Description
+
+TODO
 
 ## Syntax
 

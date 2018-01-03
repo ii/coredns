@@ -1,6 +1,11 @@
 # secondary
 
-*secondary* enables serving a zone retrieved from a primary server.
+## Name
+*secondary* - enables serving a zone retrieved from a primary server.
+
+## Description
+
+TODO
 
 ## Syntax
 

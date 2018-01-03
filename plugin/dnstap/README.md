@@ -1,6 +1,14 @@
 # dnstap
 
-*dnstap* enables logging to dnstap, a flexible, structured binary log format for DNS software: http://dnstap.info.
+## Name
+
+*dnstap* - enable logging to dnstap
+
+## Description
+
+dnstap is a flexible, structured binary log format for DNS software: http://dnstap.info.
+
+TODO
 
 There is a buffer, expect at least 13 requests before the server sends its dnstap messages to the socket.
 

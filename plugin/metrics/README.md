@@ -1,6 +1,10 @@
 # prometheus
 
-*prometheus* enables [Prometheus](https://prometheus.io/) metrics.
+## Name
+
+*prometheus* - enables [Prometheus](https://prometheus.io/) metrics.
+
+## Description
 
 The default location for the metrics is `localhost:9153`. The metrics path is fixed to `/metrics`.
 The following metrics are exported:

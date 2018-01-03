@@ -1,6 +1,12 @@
 # dnssec
 
-*dnssec* enables on-the-fly DNSSEC signing of served data.
+## Name
+
+*dnssec* - enable on-the-fly DNSSEC signing of served data.
+
+## Description
+
+TODO
 
 ## Syntax
 

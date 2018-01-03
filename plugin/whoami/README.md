@@ -1,7 +1,13 @@
 # whoami
 
-*whoami* returns your resolver's local IP address, port and transport. Your IP address is returned
- in the additional section as either an A or AAAA record.
+## Name
+
+*whoami* - returns your resolver's local IP address, port and transport. 
+
+## Description
+
+TODO
+Your IP address is returned in the additional section as either an A or AAAA record.
 
 When CoreDNS can not find a Corefile to load, this is the default plugin it loads.
 

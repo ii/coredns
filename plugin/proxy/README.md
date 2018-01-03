@@ -1,6 +1,10 @@
 # proxy
 
-*proxy* facilitates both a basic reverse proxy and a robust load balancer.
+## Name
+
+*proxy* - facilitates both a basic reverse proxy and a robust load balancer.
+
+## Description
 
 The proxy has support for multiple backends. The load balancing features include multiple policies,
 health checks, and failovers. If all hosts fail their health check the proxy plugin will fail

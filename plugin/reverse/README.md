@@ -1,6 +1,12 @@
 # reverse
 
-*reverse* allows for dynamic responses to PTR and the related A/AAAA requests.
+## Name
+
+*reverse* - allows for dynamic responses to PTR and the related A/AAAA requests.
+
+## Description
+
+TODO
 
 ## Syntax
 

@@ -1,6 +1,10 @@
 # pprof
 
-*pprof* publishes runtime profiling data at endpoints under `/debug/pprof`.
+## Name
+
+*pprof* - publishes runtime profiling data at endpoints under `/debug/pprof`.
+
+## Description
 
 You can visit `/debug/pprof` on your site for an index of the available endpoints. By default it
 will listen on localhost:6053.
