@@ -45,9 +45,6 @@ var Zero = func() *F {
 	return &f
 }
 
-// Len returns the number of zones in f.
-func (f *F) Len() int { return len(*f) }
-
 // IsNil returns true is f is nil.
 func (f *F) IsNil() bool { return f == nil }
 
@@ -73,7 +70,7 @@ func (f *F) Equal(g *F) bool {
 			return true
 		}
 	}
-	if f.Len() != g.Len() {
+	if len(*f) != len(*g) {
 		return false
 	}
 	return true
