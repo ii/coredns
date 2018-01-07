@@ -259,7 +259,7 @@ proxy . FILE
 proxy example.org 2.2.2.2:1234
 `,
 			`
-junky resolve.conf
+junky resolv.conf
 `,
 			false,
 			[]string{"1.1.1.1:5000", "2.2.2.2:1234"},
