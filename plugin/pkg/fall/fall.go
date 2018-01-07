@@ -12,6 +12,8 @@ type F []string
 // New returns a new F.
 func New() *F { return new(F) }
 
+// Through will check if we should fallthrough for qname. Note that we've named the
+// variable in each plugin "Fall", so this then reads Fall.Through().
 func (f *F) Through(qname string) bool {
 	if f == nil {
 		return false
@@ -43,10 +45,13 @@ var Zero = func() *F {
 	return &f
 }
 
+// Len returns the number of zones in f.
 func (f *F) Len() int { return len(*f) }
 
+// IsNil returns true is f is nil.
 func (f *F) IsNil() bool { return f == nil }
 
+// IsZero returns true is f is zero (and not nil).
 func (f *F) IsZero() bool {
 	if f == nil {
 		return false
