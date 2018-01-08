@@ -303,6 +303,16 @@ junky resolv.conf
 	}
 }
 
+func TestMaxTo(t *testing.T) {
+	// Has 16 IP addresses.
+	config := `proxy . 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1 1.1.1.1`
+	c := caddy.NewTestController("dns", config)
+	_, err := NewStaticUpstreams(&c.Dispenser)
+	if err == nil {
+		t.Error("Expected to many TOs configured, but nil")
+	}
+}
+
 func getPEMFiles(t *testing.T) (rmFunc func(), cert, key, ca string) {
 	tempDir, rmFunc, err := test.WritePEMFiles("")
 	if err != nil {
