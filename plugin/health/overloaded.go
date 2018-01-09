@@ -36,10 +36,10 @@ func (h *health) overloaded() {
 			return
 		}
 	}
-	return
 }
 
 var (
+	// HealthDuration is the metric used for exporting how fast we can retrieve the /health endpoint.
 	HealthDuration = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Namespace: plugin.Namespace,
 		Subsystem: "health",
