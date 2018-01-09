@@ -175,7 +175,7 @@ func TestKubernetesParse(t *testing.T) {
 			15 * time.Minute,
 			"application=nginx,environment in (production,qa,staging)",
 			podModeDisabled,
-			fall.Root(),
+			fall.Root,
 			nil,
 		},
 		// negative
