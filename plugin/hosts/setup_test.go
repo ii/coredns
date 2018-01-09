@@ -19,19 +19,19 @@ func TestHostsParse(t *testing.T) {
 		{
 			`hosts
 `,
-			false, "/etc/hosts", nil, fall.Zero(),
+			false, "/etc/hosts", nil, fall.Zero,
 		},
 		{
 			`hosts /tmp`,
-			false, "/tmp", nil, fall.Zero(),
+			false, "/tmp", nil, fall.Zero,
 		},
 		{
 			`hosts /etc/hosts miek.nl.`,
-			false, "/etc/hosts", []string{"miek.nl."}, fall.Zero(),
+			false, "/etc/hosts", []string{"miek.nl."}, fall.Zero,
 		},
 		{
 			`hosts /etc/hosts miek.nl. pun.gent.`,
-			false, "/etc/hosts", []string{"miek.nl.", "pun.gent."}, fall.Zero(),
+			false, "/etc/hosts", []string{"miek.nl.", "pun.gent."}, fall.Zero,
 		},
 		{
 			`hosts {
@@ -117,7 +117,7 @@ func TestHostsInlineParse(t *testing.T) {
 					`example.org.`,
 				},
 			},
-			fall.Zero(),
+			fall.Zero,
 		},
 		{
 			`hosts highly_unlikely_to_exist_hosts_file example.org {
