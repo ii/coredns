@@ -1,5 +1,7 @@
 # template
 
+## Name
+
 *template* - allows for dynamic responses based on the incoming query.
 
 ## Description
