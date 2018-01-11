@@ -30,7 +30,7 @@ health [ADDRESS] {
 ~~~
 
 * Where `lameduck` will make the process unhealthy then *wait* for **DURATION** before the process
-  shuts down. If you want to explicitaly disable use `lameduck 0`.
+  shuts down.
 
 ## Plugins
 
