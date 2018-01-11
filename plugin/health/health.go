@@ -12,6 +12,7 @@ import (
 
 var once sync.Once
 
+// Health implements healthchecks by polling plugins.
 type health struct {
 	Addr     string
 	lameduck time.Duration
@@ -28,8 +29,8 @@ type health struct {
 	pollstop chan bool
 }
 
-// New returns a new initialized health.
-func New(addr string) *health {
+// newHealth returns a new initialized health.
+func newHealth(addr string) *health {
 	return &health{Addr: addr, stop: make(chan bool), pollstop: make(chan bool)}
 }
 

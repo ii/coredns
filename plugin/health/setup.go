@@ -25,7 +25,7 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("health", err)
 	}
 
-	h := New(addr)
+	h := newHealth(addr)
 	h.lameduck = lame
 
 	c.OnStartup(func() error {

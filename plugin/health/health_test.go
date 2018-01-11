@@ -11,7 +11,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
-	h := New(":0")
+	h := newHealth(":0")
 	h.h = append(h.h, &erratic.Erratic{})
 
 	if err := h.OnStartup(); err != nil {
@@ -58,7 +58,7 @@ func TestHealth(t *testing.T) {
 }
 
 func TestHealthLameduck(t *testing.T) {
-	h := New(":0")
+	h := newHealth(":0")
 	h.lameduck = 250 * time.Millisecond
 	h.h = append(h.h, &erratic.Erratic{})
 
