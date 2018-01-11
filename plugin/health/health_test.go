@@ -10,13 +10,18 @@ import (
 )
 
 func TestHealth(t *testing.T) {
-	h := health{Addr: ":0"}
+	h := health{Addr: ":0", stop: make(chan bool), pollstop: make(chan bool)}
 	h.h = append(h.h, &erratic.Erratic{})
 
 	if err := h.OnStartup(); err != nil {
 		t.Fatalf("Unable to startup the health server: %v", err)
 	}
 	defer h.OnShutdown()
+
+	go func() {
+		<-h.pollstop
+		return
+	}()
 
 	// Reconstruct the http address based on the port allocated by operating system.
 	address := fmt.Sprintf("http://%s%s", h.ln.Addr().String(), path)
