@@ -28,6 +28,11 @@ type health struct {
 	pollstop chan bool
 }
 
+// New returns a new initialized health.
+func New(addr string) *health {
+	return &health{Addr: addr, stop: make(chan bool), pollstop: make(chan bool)}
+}
+
 func (h *health) OnStartup() error {
 	if h.Addr == "" {
 		h.Addr = defAddr

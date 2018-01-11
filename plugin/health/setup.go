@@ -25,7 +25,8 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("health", err)
 	}
 
-	h := &health{Addr: addr, stop: make(chan bool), pollstop: make(chan bool), lameduck: lame}
+	h := New(addr)
+	h.lameduck = lame
 
 	c.OnStartup(func() error {
 		plugins := dnsserver.GetConfig(c).Handlers()

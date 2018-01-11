@@ -10,7 +10,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
-	h := health{Addr: ":0", stop: make(chan bool), pollstop: make(chan bool)}
+	h := New(":0")
 	h.h = append(h.h, &erratic.Erratic{})
 
 	if err := h.OnStartup(); err != nil {
