@@ -131,6 +131,14 @@ func (d Dnssec) set(key uint32, sigs []dns.RR) {
 
 func (d Dnssec) get(key uint32) ([]dns.RR, bool) {
 	if s, ok := d.cache.Get(key); ok {
+		now := time.Now().UTC()
+		for _, rr := range s.([]dns.RR) {
+			if !rr.(*dns.RRSIG).ValidityPeriod(now) {
+				cacheMisses.Inc()
+				return nil, false
+			}
+		}
+
 		cacheHits.Inc()
 		return s.([]dns.RR), true
 	}
