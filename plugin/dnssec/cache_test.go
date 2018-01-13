@@ -77,6 +77,6 @@ func TestCacheNotValidYet(t *testing.T) {
 
 	_, ok := d.get(k)
 	if ok {
-		t.Errorf("signature was added to the cache even though not valid")
+		t.Errorf("signature was added to the cache even though not valid yet")
 	}
 }
