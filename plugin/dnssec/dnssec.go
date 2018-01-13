@@ -155,6 +155,6 @@ func incepExpir(now time.Time) (uint32, uint32) {
 
 const (
 	eightDays  = 8 * 24 * time.Hour
-	sixDays    = 8 * 24 * time.Hour
+	sixDays    = 6 * 24 * time.Hour
 	defaultCap = 10000 // default capacity of the cache.
 )
