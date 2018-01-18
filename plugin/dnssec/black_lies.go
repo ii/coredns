@@ -38,8 +38,7 @@ var (
 	apexBitmap = [...]uint16{dns.TypeA, dns.TypeNS, dns.TypeSOA, dns.TypeHINFO, dns.TypeMX, dns.TypeTXT, dns.TypeAAAA, dns.TypeLOC, dns.TypeSRV, dns.TypeCERT, dns.TypeSSHFP, dns.TypeRRSIG, dns.TypeNSEC, dns.TypeDNSKEY, dns.TypeTLSA, dns.TypeHIP, dns.TypeOPENPGPKEY, dns.TypeSPF}
 )
 
-// filter14 filters out t from bitmap (if it exists). If mt is not an NODATA response, just
-// return the entire bitmap.
+// filter14 filters out t from bitmap (if it exists). If mt is not an NODATA response, just return the entire bitmap.
 func filter14(t uint16, bitmap [14]uint16, mt response.Type) []uint16 {
 	if mt != response.NoData {
 		return zoneBitmap[:]
