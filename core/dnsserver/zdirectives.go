@@ -43,4 +43,5 @@ var Directives = []string{
 	"whoami",
 	"startup",
 	"shutdown",
+	"watch",
 }

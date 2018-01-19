@@ -14,6 +14,7 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/edns"
 	"github.com/coredns/coredns/plugin/pkg/rcode"
 	"github.com/coredns/coredns/plugin/pkg/trace"
+	"github.com/coredns/coredns/plugin/pkg/watch"
 	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
@@ -36,6 +37,7 @@ type Server struct {
 	dnsWg       sync.WaitGroup     // used to wait on outstanding connections
 	connTimeout time.Duration      // the maximum duration of a graceful shutdown
 	trace       trace.Trace        // the trace plugin for the server
+	watch	    watch.Watcher      // the watch plugin for the server
 	debug       bool               // disable recover()
 	classChaos  bool               // allow non-INET class queries
 }
@@ -77,6 +79,11 @@ func NewServer(addr string, group []*Config) (*Server, error) {
 				// Tracer object, because the Tracer won't be initialized yet
 				if t, ok := stack.(trace.Trace); ok {
 					s.trace = t
+				}
+			}
+			if s.watch == nil && stack.Name() == "watch" {
+				if w, ok := stack.(watch.Watcher); ok {
+					s.watch = w
 				}
 			}
 			if stack.Name() == "chaos" || stack.Name() == "proxy" {
