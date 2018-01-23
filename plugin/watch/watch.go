@@ -29,7 +29,9 @@ type watchquery struct {
 
 // Newwatcher returns the watcher plugin
 func NewWatcher() *watcher {
-	return &watcher{changes: make(watch.WatchChan), watches: make(map[string]watchlist)}
+	w := &watcher{changes: make(watch.WatchChan), watches: make(map[string]watchlist)}
+	go w.processWatches()
+	return w
 }
 
 func (w *watcher) Name() string { return "watch" }
@@ -66,8 +68,10 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 			if _, ok := w.watches[qname]; !ok {
 				w.watches[qname] = make(watchlist)
 			}
-			w.watches[msg.Question[0].Name][id] = &watchquery{query: msg, stream: stream}
-			
+			w.watches[qname][id] = &watchquery{query: msg, stream: stream}
+			for wee := range w.watchees {
+				w.watchees[wee].StartWatch(qname, w.changes)
+			}
 			if err := stream.Send(&pb.WatchResponse{WatchId: id, Created: true}); err != nil {
 				return err
 			}
@@ -89,6 +93,9 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 				}
 				delete(wl, cancel.WatchId)
 				if len(wl) == 0 {
+					for wee := range w.watchees {
+						w.watchees[wee].StopWatch(qname)
+					}
 					delete(w.watches, qname)
 				}
 				if err = stream.Send(&pb.WatchResponse{WatchId: cancel.WatchId, Canceled: true}); err != nil {
@@ -99,6 +106,15 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 			continue
 		}
         }
+}
+
+func (w *watcher) processWatches() {
+	for { 
+		select {
+		case changed := <-w.changes:
+			fmt.Printf("A change: %v\n", changed)
+		}
+	}
 }
 
 func (w *watcher) ServeDNS(ctx context.Context, rw dns.ResponseWriter, r *dns.Msg) (int, error) {

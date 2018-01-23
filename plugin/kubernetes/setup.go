@@ -30,13 +30,13 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("kubernetes", err)
 	}
 
-	err = kubernetes.initKubeCache(initOpts)
-	if err != nil {
-		return plugin.Error("kubernetes", err)
-	}
-
 	// Register KubeCache start and stop functions with Caddy
 	c.OnStartup(func() error {
+		err = kubernetes.initKubeCache(initOpts)
+		if err != nil {
+			return plugin.Error("kubernetes", err)
+		}
+
 		go kubernetes.APIConn.Run()
 		if kubernetes.APIProxy != nil {
 			kubernetes.APIProxy.Run()

@@ -14,6 +14,7 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	"github.com/coredns/coredns/plugin/pkg/healthcheck"
+	"github.com/coredns/coredns/plugin/pkg/watch"
 	"github.com/coredns/coredns/plugin/proxy"
 	"github.com/coredns/coredns/request"
 
@@ -47,6 +48,7 @@ type Kubernetes struct {
 	primaryZoneIndex   int
 	interfaceAddrsFunc func() net.IP
 	autoPathSearch     []string // Local search path from /etc/resolv.conf. Needed for autopath.
+	watchChan	   watch.WatchChan
 }
 
 // New returns a intialized Kubernetes. It default interfaceAddrFunc to return 127.0.0.1. All other
@@ -261,6 +263,8 @@ func (k *Kubernetes) initKubeCache(opts dnsControlOpts) (err error) {
 
 	opts.initPodCache = k.podMode == podModeVerified
 
+	opts.watchChan = k.watchChan
+	opts.zones = k.Zones
 	k.APIConn = newdnsController(kubeClient, opts)
 
 	return err

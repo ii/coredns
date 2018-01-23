@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	dnswatch "github.com/coredns/coredns/plugin/pkg/watch"
+
 	api "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -70,6 +72,41 @@ type dnsControlOpts struct {
 	// Label handling.
 	labelSelector *meta.LabelSelector
 	selector      *labels.Selector
+	// watch channel
+	watchChan	dnswatch.WatchChan
+	zones		[]string
+}
+
+func (dco dnsControlOpts) resourceEventHandlerFuncs() (cache.ResourceEventHandlerFuncs) {
+	if dco.watchChan == nil {
+		fmt.Println("Returning no handlers")
+		return cache.ResourceEventHandlerFuncs{}
+	}
+
+	fmt.Println("Returning real handlers\n")
+	return cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			if dco.watchChan == nil {
+				return
+			}
+			dco.watchChan <- dco.zones
+			fmt.Printf("Add %v\n", obj)
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			if dco.watchChan == nil {
+				return
+			}
+			dco.watchChan <- dco.zones
+			fmt.Printf("Update %v, %v\n", oldObj, newObj)
+		},
+		DeleteFunc: func(obj interface{}) {
+			if dco.watchChan == nil {
+				return
+			}
+			dco.watchChan <- dco.zones
+			fmt.Printf("Delete %v\n", obj)
+		},
+	}
 }
 
 // newDNSController creates a controller for CoreDNS.
@@ -86,7 +123,7 @@ func newdnsController(kubeClient *kubernetes.Clientset, opts dnsControlOpts) *dn
 		},
 		&api.Service{},
 		opts.resyncPeriod,
-		cache.ResourceEventHandlerFuncs{},
+		opts.resourceEventHandlerFuncs(),
 		cache.Indexers{svcNameNamespaceIndex: svcNameNamespaceIndexFunc, svcIPIndex: svcIPIndexFunc})
 
 	if opts.initPodCache {
