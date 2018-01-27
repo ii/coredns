@@ -69,7 +69,7 @@ func (f *Forward) Lookup(state request.Request, name string, typ uint16) (*dns.M
 
 // NewLookup returns a Forward that can be used for plugin that need an upstream to resolve external names.
 func NewLookup(addr []string) *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: 10 * time.Second, hcInterval: hcDuration}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: 10 * time.Second, hcInterval: 2 * time.Second}
 	for i := range addr {
 		p := NewProxy(addr[i])
 		f.SetProxy(p)
