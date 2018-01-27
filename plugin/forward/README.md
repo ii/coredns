@@ -87,11 +87,11 @@ example.org {
 }
 ~~~
 
-Load-balance all requests between three resolvers:
+Load-balance all requests between three resolvers, one of which has a IPv6 address.
 
 ~~~ corefile
 . {
-    forward . 10.0.0.10:53 10.0.0.11:1053 10.0.0.12
+    forward . 10.0.0.10:53 10.0.0.11:1053 [2003::1]:53
 }
 ~~~
 

@@ -23,6 +23,10 @@ func TestSetupForward(t *testing.T) {
 		{"forward . 127.0.0.1 {\nexcept miek.nl\n}\n", false, ".", nil, 2, false, ""},
 		{"forward . 127.0.0.1 {\nmax_fails 3\n}\n", false, ".", nil, 3, false, ""},
 		{"forward . 127.0.0.1 {\nforce_tcp\n}\n", false, ".", nil, 2, true, ""},
+		{"forward . 127.0.0.1:53", false, ".", nil, 2, false, ""},
+		{"forward . 127.0.0.1:8080", false, ".", nil, 2, false, ""},
+		{"forward . [::1]:53", false, ".", nil, 2, false, ""},
+		{"forward . [2003::1]:53", false, ".", nil, 2, false, ""},
 		// negative
 		{"forward . a27.0.0.1", true, "", nil, 0, false, "not an IP"},
 		{"forward . 127.0.0.1 {\nblaatl\n}\n", true, "", nil, 0, false, "unknown property"},

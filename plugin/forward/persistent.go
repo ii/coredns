@@ -7,11 +7,13 @@ import (
 	"github.com/miekg/dns"
 )
 
+// a persistConn hold the dns.Conn and the last used time.
 type persistConn struct {
 	c    *dns.Conn
 	used time.Time
 }
 
+// connErr is used to communicate the connection manager.
 type connErr struct {
 	c   *dns.Conn
 	err error
@@ -19,30 +21,38 @@ type connErr struct {
 
 // transport hold the persistent cache.
 type transport struct {
-	conns map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls
+	conns map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
 	host  *host
 
 	dial  chan string
 	yield chan connErr
 	ret   chan connErr
 
+	// Aid in testing, gets length of cache in data-race safe manner.
+	lenc    chan bool
+	lencOut chan int
+
 	stop chan bool
 }
 
 func newTransport(h *host) *transport {
 	t := &transport{
-		conns: make(map[string][]*persistConn),
-		host:  h,
-		dial:  make(chan string),
-		yield: make(chan connErr),
-		ret:   make(chan connErr),
-		stop:  make(chan bool),
+		conns:   make(map[string][]*persistConn),
+		host:    h,
+		dial:    make(chan string),
+		yield:   make(chan connErr),
+		ret:     make(chan connErr),
+		stop:    make(chan bool),
+		lenc:    make(chan bool),
+		lencOut: make(chan int),
 	}
 	go t.connManager()
 	return t
 }
 
-func (t *transport) Len() int {
+// len returns the number of connection, used for metrics. Can only be safely
+// used inside connManager() because of races.
+func (t *transport) len() int {
 	l := 0
 	for _, conns := range t.conns {
 		l += len(conns)
@@ -50,17 +60,27 @@ func (t *transport) Len() int {
 	return l
 }
 
+// Len returns the number of connections in the cache.
+func (t *transport) Len() int {
+	t.lenc <- true
+	l := <-t.lencOut
+	return l
+}
+
+// connManagers manages the persistent connection cache for UDP and TCP.
 func (t *transport) connManager() {
 
 Wait:
 	for {
 		select {
 		case proto := <-t.dial:
-			// Yes O(n), shouldn't put millions in here.
+			// Yes O(n), shouldn't put millions in here. We walk all connection until we find the first
+			// one that is usuable.
 			i := 0
 			for i = 0; i < len(t.conns[proto]); i++ {
 				pc := t.conns[proto][i]
 				if time.Since(pc.used) < t.host.expire {
+					// found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
 					t.ret <- connErr{pc.c, nil}
 					continue Wait
@@ -70,7 +90,7 @@ Wait:
 			}
 
 			t.conns[proto] = t.conns[proto][i:]
-			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.Len()))
+			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.len()))
 
 			go func() {
 				if proto != "tcp-tls" {
@@ -85,7 +105,7 @@ Wait:
 
 		case conn := <-t.yield:
 
-			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.Len() + 1))
+			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.len() + 1))
 
 			// no proto here, infer from config and conn
 			if _, ok := conn.c.Conn.(*net.UDPConn); ok {
@@ -102,6 +122,13 @@ Wait:
 
 		case <-t.stop:
 			return
+
+		case <-t.lenc:
+			l := 0
+			for _, conns := range t.conns {
+				l += len(conns)
+			}
+			t.lencOut <- l
 		}
 	}
 }

@@ -23,7 +23,7 @@ type host struct {
 // newHost returns a new host, the fails are set to 1, i.e.
 // the first healthcheck must succeed before we use this host.
 func newHost(addr string) *host {
-	return &host{addr: addr, fails: 1}
+	return &host{addr: addr, fails: 1, expire: defaultExpire}
 }
 
 // setClient sets and configures the dns.Client in host.
@@ -40,3 +40,5 @@ func (h *host) SetClient() {
 
 	h.client = c
 }
+
+const defaultExpire = 10 * time.Second
