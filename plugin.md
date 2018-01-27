@@ -2,14 +2,14 @@
 
 ## Writing Plugins
 
-The main method that gets called is `ServeDNS` it has three parameters:
+The main method that gets called is `ServeDNS`. It has three parameters:
 
-* a `context.Context`
-* `dns.ResponseWriter` that is, basically, the client's connection.
+* a `context.Context`;
+* `dns.ResponseWriter` that is, basically, the client's connection;
 * `*dns.Msg` the request from the client.
 
-`ServeDNS` returns two values, a response code and an error. The the error is not nil CoreDNS
-will return a generic SERVFAIL to the client. The response code tell CoreDNS if a reply has been
+`ServeDNS` returns two values, a response code and an error. If the error is not nil CoreDNS
+will return a generic SERVFAIL to the client. The response code tells CoreDNS if a reply has been
 written by the plugin chain or not. In the latter case CoreDNS will take care of that.
 
 CoreDNS treats:
@@ -19,11 +19,11 @@ CoreDNS treats:
 * FORMERR (dns.RcodeFormatError)
 * NOTIMP (dns.RcodeNotImplemented)
 
-as special and will then assume *nothing* has written to the client. In all other cases it is
-assumes something has been written to the client (by the plugin).
+as special and will then assume *nothing* has written to the client. In all other cases it assumes
+something has been written to the client (by the plugin).
 
-The [*example*](https://github.com/coredns/example) plugin shows a bare bones implements that can be
-used as a starting point for your plugin.
+The [*example*](https://github.com/coredns/example) plugin shows a bare-bones implementation that
+can be used as a starting point for your plugin.
 
 ## Hooking It Up
 
@@ -37,6 +37,8 @@ See a couple of blog posts on how to write and add plugin to CoreDNS:
 If your plugin needs to output a log line you should use the `log` package. CoreDNS does not
 implement log levels. The standard way of outputing is: `log.Printf("[LEVEL] ...")`, and LEVEL
 can be: `INFO`, `WARNING` or `ERROR`.
+In general, logging should be left to the higher layers by returning an error. However, if there is
+a reason to consume the error but notify the user, then logging in the plugin can be acceptable.
 
 ## Metrics
 
