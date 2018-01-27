@@ -19,8 +19,8 @@ CoreDNS treats:
 * FORMERR (dns.RcodeFormatError)
 * NOTIMP (dns.RcodeNotImplemented)
 
-as special and will then assume *nothing* has written to the client. In all other cases it assumes
-something has been written to the client (by the plugin).
+as special and will then assume *nothing* has been written to the client. In all other cases it
+assumes something has been written to the client (by the plugin).
 
 The [*example*](https://github.com/coredns/example) plugin shows a bare-bones implementation that
 can be used as a starting point for your plugin.
