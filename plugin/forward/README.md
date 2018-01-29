@@ -48,7 +48,7 @@ forward FROM TO... {
 * **IGNORED_NAMES** in `except` is a space-separated list of domains to exclude from forwarding.
   Requests that match none of these names will be passed through.
 * `force_tcp`, use TCP even when the request comes in over UDP.
-* `health_checks`, use a different **DURATION** for health checking, the default duration is 2s.
+* `health_checks`, use a different **DURATION** for health checking, the default duration is 0.5s.
   A value of 0 disables the healthchecks completely.
 * `max_fails` is the number of subsequent failed health checks that are needed before considering
   a backend to be down. If 0, the backend will never be marked as down. Default is 2.

@@ -80,15 +80,16 @@ Wait:
 			for i = 0; i < len(t.conns[proto]); i++ {
 				pc := t.conns[proto][i]
 				if time.Since(pc.used) < t.host.expire {
-					// found one, remove from pool and return this conn.
+					// Found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
 					t.ret <- connErr{pc.c, nil}
 					continue Wait
 				}
-
+				// This conn has expired. Close it.
 				pc.c.Close()
 			}
 
+			// Not conns were found. Connect to the upstream to create one.
 			t.conns[proto] = t.conns[proto][i:]
 			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.len()))
 
