@@ -8,7 +8,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/coredns/coredns/plugin"
@@ -23,6 +22,7 @@ import (
 // of proxies each representing one upstream proxy.
 type Forward struct {
 	proxies []*Proxy
+	p       Policy
 
 	from    string
 	ignored []string
@@ -40,7 +40,7 @@ type Forward struct {
 
 // New returns a new Forward.
 func New() *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, hcInterval: hcDuration}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, hcInterval: hcDuration, p: new(random)}
 	return f
 }
 
@@ -130,31 +130,19 @@ func (f *Forward) isAllowedDomain(name string) bool {
 	return true
 }
 
-// list returns a randomized set of proxies to be used for this client. If the client was
-// know to any of the proxies it will be put first.
-func (f *Forward) list() []*Proxy {
-	switch len(f.proxies) {
-	case 1:
-		return f.proxies
-	case 2:
-		if rand.Int()%2 == 0 {
-			return []*Proxy{f.proxies[1], f.proxies[0]} // swap
-
-		}
-		return f.proxies // normal
-	}
-
-	perms := rand.Perm(len(f.proxies))
-	rnd := make([]*Proxy, len(f.proxies))
-
-	for i, p := range perms {
-		rnd[i] = f.proxies[p]
-	}
-	return rnd
-}
+// list returns a set of proxies to be used for this client depending on the policy in f.
+func (f *Forward) list() []*Proxy { return f.p.List(f.proxies) }
 
 var (
 	errInvalidDomain = errors.New("invalid domain for proxy")
 	errNoHealthy     = errors.New("no healthy proxies")
 	errNoForward     = errors.New("no forwarder defined")
+)
+
+// policy tells forward what policy for selecting upstream it uses.
+type policy int
+
+const (
+	randomPolicy policy = iota
+	roundRobinPolicy
 )

@@ -26,8 +26,8 @@ response that is not an error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a he
 health check uses the same protocol as specific in the **TO**. On startup each upstream is marked
 unhealthy until it passes a healthcheck. A 0 duration will disable any healthchecks.
 
-Multiple upstreams are randomized on first use. When a healthy proxy returns an error during the
-exchange the next upstream in the list is tried.
+Multiple upstreams are randomized (default policy) on first use. When a healthy proxy returns an
+error during the exchange the next upstream in the list is tried.
 
 Extra knobs are available with an expanded syntax:
 
@@ -40,6 +40,7 @@ forward FROM TO... {
     max_fails INTEGER
     tls CERT KEY CA
     tls_servername NAME
+    policy random|round_robin
 }
 ~~~
 
@@ -56,9 +57,11 @@ forward FROM TO... {
   system's configuration will be used.
 * `tls_servername` **NAME** allows you to set a server name in the TLS configuration; for instance 9.9.9.9
   needs this to be set to `dns.quad9.net`.
+* `policy` specifies the policy to use for selecting upstream servers. The default is `random`.
 
 The upstream selection is done via random selection. If the socket for this client isn't known *forward*
-will randomly choose one. If this turns out to be unhealthy, the next one is tried.
+will randomly choose one. If this turns out to be unhealthy, the next one is tried. If *all* hosts
+are down, we assume healthchecking is broken and select (according to policy) an upstream to try.
 
 Also note the TLS config is "global" for the whole forwarding proxy if you need a different
 `tls-name` for different upstreams you're out of luck.
