@@ -8,7 +8,7 @@ import (
 	"github.com/mholt/caddy"
 )
 
-func TestSetupForward(t *testing.T) {
+func TestSetup(t *testing.T) {
 	tests := []struct {
 		input            string
 		shouldErr        bool
