@@ -1,14 +1,14 @@
-package liveness
+package up
 
 import (
 	"sync"
 	"time"
 )
 
-// Probe is used to run a single UpFunc until it returns true (indicating a target is healthy). If an UpFunc
+// Probe is used to run a single Func until it returns true (indicating a target is healthy). If an Func
 // is already in progress no new one will be added, i.e. there is always a maximum of 1 checks in flight.
 type Probe struct {
-	do   chan UpFunc
+	do   chan Func
 	stop chan bool
 
 	target string
@@ -17,16 +17,16 @@ type Probe struct {
 	inprogress bool
 }
 
-// UpFunc is used to determine if a target is alive. If so this function must return true.
-type UpFunc func(target string) bool
+// Func is used to determine if a target is alive. If so this function must return true.
+type Func func(target string) bool
 
 // New returns a pointer to an intialized Probe.
 func New() *Probe {
-	return &Probe{stop: make(chan bool), do: make(chan UpFunc)}
+	return &Probe{stop: make(chan bool), do: make(chan Func)}
 }
 
 // Do will probe target, if a probe is already in progress this is a noop.
-func (p *Probe) Do(f UpFunc) { p.do <- f }
+func (p *Probe) Do(f Func) { p.do <- f }
 
 // Stop stops the probing.
 func (p *Probe) Stop() { p.stop <- true }
@@ -49,7 +49,7 @@ func (p *Probe) start(target string, interval time.Duration) {
 			p.Unlock()
 
 			// Passed the lock. Now run f for as long it returns false. If a true is returned
-			// we return from the goroutine and we can accept another UpFunc to run.
+			// we return from the goroutine and we can accept another Func to run.
 			go func() {
 				for {
 					if ok := f(target); ok {

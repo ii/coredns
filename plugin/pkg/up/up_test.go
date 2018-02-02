@@ -1,4 +1,4 @@
-package liveness
+package up
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func TestLiveness(t *testing.T) {
+func TestUp(t *testing.T) {
 	// We check a target 5 times, then check if that really happened. After which fails should have been reset to 0.
 	const max = 5
 	wg := sync.WaitGroup{}
