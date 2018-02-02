@@ -11,8 +11,7 @@ type Probe struct {
 	do   chan UpFunc
 	stop chan bool
 
-	interval time.Duration
-	target   string
+	target string
 
 	sync.Mutex
 	inprogress bool
@@ -22,8 +21,8 @@ type Probe struct {
 type UpFunc func(target string) bool
 
 // New returns a pointer to an intialized Probe.
-func New(interval time.Duration) *Probe {
-	return &Probe{stop: make(chan bool), do: make(chan UpFunc), interval: interval}
+func New() *Probe {
+	return &Probe{stop: make(chan bool), do: make(chan UpFunc)}
 }
 
 // Do will probe target, if a probe is already in progress this is a noop.
@@ -33,9 +32,9 @@ func (p *Probe) Do(f UpFunc) { p.do <- f }
 func (p *Probe) Stop() { p.stop <- true }
 
 // Start will start the probe manager, after which probes can be initialized with Do.
-func (p *Probe) Start(target string) { go p.start(target) }
+func (p *Probe) Start(target string, interval time.Duration) { go p.start(target, interval) }
 
-func (p *Probe) start(target string) {
+func (p *Probe) start(target string, interval time.Duration) {
 	for {
 		select {
 		case <-p.stop:
@@ -56,7 +55,7 @@ func (p *Probe) start(target string) {
 					if ok := f(target); ok {
 						break
 					}
-					time.Sleep(p.interval)
+					time.Sleep(interval)
 				}
 				p.Lock()
 				p.inprogress = false
