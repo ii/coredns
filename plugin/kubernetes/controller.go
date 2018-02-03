@@ -73,11 +73,11 @@ type dnsControlOpts struct {
 	labelSelector *meta.LabelSelector
 	selector      labels.Selector
 	// watch channel
-	watchChan	dnswatch.WatchChan
-	zones		[]string
+	watchChan dnswatch.WatchChan
+	zones     []string
 }
 
-func (dco dnsControlOpts) resourceEventHandlerFuncs() (cache.ResourceEventHandlerFuncs) {
+func (dco dnsControlOpts) resourceEventHandlerFuncs() cache.ResourceEventHandlerFuncs {
 	if dco.watchChan == nil {
 		fmt.Println("Returning no handlers")
 		return cache.ResourceEventHandlerFuncs{}

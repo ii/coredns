@@ -10,4 +10,4 @@ func (k *Kubernetes) StartWatch(qname string, changes watch.WatchChan) {
 	k.watchChan = changes
 }
 
-func (k *Kubernetes) StopWatch(qname string) { }
+func (k *Kubernetes) StopWatch(qname string) {}

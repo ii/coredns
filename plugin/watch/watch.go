@@ -14,16 +14,16 @@ import (
 
 // watch contains all the data needed to manage watches
 type watcher struct {
-	Next    plugin.Handler
-	changes watch.WatchChan
-	counter int64
-	watches	map[string]watchlist
+	Next     plugin.Handler
+	changes  watch.WatchChan
+	counter  int64
+	watches  map[string]watchlist
 	watchees []watch.Watchee
 }
 
 type watchlist map[int64]*watchquery
 type watchquery struct {
-	query *dns.Msg
+	query  *dns.Msg
 	stream pb.WatchService_WatchServer
 }
 
@@ -45,14 +45,14 @@ func (w *watcher) nextId() int64 {
 // Watch is used to monitor the results of a given query. CoreDNS will push updated
 // query responses down the stream.
 func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
-        for {
-                in, err := stream.Recv()
-                if err == io.EOF {
-                        return nil
-                }
-                if err != nil {
-                        return err
-                }
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
 		create := in.GetCreateRequest()
 		if create != nil {
 			msg := new(dns.Msg)
@@ -105,11 +105,11 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 			fmt.Printf("watches: %v\n", w.watches)
 			continue
 		}
-        }
+	}
 }
 
 func (w *watcher) processWatches() {
-	for { 
+	for {
 		select {
 		case changed := <-w.changes:
 			fmt.Printf("A change: %v\n", changed)
@@ -120,4 +120,3 @@ func (w *watcher) processWatches() {
 func (w *watcher) ServeDNS(ctx context.Context, rw dns.ResponseWriter, r *dns.Msg) (int, error) {
 	return plugin.NextOrFailure(w.Name(), w.Next, ctx, rw, r)
 }
-

@@ -37,7 +37,7 @@ type Server struct {
 	dnsWg       sync.WaitGroup     // used to wait on outstanding connections
 	connTimeout time.Duration      // the maximum duration of a graceful shutdown
 	trace       trace.Trace        // the trace plugin for the server
-	watch	    watch.Watcher      // the watch plugin for the server
+	watch       watch.Watcher      // the watch plugin for the server
 	debug       bool               // disable recover()
 	classChaos  bool               // allow non-INET class queries
 }

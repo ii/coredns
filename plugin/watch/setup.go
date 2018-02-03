@@ -18,16 +18,16 @@ func init() {
 
 func setup(c *caddy.Controller) error {
 	w := NewWatcher()
-	
-        c.OnStartup(func() error {
-                plugins := dnsserver.GetConfig(c).Handlers()
-                for _, p := range plugins {
-                        if x, ok := p.(watch.Watchee); ok {
-                                w.watchees = append(w.watchees, x)
-                        }
-                }
-                return nil
-        })
+
+	c.OnStartup(func() error {
+		plugins := dnsserver.GetConfig(c).Handlers()
+		for _, p := range plugins {
+			if x, ok := p.(watch.Watchee); ok {
+				w.watchees = append(w.watchees, x)
+			}
+		}
+		return nil
+	})
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		w.Next = next
