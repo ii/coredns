@@ -1,22 +1,16 @@
 reviewers:
   - bradbeam
   - chrisohaver
-  - fastest963
   - fturib
-  - greenpau
-  - grobie
-  - isolus
   - johnbelamaric
   - miekg
-  - nchrisdk
-  - pmoroney
-  - project0
   - rajansandeep
-  - superq
-  - varyoo
   - yongtang
 approvers:
+  - bradbeam
   - chrisohaver
+  - fturib
   - johnbelamaric
   - miekg
+  - rajansandeep
   - yongtang
