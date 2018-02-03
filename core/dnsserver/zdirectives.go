@@ -12,6 +12,7 @@ package dnsserver
 var Directives = []string{
 	"watch",
 	"tls",
+	"reload",
 	"nsid",
 	"root",
 	"bind",
@@ -39,9 +40,11 @@ var Directives = []string{
 	"auto",
 	"secondary",
 	"etcd",
+	"forward",
 	"proxy",
 	"erratic",
 	"whoami",
+	"on",
 	"startup",
 	"shutdown",
 }

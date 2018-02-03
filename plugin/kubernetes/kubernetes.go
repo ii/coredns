@@ -51,7 +51,7 @@ type Kubernetes struct {
 	watchChan	   watch.WatchChan
 }
 
-// New returns a intialized Kubernetes. It default interfaceAddrFunc to return 127.0.0.1. All other
+// New returns a initialized Kubernetes. It default interfaceAddrFunc to return 127.0.0.1. All other
 // values default to their zero value, primaryZoneIndex will thus point to the first zone.
 func New(zones []string) *Kubernetes {
 	k := new(Kubernetes)
@@ -258,7 +258,7 @@ func (k *Kubernetes) initKubeCache(opts dnsControlOpts) (err error) {
 		if err != nil {
 			return fmt.Errorf("unable to create Selector for LabelSelector '%s': %q", opts.labelSelector, err)
 		}
-		opts.selector = &selector
+		opts.selector = selector
 	}
 
 	opts.initPodCache = k.podMode == podModeVerified
