@@ -9,12 +9,8 @@ import (
 // For HC we send to . IN NS +norec message to the upstream. Dial timeouts and empty
 // replies are considered fails, basically anything else constitutes a healthy upstream.
 
-// Check is used as the up.Func in the probe.
+// Check is used as the up.Func in the up.Probe.
 func (h *host) Check() error {
-
-	// should probably not send when maxfails == 0; otherwise we spam the target for nothing
-	// might also be what we need for lookup (or we close that one)
-
 	err := h.send()
 	if err != nil {
 		HealthcheckFailureCount.WithLabelValues(h.addr).Add(1)

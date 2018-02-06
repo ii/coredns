@@ -38,7 +38,7 @@ type Forward struct {
 
 // New returns a new Forward.
 func New() *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, p: new(random)}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, p: new(random), from: "."}
 	return f
 }
 
@@ -108,7 +108,9 @@ func (f *Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 
 		if err != nil {
 			// Kick of health check to see if *our* upstream is broken.
-			proxy.Healthcheck()
+			if f.maxfails != 0 {
+				proxy.Healthcheck()
+			}
 
 			if fails < len(f.proxies) {
 				continue

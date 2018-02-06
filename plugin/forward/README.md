@@ -7,17 +7,17 @@
 ## Description
 
 The *forward* plugin is generally faster (~30+%) than *proxy* as it re-uses already opened sockets
-to the upstreams. It supports UDP, TCP and DNS-over-TLS and uses inband health checking that.
+to the upstreams. It supports UDP, TCP and DNS-over-TLS and uses inband health checking.
 
-When *all* upstreams are down it assumes healtchecking as a mechanism has failed and will try to
+When we detect an error we kick of a health check. These are done every *0.5s*, when the health
+check returns OK we stop health checking (until the next error). The health checks use a recursive
+DNS query (`. IN NS`) to get upstream health. Any response that is not an error (REFUSED, NOTIMPL,
+SERVFAIL, etc) is taken as a healthy upstream. The health check uses the same protocol as specific
+in the **TO**. If `max_fails` is set to 0, not such healt checking is performed and no upstream will
+ever be considered unhealthy.
+
+When *all* upstreams are down it assumes health checking as a mechanism has failed and will try to
 connect to a random upstream (which may or may not work).
-
-The health checks are done every *0.5s*. After *two* failed checks the upstream is considered
-unhealthy. The health checks use a recursive DNS query (`. IN NS`) to get upstream health. Any
-response that is not an error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a healthy upstream. The
-health check uses the same protocol as specific in the **TO**. On startup each upstream is marked
-unhealthy until it passes a health check. A 0 duration will disable any health checks.
-
 
 ## Syntax
 
@@ -53,7 +53,7 @@ forward FROM TO... {
   Requests that match none of these names will be passed through.
 * `force_tcp`, use TCP even when the request comes in over UDP.
 * `max_fails` is the number of subsequent failed health checks that are needed before considering
-  a backend to be down. If 0, the backend will never be marked as down. Default is 2.
+  an upstream to be down. If 0, the upstream will never be marked as down. Default is 2.
 * `expire` **DURATION**, expire (cached) connections after this time, the default is 10s.
 * `tls` **CERT** **KEY** **CA** define the TLS properties for TLS; if you leave this out the
   system's configuration will be used.
