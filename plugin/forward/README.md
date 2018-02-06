@@ -7,10 +7,17 @@
 ## Description
 
 The *forward* plugin is generally faster (~30+%) than *proxy* as it re-uses already opened sockets
-to the upstreams. It supports UDP, TCP and DNS-over-TLS and uses inband health checking that is
-enabled by default.
+to the upstreams. It supports UDP, TCP and DNS-over-TLS and uses inband health checking that.
+
 When *all* upstreams are down it assumes healtchecking as a mechanism has failed and will try to
 connect to a random upstream (which may or may not work).
+
+The health checks are done every *0.5s*. After *two* failed checks the upstream is considered
+unhealthy. The health checks use a recursive DNS query (`. IN NS`) to get upstream health. Any
+response that is not an error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a healthy upstream. The
+health check uses the same protocol as specific in the **TO**. On startup each upstream is marked
+unhealthy until it passes a health check. A 0 duration will disable any health checks.
+
 
 ## Syntax
 
@@ -24,12 +31,6 @@ forward FROM TO...
 * **TO...** are the destination endpoints to forward to. The **TO** syntax allows you to specify
   a protocol, `tls://9.9.9.9` or `dns://` for plain DNS. The number of upstreams is limited to 15.
 
-The health checks are done every *0.5s*. After *two* failed checks the upstream is considered
-unhealthy. The health checks use a recursive DNS query (`. IN NS`) to get upstream health. Any
-response that is not an error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a healthy upstream. The
-health check uses the same protocol as specific in the **TO**. On startup each upstream is marked
-unhealthy until it passes a health check. A 0 duration will disable any health checks.
-
 Multiple upstreams are randomized (default policy) on first use. When a healthy proxy returns an
 error during the exchange the next upstream in the list is tried.
 
@@ -39,7 +40,6 @@ Extra knobs are available with an expanded syntax:
 forward FROM TO... {
     except IGNORED_NAMES...
     force_tcp
-    health_check DURATION
     expire DURATION
     max_fails INTEGER
     tls CERT KEY CA
@@ -52,8 +52,6 @@ forward FROM TO... {
 * **IGNORED_NAMES** in `except` is a space-separated list of domains to exclude from forwarding.
   Requests that match none of these names will be passed through.
 * `force_tcp`, use TCP even when the request comes in over UDP.
-* `health_checks`, use a different **DURATION** for health checking, the default duration is 0.5s.
-  A value of 0 disables the health checks completely.
 * `max_fails` is the number of subsequent failed health checks that are needed before considering
   a backend to be down. If 0, the backend will never be marked as down. Default is 2.
 * `expire` **DURATION**, expire (cached) connections after this time, the default is 10s.

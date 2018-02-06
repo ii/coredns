@@ -62,25 +62,14 @@ func setup(c *caddy.Controller) error {
 
 // OnStartup starts a goroutines for all proxies.
 func (f *Forward) OnStartup() (err error) {
-	if f.hcInterval == 0 {
-		for _, p := range f.proxies {
-			p.host.fails = 0
-		}
-		return nil
-	}
-
 	for _, p := range f.proxies {
-		go p.healthCheck()
+		p.start()
 	}
 	return nil
 }
 
 // OnShutdown stops all configured proxies.
 func (f *Forward) OnShutdown() error {
-	if f.hcInterval == 0 {
-		return nil
-	}
-
 	for _, p := range f.proxies {
 		p.close()
 	}
@@ -188,21 +177,6 @@ func parseBlock(c *caddy.Controller, f *Forward) error {
 			return fmt.Errorf("max_fails can't be negative: %d", n)
 		}
 		f.maxfails = uint32(n)
-	case "health_check":
-		if !c.NextArg() {
-			return c.ArgErr()
-		}
-		dur, err := time.ParseDuration(c.Val())
-		if err != nil {
-			return err
-		}
-		if dur < 0 {
-			return fmt.Errorf("health_check can't be negative: %d", dur)
-		}
-		f.hcInterval = dur
-		for i := range f.proxies {
-			f.proxies[i].hcInterval = dur
-		}
 	case "force_tcp":
 		if c.NextArg() {
 			return c.ArgErr()

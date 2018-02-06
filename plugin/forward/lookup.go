@@ -7,7 +7,6 @@ package forward
 import (
 	"crypto/tls"
 	"log"
-	"time"
 
 	"github.com/coredns/coredns/request"
 
@@ -69,7 +68,7 @@ func (f *Forward) Lookup(state request.Request, name string, typ uint16) (*dns.M
 
 // NewLookup returns a Forward that can be used for plugin that need an upstream to resolve external names.
 func NewLookup(addr []string) *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, hcInterval: 2 * time.Second}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire}
 	for i := range addr {
 		p := NewProxy(addr[i])
 		f.SetProxy(p)

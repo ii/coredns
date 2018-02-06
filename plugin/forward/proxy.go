@@ -15,8 +15,7 @@ type Proxy struct {
 	transport *transport
 
 	// copied from Forward.
-	hcInterval time.Duration
-	forceTCP   bool
+	forceTCP bool
 
 	stop chan bool
 
@@ -28,10 +27,9 @@ func NewProxy(addr string) *Proxy {
 	host := newHost(addr)
 
 	p := &Proxy{
-		host:       host,
-		hcInterval: hcDuration,
-		stop:       make(chan bool),
-		transport:  newTransport(host),
+		host:      host,
+		stop:      make(chan bool),
+		transport: newTransport(host),
 	}
 	return p
 }
@@ -42,8 +40,6 @@ func (p *Proxy) SetTLSConfig(cfg *tls.Config) { p.host.tlsConfig = cfg }
 // SetExpire sets the expire duration in the lower p.host.
 func (p *Proxy) SetExpire(expire time.Duration) { p.host.expire = expire }
 
-func (p *Proxy) close() { p.stop <- true }
-
 // Dial connects to the host in p with the configured transport.
 func (p *Proxy) Dial(proto string) (*dns.Conn, error) { return p.transport.Dial(proto) }
 
@@ -53,22 +49,19 @@ func (p *Proxy) Yield(c *dns.Conn) { p.transport.Yield(c) }
 // Down returns if this proxy is up or down.
 func (p *Proxy) Down(maxfails uint32) bool { return p.host.down(maxfails) }
 
-func (p *Proxy) healthCheck() {
+// close stops the health checking goroutine.
+func (p *Proxy) close() { p.host.probe.Stop() }
 
-	// stop channel
+// start starts the proxy's healthchecking.
+func (p *Proxy) start() {
 	p.host.SetClient()
 
-	p.host.Check()
-	tick := time.NewTicker(p.hcInterval)
-	for {
-		select {
-		case <-tick.C:
-			p.host.Check()
-		case <-p.stop:
-			return
-		}
-	}
+	go p.host.probe.Start(hcDuration)
+	//	p.host.Check()
 }
+
+// Healthcheck kicks of a round of health checks for this proxy.
+func (p *Proxy) Healthcheck() { p.host.probe.Do(p.host.Check) }
 
 const (
 	dialTimeout = 4 * time.Second

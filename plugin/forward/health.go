@@ -1,7 +1,6 @@
 package forward
 
 import (
-	"log"
 	"sync/atomic"
 
 	"github.com/miekg/dns"
@@ -10,33 +9,21 @@ import (
 // For HC we send to . IN NS +norec message to the upstream. Dial timeouts and empty
 // replies are considered fails, basically anything else constitutes a healthy upstream.
 
-func (h *host) Check() {
-	h.Lock()
+// Check is used as the up.Func in the probe.
+func (h *host) Check() bool {
 
-	if h.checking {
-		h.Unlock()
-		return
-	}
-
-	h.checking = true
-	h.Unlock()
+	// should probably not send when maxfails == 0; otherwise we spam the target for nothing
+	// might also be what we need for lookup (or we close that one)
 
 	err := h.send()
 	if err != nil {
-		log.Printf("[INFO] healtheck of %s failed with %s", h.addr, err)
-
 		HealthcheckFailureCount.WithLabelValues(h.addr).Add(1)
-
 		atomic.AddUint32(&h.fails, 1)
-	} else {
-		atomic.StoreUint32(&h.fails, 0)
+		return false
 	}
 
-	h.Lock()
-	h.checking = false
-	h.Unlock()
-
-	return
+	atomic.StoreUint32(&h.fails, 0)
+	return true
 }
 
 func (h *host) send() error {

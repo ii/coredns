@@ -31,22 +31,21 @@ type Forward struct {
 	maxfails      uint32
 	expire        time.Duration
 
-	forceTCP   bool          // also here for testing
-	hcInterval time.Duration // also here for testing
+	forceTCP bool // also here for testing
 
 	Next plugin.Handler
 }
 
 // New returns a new Forward.
 func New() *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, hcInterval: hcDuration, p: new(random)}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, p: new(random)}
 	return f
 }
 
 // SetProxy appends p to the proxy list and starts healthchecking.
 func (f *Forward) SetProxy(p *Proxy) {
 	f.proxies = append(f.proxies, p)
-	go p.healthCheck()
+	p.start()
 }
 
 // Len returns the number of configured proxies.
@@ -93,6 +92,9 @@ func (f *Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 		}
 
 		if err != nil {
+
+			proxy.Healthcheck()
+
 			if fails < len(f.proxies) {
 				continue
 			}

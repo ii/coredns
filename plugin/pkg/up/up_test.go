@@ -20,7 +20,7 @@ func TestUp(t *testing.T) {
 		return true
 	}
 
-	pr.Start("nonexistent", 5*time.Millisecond)
+	pr.Start(5 * time.Millisecond)
 	defer pr.Stop()
 
 	// These functions AddInt32 to the same hits variable, but we only want to wait when

@@ -2,8 +2,9 @@ package forward
 
 import (
 	"crypto/tls"
-	"sync"
 	"time"
+
+	"github.com/coredns/coredns/plugin/pkg/up"
 
 	"github.com/miekg/dns"
 )
@@ -14,16 +15,14 @@ type host struct {
 
 	tlsConfig *tls.Config
 	expire    time.Duration
+	probe     *up.Probe
 
 	fails uint32
-	sync.RWMutex
-	checking bool
 }
 
-// newHost returns a new host, the fails are set to 1, i.e.
-// the first healthcheck must succeed before we use this host.
+// newHost returns a new host.
 func newHost(addr string) *host {
-	return &host{addr: addr, fails: 1, expire: defaultExpire}
+	return &host{addr: addr, fails: 0, expire: defaultExpire, probe: up.New()}
 }
 
 // setClient sets and configures the dns.Client in host.
