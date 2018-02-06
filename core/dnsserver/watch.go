@@ -31,12 +31,8 @@ func newWatcher(zones map[string]*Config) *watcher {
 	for _, config := range zones {
 		plugins := config.Handlers()
 		for _, p := range plugins {
-			log.Printf("Checking if %s is a Watchee\n", p.Name())
 			if x, ok := p.(watch.Watchee); ok {
-				log.Printf("Yes\n")
 				w.watchees = append(w.watchees, x)
-			} else {
-				log.Printf("No\n")
 			}
 		}
 	}
@@ -48,7 +44,7 @@ func newWatcher(zones map[string]*Config) *watcher {
 func (w *watcher) Name() string { return "watch" }
 
 func (w *watcher) nextID() int64 {
-	// TODO: should have a lock
+	// TODO: lock
 	w.counter += 1
 	return w.counter
 }
