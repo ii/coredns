@@ -12,12 +12,12 @@ func TestUp(t *testing.T) {
 	wg := sync.WaitGroup{}
 	hits := int32(0)
 
-	upfunc := func() bool {
+	upfunc := func() error {
 		atomic.AddInt32(&hits, 1)
 		// Sleep tiny amount so that our other pr.Do() calls hit the lock.
 		time.Sleep(3 * time.Millisecond)
 		wg.Done()
-		return true
+		return nil
 	}
 
 	pr.Start(5 * time.Millisecond)
@@ -25,7 +25,7 @@ func TestUp(t *testing.T) {
 
 	// These functions AddInt32 to the same hits variable, but we only want to wait when
 	// upfunc finishes, as that only calls Done() on the waitgroup.
-	upfuncNoWg := func() bool { atomic.AddInt32(&hits, 1); return true }
+	upfuncNoWg := func() error { atomic.AddInt32(&hits, 1); return nil }
 	wg.Add(1)
 	pr.Do(upfunc)
 	pr.Do(upfuncNoWg)
