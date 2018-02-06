@@ -39,7 +39,7 @@ func NewServergRPC(addr string, group []*Config) (*ServergRPC, error) {
 		tlsConfig = conf.TLSConfig
 	}
 
-	return &ServergRPC{Server: s, tlsConfig: tlsConfig, watch: newWatcher()}, nil
+	return &ServergRPC{Server: s, tlsConfig: tlsConfig, watch: newWatcher(s.zones)}, nil
 }
 
 // Serve implements caddy.TCPServer interface.

@@ -21,12 +21,26 @@ type watcher struct {
 
 type watchlist map[int64]*watchquery
 type watchquery struct {
-	qtype uint32
+	qtype  uint32
 	stream pb.DnsService_WatchServer
 }
 
-func newWatcher() *watcher {
+func newWatcher(zones map[string]*Config) *watcher {
 	w := &watcher{changes: make(watch.WatchChan), watches: make(map[string]watchlist)}
+
+	for _, config := range zones {
+		plugins := config.Handlers()
+		for _, p := range plugins {
+			log.Printf("Checking if %s is a Watchee\n", p.Name())
+			if x, ok := p.(watch.Watchee); ok {
+				log.Printf("Yes\n")
+				w.watchees = append(w.watchees, x)
+			} else {
+				log.Printf("No\n")
+			}
+		}
+	}
+
 	go w.processWatches()
 	return w
 }
