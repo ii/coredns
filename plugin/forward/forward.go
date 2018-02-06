@@ -91,8 +91,23 @@ func (f *Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 			child.Finish()
 		}
 
-		if err != nil {
+		// If you query for instance ANY isc.org; you get a truncated query back which miekg/dns fails to unpack
+		// because the RRs are not finished. The returned message can be useful or useless. Return the original
+		// query with some header bits set that they should retry with TCP.
+		if err == dns.ErrTruncated {
+			// We may or may not have something sensible... if not reassemble something to send to the client.
+			if ret == nil {
+				ret = new(dns.Msg)
+				ret.SetReply(r)
+				ret.Truncated = true
+				ret.Authoritative = true
+				ret.Rcode = dns.RcodeSuccess
+			}
+			err = nil // and reset err to pass this back to the client.
+		}
 
+		if err != nil {
+			// Kick of health check to see if *our* upstream is broken.
 			proxy.Healthcheck()
 
 			if fails < len(f.proxies) {
@@ -142,8 +157,8 @@ func (f *Forward) isAllowedDomain(name string) bool {
 func (f *Forward) list() []*Proxy { return f.p.List(f.proxies) }
 
 var (
-	errInvalidDomain = errors.New("invalid domain for proxy")
-	errNoHealthy     = errors.New("no healthy proxies")
+	errInvalidDomain = errors.New("invalid domain for forward")
+	errNoHealthy     = errors.New("no healthy proxies or upstream error")
 	errNoForward     = errors.New("no forwarder defined")
 )
 

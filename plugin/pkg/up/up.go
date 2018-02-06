@@ -17,8 +17,8 @@ type Probe struct {
 	inprogress bool
 }
 
-// Func is used to determine if a target is alive. If so this function must return true.
-type Func func() bool
+// Func is used to determine if a target is alive. If so this function must return nil.
+type Func func() error
 
 // New returns a pointer to an intialized Probe.
 func New() *Probe {
@@ -52,9 +52,10 @@ func (p *Probe) start(interval time.Duration) {
 			// we return from the goroutine and we can accept another Func to run.
 			go func() {
 				for {
-					if ok := f(); ok {
+					if err := f(); err == nil {
 						break
 					}
+					// TODO(miek): little bit of exponential backoff here?
 					time.Sleep(interval)
 				}
 				p.Lock()

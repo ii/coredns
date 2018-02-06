@@ -55,9 +55,7 @@ func (p *Proxy) close() { p.host.probe.Stop() }
 // start starts the proxy's healthchecking.
 func (p *Proxy) start() {
 	p.host.SetClient()
-
-	go p.host.probe.Start(hcDuration)
-	//	p.host.Check()
+	p.host.probe.Start(hcDuration)
 }
 
 // Healthcheck kicks of a round of health checks for this proxy.

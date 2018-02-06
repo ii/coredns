@@ -10,7 +10,7 @@ import (
 // replies are considered fails, basically anything else constitutes a healthy upstream.
 
 // Check is used as the up.Func in the probe.
-func (h *host) Check() bool {
+func (h *host) Check() error {
 
 	// should probably not send when maxfails == 0; otherwise we spam the target for nothing
 	// might also be what we need for lookup (or we close that one)
@@ -19,11 +19,11 @@ func (h *host) Check() bool {
 	if err != nil {
 		HealthcheckFailureCount.WithLabelValues(h.addr).Add(1)
 		atomic.AddUint32(&h.fails, 1)
-		return false
+		return err
 	}
 
 	atomic.StoreUint32(&h.fails, 0)
-	return true
+	return nil
 }
 
 func (h *host) send() error {
