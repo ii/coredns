@@ -2,7 +2,6 @@ package forward
 
 import (
 	"crypto/tls"
-	"sync"
 	"time"
 
 	"github.com/miekg/dns"
@@ -10,16 +9,9 @@ import (
 
 // Proxy defines an upstream host.
 type Proxy struct {
-	host *host
-
+	host      *host
 	transport *transport
-
-	// copied from Forward.
-	forceTCP bool
-
-	stop chan bool
-
-	sync.RWMutex
+	forceTCP  bool // Copied from Forward.
 }
 
 // NewProxy returns a new proxy.
@@ -49,7 +41,10 @@ func (p *Proxy) Yield(c *dns.Conn) { p.transport.Yield(c) }
 func (p *Proxy) Down(maxfails uint32) bool { return p.host.down(maxfails) }
 
 // close stops the health checking goroutine.
-func (p *Proxy) close() { p.host.probe.Stop() }
+func (p *Proxy) close() {
+	p.host.probe.Stop()
+	p.transport.Stop()
+}
 
 // start starts the proxy's healthchecking.
 func (p *Proxy) start() {
