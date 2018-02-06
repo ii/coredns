@@ -28,7 +28,6 @@ func NewProxy(addr string) *Proxy {
 
 	p := &Proxy{
 		host:      host,
-		stop:      make(chan bool),
 		transport: newTransport(host),
 	}
 	return p
