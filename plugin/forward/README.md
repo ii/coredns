@@ -138,7 +138,6 @@ seconds.
 . {
     forward . tls://9.9.9.9 {
        tls_servername dns.quad9.net
-       health_check 5s
     }
     cache 30
 }
