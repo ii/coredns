@@ -6,7 +6,7 @@ import (
 
 // Watcher is the interface the Watch plugin implements
 type Watcher interface {
-	Watch(stream pb.WatchService_WatchServer) error
+	Watch(stream pb.DnsService_WatchServer) error
 }
 
 // Watchee is the interface watchable plugins should implement

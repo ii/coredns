@@ -72,6 +72,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, dnsControlOpts, error) {
 
 	opts := dnsControlOpts{
 		resyncPeriod: defaultResyncPeriod,
+		watchChan:    &(k8s.watchChan),
 	}
 
 	for c.Next() {

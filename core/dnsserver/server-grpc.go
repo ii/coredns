@@ -58,9 +58,6 @@ func (s *ServergRPC) Serve(l net.Listener) error {
 	}
 
 	pb.RegisterDnsServiceServer(s.grpcServer, s)
-	if s.watch != nil {
-		pb.RegisterWatchServiceServer(s.grpcServer, s)
-	}
 
 	if s.tlsConfig != nil {
 		l = tls.NewListener(l, s.tlsConfig)
@@ -139,7 +136,7 @@ func (s *ServergRPC) Query(ctx context.Context, in *pb.DnsPacket) (*pb.DnsPacket
 	return &pb.DnsPacket{Msg: packed}, nil
 }
 
-func (s *ServergRPC) Watch(stream pb.WatchService_WatchServer) error {
+func (s *ServergRPC) Watch(stream pb.DnsService_WatchServer) error {
 	if s.watch == nil {
 		return fmt.Errorf("Watch called but watch plugin not initialized on %s", s.listenAddr)
 	}

@@ -2,6 +2,7 @@ package watch
 
 import (
 	"github.com/coredns/coredns/core/dnsserver"
+	"log"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/pkg/watch"
@@ -22,9 +23,14 @@ func setup(c *caddy.Controller) error {
 	c.OnStartup(func() error {
 		plugins := dnsserver.GetConfig(c).Handlers()
 		for _, p := range plugins {
+			log.Printf("Checking if %s is a Watchee\n", p.Name())
 			if x, ok := p.(watch.Watchee); ok {
+				log.Printf("Yes\n")
 				w.watchees = append(w.watchees, x)
+			} else {
+				log.Printf("No\n")
 			}
+
 		}
 		return nil
 	})

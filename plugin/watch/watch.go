@@ -2,8 +2,8 @@ package watch
 
 import (
 	"context"
-	"fmt"
 	"io"
+	"log"
 
 	"github.com/miekg/dns"
 
@@ -23,8 +23,8 @@ type watcher struct {
 
 type watchlist map[int64]*watchquery
 type watchquery struct {
-	query  *dns.Msg
-	stream pb.WatchService_WatchServer
+	qtype uint32
+	stream pb.DnsService_WatchServer
 }
 
 // Newwatcher returns the watcher plugin
@@ -36,7 +36,7 @@ func NewWatcher() *watcher {
 
 func (w *watcher) Name() string { return "watch" }
 
-func (w *watcher) nextId() int64 {
+func (w *watcher) nextID() int64 {
 	// TODO: should have a lock
 	w.counter += 1
 	return w.counter
@@ -44,7 +44,7 @@ func (w *watcher) nextId() int64 {
 
 // Watch is used to monitor the results of a given query. CoreDNS will push updated
 // query responses down the stream.
-func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
+func (w *watcher) Watch(stream pb.DnsService_WatchServer) error {
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -62,13 +62,13 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 				return err
 			}
 
-			id := w.nextId()
+			id := w.nextID()
 
 			qname := msg.Question[0].Name
 			if _, ok := w.watches[qname]; !ok {
 				w.watches[qname] = make(watchlist)
 			}
-			w.watches[qname][id] = &watchquery{query: msg, stream: stream}
+			w.watches[qname][id] = &watchquery{stream: stream, qtype: uint32(msg.Question[0].Qtype)}
 			for wee := range w.watchees {
 				w.watchees[wee].StartWatch(qname, w.changes)
 			}
@@ -76,7 +76,7 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 				return err
 			}
 
-			fmt.Printf("watches: %v\n", w.watches)
+			log.Printf("watches: %v\n", w.watches)
 			continue
 		}
 
@@ -102,7 +102,7 @@ func (w *watcher) Watch(stream pb.WatchService_WatchServer) error {
 					return err
 				}
 			}
-			fmt.Printf("watches: %v\n", w.watches)
+			log.Printf("watches: %v\n", w.watches)
 			continue
 		}
 	}
@@ -112,7 +112,23 @@ func (w *watcher) processWatches() {
 	for {
 		select {
 		case changed := <-w.changes:
-			fmt.Printf("A change: %v\n", changed)
+			log.Printf("Change: %v, checking watches in %v\n", changed, w.watches)
+			for qname, wl := range w.watches {
+				log.Printf("Checking %s against %s\n", changed, qname)
+				if plugin.Zones(changed).Matches(qname) == "" {
+					continue
+				}
+				log.Printf("Matches %s\n", qname)
+				for id, wq := range wl {
+					wr := pb.WatchResponse{WatchId: id, Qname: qname, Qtype: wq.qtype}
+					log.Printf("Sending %v over %v\n", wr, wq.stream)
+					err := wq.stream.Send(&wr)
+					log.Printf("Sent, err = %s", err)
+					if err != nil {
+						log.Printf("Error sending to watch %d: %s\n", id, err)
+					}
+				}
+			}
 		}
 	}
 }

@@ -263,7 +263,7 @@ func (k *Kubernetes) initKubeCache(opts dnsControlOpts) (err error) {
 
 	opts.initPodCache = k.podMode == podModeVerified
 
-	opts.watchChan = k.watchChan
+	opts.watchChan = &(k.watchChan)
 	opts.zones = k.Zones
 	k.APIConn = newdnsController(kubeClient, opts)
 

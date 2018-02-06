@@ -9,9 +9,6 @@ message DnsPacket {
 
 service DnsService {
 	rpc Query (DnsPacket) returns (DnsPacket);
-}
-
-service WatchService {
 	rpc Watch (stream WatchRequest) returns (stream WatchResponse);
 }
 
@@ -46,5 +43,7 @@ message WatchResponse {
 	// No further events will be sent to the canceled watcher.
 	bool canceled = 3;
 
-	repeated DnsPacket msg = 4;
+	uint32 qtype = 4;
+	string qname = 5;
+	//DnsPacket reply = 6;
 }

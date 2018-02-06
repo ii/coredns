@@ -73,38 +73,51 @@ type dnsControlOpts struct {
 	labelSelector *meta.LabelSelector
 	selector      labels.Selector
 	// watch channel
-	watchChan dnswatch.WatchChan
+	watchChan *dnswatch.WatchChan
 	zones     []string
 }
 
-func (dco dnsControlOpts) resourceEventHandlerFuncs() cache.ResourceEventHandlerFuncs {
-	if dco.watchChan == nil {
-		fmt.Println("Returning no handlers")
-		return cache.ResourceEventHandlerFuncs{}
+func objToNames(obj interface{}, zones []string) []string {
+	s, ok := obj.(*api.Service)
+	if !ok {
+		fmt.Printf("Only changes in Services matter for now.\n")
+		return []string{}
 	}
+	z := make([]string, len(zones))
+	for i := range zones {
+		z[i] = s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace + ".svc." + zones[i]
+	}
+	return z
+}
 
-	fmt.Println("Returning real handlers\n")
+func (dco dnsControlOpts) resourceEventHandlerFuncs() cache.ResourceEventHandlerFuncs {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			if dco.watchChan == nil {
+			fmt.Printf("Add %v\n", obj)
+			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
+			if (*dco.watchChan) == nil {
 				return
 			}
-			dco.watchChan <- dco.zones
-			fmt.Printf("Add %v\n", obj)
+			fmt.Printf("Sending to %v\n", *(dco.watchChan))
+			(*dco.watchChan) <- objToNames(obj, dco.zones)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			if dco.watchChan == nil {
+			fmt.Printf("Update %v, %v\n", oldObj, newObj)
+			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
+			if (*dco.watchChan) == nil {
 				return
 			}
-			dco.watchChan <- dco.zones
-			fmt.Printf("Update %v, %v\n", oldObj, newObj)
+			fmt.Printf("Sending to %v\n", *(dco.watchChan))
+			(*dco.watchChan) <- objToNames(newObj, dco.zones)
 		},
 		DeleteFunc: func(obj interface{}) {
-			if dco.watchChan == nil {
+			fmt.Printf("Delete %v\n", obj)
+			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
+			if (*dco.watchChan) == nil {
 				return
 			}
-			dco.watchChan <- dco.zones
-			fmt.Printf("Delete %v\n", obj)
+			fmt.Printf("Sending to %v\n", *(dco.watchChan))
+			(*dco.watchChan) <- objToNames(obj, dco.zones)
 		},
 	}
 }
