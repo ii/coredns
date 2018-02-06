@@ -38,6 +38,7 @@ func TestHealth(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 	i1 := atomic.LoadUint32(&i)
-	println(i1)
-
+	if i1 != 1 {
+		t.Errorf("Expected number of health checks to be %d, got %d", 1, i1)
+	}
 }
