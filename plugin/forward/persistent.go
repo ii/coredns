@@ -38,7 +38,8 @@ type transport struct {
 func newTransport(h *host) *transport {
 	t := &transport{
 		conns:   make(map[string][]*persistConn),
-		host:    h,
+		expire:  defaultExpire,
+		addr:    addr,
 		dial:    make(chan string),
 		yield:   make(chan connErr),
 		ret:     make(chan connErr),
@@ -95,12 +96,12 @@ Wait:
 
 			go func() {
 				if proto != "tcp-tls" {
-					c, err := dns.DialTimeout(proto, t.host.addr, dialTimeout)
+					c, err := dns.DialTimeout(proto, t.addr, dialTimeout)
 					t.ret <- connErr{c, err}
 					return
 				}
 
-				c, err := dns.DialTimeoutWithTLS("tcp", t.host.addr, t.host.tlsConfig, dialTimeout)
+				c, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.host.tlsConfig, dialTimeout)
 				t.ret <- connErr{c, err}
 			}()
 
@@ -134,15 +135,20 @@ Wait:
 	}
 }
 
+// Dial dials the address configured in transport, potentially reusing a connection or creating a new one.
 func (t *transport) Dial(proto string) (*dns.Conn, error) {
 	t.dial <- proto
 	c := <-t.ret
 	return c.c, c.err
 }
 
+// Yield return the connection to transport for reuse.
 func (t *transport) Yield(c *dns.Conn) {
 	t.yield <- connErr{c, nil}
 }
 
-// Stop stops the transports.
+// Stop stops the transport's connection manager.
 func (t *transport) Stop() { t.stop <- true }
+
+// SetExpire sets the connection expire time in transport.
+func (t *transport) SetExpire(expire time.Duration) { t.expire = expire }

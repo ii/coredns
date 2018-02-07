@@ -4,14 +4,25 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/coredns/coredns/plugin/pkg/up"
 	"github.com/miekg/dns"
 )
 
 // Proxy defines an upstream host.
 type Proxy struct {
-	host      *host
+	addr      string
+	client    *dns.Client
+	tlsConfig *tls.Config
+
+	// Connection caching
+	expire    time.Duration
 	transport *transport
-	forceTCP  bool // Copied from Forward.
+
+	forceTCP bool // Copied from Forward.
+
+	// health checking
+	probe *up.Probe
+	fails uint32
 }
 
 // NewProxy returns a new proxy.
@@ -19,6 +30,9 @@ func NewProxy(addr string) *Proxy {
 	host := newHost(addr)
 
 	p := &Proxy{
+		addr:      addr,
+		fails:     0,
+		probe:     up.New(),
 		host:      host,
 		transport: newTransport(host),
 	}
