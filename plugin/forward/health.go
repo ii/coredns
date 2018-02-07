@@ -10,24 +10,24 @@ import (
 // replies are considered fails, basically anything else constitutes a healthy upstream.
 
 // Check is used as the up.Func in the up.Probe.
-func (h *host) Check() error {
-	err := h.send()
+func (p *Proxy) Check() error {
+	err := p.send()
 	if err != nil {
-		HealthcheckFailureCount.WithLabelValues(h.addr).Add(1)
-		atomic.AddUint32(&h.fails, 1)
+		HealthcheckFailureCount.WithLabelValues(p.addr).Add(1)
+		atomic.AddUint32(&p.fails, 1)
 		return err
 	}
 
-	atomic.StoreUint32(&h.fails, 0)
+	atomic.StoreUint32(&p.fails, 0)
 	return nil
 }
 
-func (h *host) send() error {
+func (p *Proxy) send() error {
 	hcping := new(dns.Msg)
 	hcping.SetQuestion(".", dns.TypeNS)
 	hcping.RecursionDesired = false
 
-	m, _, err := h.client.Exchange(hcping, h.addr)
+	m, _, err := p.client.Exchange(hcping, p.addr)
 	// If we got a header, we're alright, basically only care about I/O errors 'n stuff
 	if err != nil && m != nil {
 		// Silly check, something sane came back
@@ -40,11 +40,11 @@ func (h *host) send() error {
 }
 
 // down returns true is this host has more than maxfails fails.
-func (h *host) down(maxfails uint32) bool {
+func (p *Proxy) down(maxfails uint32) bool {
 	if maxfails == 0 {
 		return false
 	}
 
-	fails := atomic.LoadUint32(&h.fails)
+	fails := atomic.LoadUint32(&p.fails)
 	return fails > maxfails
 }

@@ -21,7 +21,7 @@ func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, me
 	if forceTCP {
 		proto = "tcp"
 	}
-	if p.host.tlsConfig != nil {
+	if p.tlsConfig != nil {
 		proto = "tcp-tls"
 	}
 
@@ -57,9 +57,9 @@ func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, me
 			rc = strconv.Itoa(ret.Rcode)
 		}
 
-		RequestCount.WithLabelValues(p.host.addr).Add(1)
-		RcodeCount.WithLabelValues(rc, p.host.addr).Add(1)
-		RequestDuration.WithLabelValues(p.host.addr).Observe(time.Since(start).Seconds())
+		RequestCount.WithLabelValues(p.addr).Add(1)
+		RcodeCount.WithLabelValues(rc, p.addr).Add(1)
+		RequestDuration.WithLabelValues(p.addr).Observe(time.Since(start).Seconds())
 	}
 
 	return ret, nil

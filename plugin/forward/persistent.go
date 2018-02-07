@@ -1,6 +1,7 @@
 package forward
 
 import (
+	"crypto/tls"
 	"net"
 	"time"
 
@@ -21,8 +22,9 @@ type connErr struct {
 
 // transport hold the persistent cache.
 type transport struct {
-	conns map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
-	host  *host
+	conns     map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
+	addr      string
+	tlsConfig *tls.Config
 
 	dial  chan string
 	yield chan connErr
@@ -35,7 +37,7 @@ type transport struct {
 	stop chan bool
 }
 
-func newTransport(h *host) *transport {
+func newTransport(addr string, tlsConfig *tls.Config) *transport {
 	t := &transport{
 		conns:   make(map[string][]*persistConn),
 		expire:  defaultExpire,
@@ -80,7 +82,7 @@ Wait:
 			i := 0
 			for i = 0; i < len(t.conns[proto]); i++ {
 				pc := t.conns[proto][i]
-				if time.Since(pc.used) < t.host.expire {
+				if time.Since(pc.used) < t.expire {
 					// Found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
 					t.ret <- connErr{pc.c, nil}
@@ -92,7 +94,7 @@ Wait:
 
 			// Not conns were found. Connect to the upstream to create one.
 			t.conns[proto] = t.conns[proto][i:]
-			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.len()))
+			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len()))
 
 			go func() {
 				if proto != "tcp-tls" {
@@ -101,13 +103,13 @@ Wait:
 					return
 				}
 
-				c, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.host.tlsConfig, dialTimeout)
+				c, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
 				t.ret <- connErr{c, err}
 			}()
 
 		case conn := <-t.yield:
 
-			SocketGauge.WithLabelValues(t.host.addr).Set(float64(t.len() + 1))
+			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len() + 1))
 
 			// no proto here, infer from config and conn
 			if _, ok := conn.c.Conn.(*net.UDPConn); ok {
@@ -115,7 +117,7 @@ Wait:
 				continue Wait
 			}
 
-			if t.host.tlsConfig == nil {
+			if t.tlsConfig == nil {
 				t.conns["tcp"] = append(t.conns["tcp"], &persistConn{conn.c, time.Now()})
 				continue Wait
 			}
@@ -152,3 +154,8 @@ func (t *transport) Stop() { t.stop <- true }
 
 // SetExpire sets the connection expire time in transport.
 func (t *transport) SetExpire(expire time.Duration) { t.expire = expire }
+
+// SetTLSConfig sets the TLS config in transport.
+func (t *transport) SetTLSConfig(cfg *tls.Config) { p.tlsConfig = cfg }
+
+const defaultExpire = 10 * time.Second
