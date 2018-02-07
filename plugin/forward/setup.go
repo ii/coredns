@@ -180,9 +180,6 @@ func parseBlock(c *caddy.Controller, f *Forward) error {
 			return c.ArgErr()
 		}
 		f.forceTCP = true
-		for i := range f.proxies {
-			f.proxies[i].forceTCP = true
-		}
 	case "tls":
 		args := c.RemainingArgs()
 		if len(args) != 3 {

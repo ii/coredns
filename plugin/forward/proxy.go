@@ -19,8 +19,6 @@ type Proxy struct {
 	expire    time.Duration
 	transport *transport
 
-	forceTCP bool // Copied from Forward.
-
 	// health checking
 	probe *up.Probe
 	fails uint32
