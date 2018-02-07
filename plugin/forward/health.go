@@ -38,13 +38,3 @@ func (p *Proxy) send() error {
 
 	return err
 }
-
-// down returns true is this host has more than maxfails fails.
-func (p *Proxy) down(maxfails uint32) bool {
-	if maxfails == 0 {
-		return false
-	}
-
-	fails := atomic.LoadUint32(&p.fails)
-	return fails > maxfails
-}

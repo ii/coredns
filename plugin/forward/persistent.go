@@ -23,6 +23,7 @@ type connErr struct {
 // transport hold the persistent cache.
 type transport struct {
 	conns     map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
+	expire    time.Duration             // After this duration a connection is expired.
 	addr      string
 	tlsConfig *tls.Config
 
@@ -139,6 +140,11 @@ Wait:
 
 // Dial dials the address configured in transport, potentially reusing a connection or creating a new one.
 func (t *transport) Dial(proto string) (*dns.Conn, error) {
+	// If tls has been configured; use it.
+	if t.tlsConfig != nil {
+		proto = "tcp-tls"
+	}
+
 	t.dial <- proto
 	c := <-t.ret
 	return c.c, c.err
@@ -156,6 +162,6 @@ func (t *transport) Stop() { t.stop <- true }
 func (t *transport) SetExpire(expire time.Duration) { t.expire = expire }
 
 // SetTLSConfig sets the TLS config in transport.
-func (t *transport) SetTLSConfig(cfg *tls.Config) { p.tlsConfig = cfg }
+func (t *transport) SetTLSConfig(cfg *tls.Config) { t.tlsConfig = cfg }
 
 const defaultExpire = 10 * time.Second

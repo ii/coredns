@@ -62,6 +62,7 @@ func (f *Forward) Lookup(state request.Request, name string, typ uint16) (*dns.M
 }
 
 // NewLookup returns a Forward that can be used for plugin that need an upstream to resolve external names.
+// Note that the caller must run Close on the forward to stop the health checking goroutines.
 func NewLookup(addr []string) *Forward {
 	f := New()
 	for i := range addr {

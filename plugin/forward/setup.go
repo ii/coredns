@@ -77,9 +77,7 @@ func (f *Forward) OnShutdown() error {
 }
 
 // Close is a synonym for OnShutdown().
-func (f *Forward) Close() {
-	f.OnShutdown()
-}
+func (f *Forward) Close() { f.OnShutdown() }
 
 func parseForward(c *caddy.Controller) (*Forward, error) {
 	f := New()
@@ -129,8 +127,8 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 			}
 
 			// We can't set tlsConfig here, because we haven't parsed it yet.
-			// We set it below at the end of parseBlock.
-			p := NewProxy(h)
+			// We set it below at the end of parseBlock, use nil now.
+			p := NewProxy(h, nil /* no TLS */)
 			f.proxies = append(f.proxies, p)
 		}
 

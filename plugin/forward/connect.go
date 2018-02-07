@@ -21,9 +21,6 @@ func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, me
 	if forceTCP {
 		proto = "tcp"
 	}
-	if p.tlsConfig != nil {
-		proto = "tcp-tls"
-	}
 
 	conn, err := p.Dial(proto)
 	if err != nil {
