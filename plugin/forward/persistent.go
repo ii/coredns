@@ -55,7 +55,7 @@ func newTransport(addr string, tlsConfig *tls.Config) *transport {
 }
 
 // len returns the number of connection, used for metrics. Can only be safely
-// used inside connManager() because of races.
+// used inside connManager() because of data races.
 func (t *transport) len() int {
 	l := 0
 	for _, conns := range t.conns {
