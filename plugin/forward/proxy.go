@@ -63,6 +63,9 @@ func (p *Proxy) Dial(proto string) (*dns.Conn, error) { return p.transport.Dial(
 // Yield returns the connection to the pool.
 func (p *Proxy) Yield(c *dns.Conn) { p.transport.Yield(c) }
 
+// Healthcheck kicks of a round of health checks for this proxy.
+func (p *Proxy) Healthcheck() { p.probe.Do(p.Check) }
+
 // Down returns true if this proxy is down, i.e. has *more* fails than maxfails.
 func (p *Proxy) Down(maxfails uint32) bool {
 	if maxfails == 0 {
@@ -80,12 +83,7 @@ func (p *Proxy) close() {
 }
 
 // start starts the proxy's healthchecking.
-func (p *Proxy) start() {
-	p.probe.Start(hcDuration)
-}
-
-// Healthcheck kicks of a round of health checks for this proxy.
-func (p *Proxy) Healthcheck() { p.probe.Do(p.Check) }
+func (p *Proxy) start() { p.probe.Start(hcDuration) }
 
 const (
 	dialTimeout = 4 * time.Second
