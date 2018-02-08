@@ -108,3 +108,7 @@ func TestHealthFailTwice(t *testing.T) {
 		t.Errorf("Expected number of health checks to be %d, got %d", expected, i1)
 	}
 }
+
+func TestHealthMaxFails(t *testing.T) {
+	// TODO
+}

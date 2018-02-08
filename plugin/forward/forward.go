@@ -20,8 +20,9 @@ import (
 // Forward represents a plugin instance that can proxy requests to another (DNS) server. It has a list
 // of proxies each representing one upstream proxy.
 type Forward struct {
-	proxies []*Proxy
-	p       Policy
+	proxies    []*Proxy
+	p          Policy
+	hcInterval time.Duration
 
 	from    string
 	ignored []string
@@ -38,14 +39,14 @@ type Forward struct {
 
 // New returns a new Forward.
 func New() *Forward {
-	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, p: new(random), from: "."}
+	f := &Forward{maxfails: 2, tlsConfig: new(tls.Config), expire: defaultExpire, p: new(random), from: ".", hcInterval: hcDuration}
 	return f
 }
 
 // SetProxy appends p to the proxy list and starts healthchecking.
 func (f *Forward) SetProxy(p *Proxy) {
 	f.proxies = append(f.proxies, p)
-	p.start()
+	p.start(hcDuration)
 }
 
 // Len returns the number of configured proxies.

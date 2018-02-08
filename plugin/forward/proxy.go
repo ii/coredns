@@ -80,8 +80,8 @@ func (p *Proxy) close() {
 }
 
 // start starts the proxy's healthchecking.
-func (p *Proxy) start() {
-	p.probe.Start(hcDuration)
+func (p *Proxy) start(duration time.Duration) {
+	p.probe.Start(duration)
 }
 
 // Healthcheck kicks of a round of health checks for this proxy.
