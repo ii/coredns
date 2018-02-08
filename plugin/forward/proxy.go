@@ -85,6 +85,9 @@ func (p *Proxy) close() {
 // start starts the proxy's healthchecking.
 func (p *Proxy) start() { p.probe.Start(hcDuration) }
 
+// Healthcheck kicks of a round of health checks for this proxy.
+func (p *Proxy) Healthcheck() { p.probe.Do(p.Check) }
+
 const (
 	dialTimeout = 4 * time.Second
 	timeout     = 2 * time.Second

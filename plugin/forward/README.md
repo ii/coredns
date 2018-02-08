@@ -46,6 +46,7 @@ forward FROM TO... {
     tls CERT KEY CA
     tls_servername NAME
     policy random|round_robin
+    health_checks DURATION
 }
 ~~~
 
@@ -54,13 +55,15 @@ forward FROM TO... {
   Requests that match none of these names will be passed through.
 * `force_tcp`, use TCP even when the request comes in over UDP.
 * `max_fails` is the number of subsequent failed health checks that are needed before considering
-  an upstream to be down. If 0, the upstream will never be marked as down. Default is 2.
+  an upstream to be down. If 0, the upstream will never be marked as down (nor health checked).
+  Default is 2.
 * `expire` **DURATION**, expire (cached) connections after this time, the default is 10s.
 * `tls` **CERT** **KEY** **CA** define the TLS properties for TLS; if you leave this out the
   system's configuration will be used.
 * `tls_servername` **NAME** allows you to set a server name in the TLS configuration; for instance 9.9.9.9
   needs this to be set to `dns.quad9.net`.
 * `policy` specifies the policy to use for selecting upstream servers. The default is `random`.
+* `health_checks`, use a different **DURATION** for health checking, the default duration is 0.5s.
 
 Also note the TLS config is "global" for the whole forwarding proxy if you need a different
 `tls-name` for different upstreams you're out of luck.
@@ -121,12 +124,14 @@ Proxy everything except `example.org` using the host's `resolv.conf`'s nameserve
 
 Proxy all requests to 9.9.9.9 using the DNS-over-TLS protocol, and cache every answer for up to 30
 seconds. Note the `tls_servername` is mandatory if you want to working setup, as 9.9.9.9 can't be
-used in the TLS negotiation.
+used in the TLS negotiation. Also set the health check duration to 5s to not completely swamp the
+service with health checks.
 
 ~~~ corefile
 . {
     forward . tls://9.9.9.9 {
        tls_servername dns.quad9.net
+       health_check 5s
     }
     cache 30
 }
