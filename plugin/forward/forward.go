@@ -46,7 +46,7 @@ func New() *Forward {
 // SetProxy appends p to the proxy list and starts healthchecking.
 func (f *Forward) SetProxy(p *Proxy) {
 	f.proxies = append(f.proxies, p)
-	p.start(hcDuration)
+	p.start(f.hcInterval)
 }
 
 // Len returns the number of configured proxies.
