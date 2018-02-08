@@ -48,7 +48,7 @@ type Kubernetes struct {
 	primaryZoneIndex   int
 	interfaceAddrsFunc func() net.IP
 	autoPathSearch     []string // Local search path from /etc/resolv.conf. Needed for autopath.
-	watchChan          watch.WatchChan
+	watchers           watch.NotifyChan
 }
 
 // New returns a initialized Kubernetes. It default interfaceAddrFunc to return 127.0.0.1. All other
@@ -263,7 +263,7 @@ func (k *Kubernetes) initKubeCache(opts dnsControlOpts) (err error) {
 
 	opts.initPodCache = k.podMode == podModeVerified
 
-	opts.watchChan = &(k.watchChan)
+	opts.watchers = &(k.watchers)
 	opts.zones = k.Zones
 	k.APIConn = newdnsController(kubeClient, opts)
 

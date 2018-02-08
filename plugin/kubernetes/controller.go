@@ -73,8 +73,8 @@ type dnsControlOpts struct {
 	labelSelector *meta.LabelSelector
 	selector      labels.Selector
 	// watch channel
-	watchChan *dnswatch.WatchChan
-	zones     []string
+	watchers *dnswatch.NotifyChan
+	zones    []string
 }
 
 func objToNames(obj interface{}, zones []string) []string {
@@ -94,30 +94,30 @@ func (dco dnsControlOpts) resourceEventHandlerFuncs() cache.ResourceEventHandler
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			fmt.Printf("Add %v\n", obj)
-			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
-			if (*dco.watchChan) == nil {
+			fmt.Printf("watchers %v\n\n", *dco.watchers)
+			if (*dco.watchers) == nil {
 				return
 			}
-			fmt.Printf("Sending to %v\n", *(dco.watchChan))
-			(*dco.watchChan) <- objToNames(obj, dco.zones)
+			fmt.Printf("Sending to %v\n", *(dco.watchers))
+			(*dco.watchers) <- objToNames(obj, dco.zones)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			fmt.Printf("Update %v, %v\n", oldObj, newObj)
-			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
-			if (*dco.watchChan) == nil {
+			fmt.Printf("watchers %v\n\n", *dco.watchers)
+			if (*dco.watchers) == nil {
 				return
 			}
-			fmt.Printf("Sending to %v\n", *(dco.watchChan))
-			(*dco.watchChan) <- objToNames(newObj, dco.zones)
+			fmt.Printf("Sending to %v\n", *(dco.watchers))
+			(*dco.watchers) <- objToNames(newObj, dco.zones)
 		},
 		DeleteFunc: func(obj interface{}) {
 			fmt.Printf("Delete %v\n", obj)
-			fmt.Printf("watchChan %v\n\n", *dco.watchChan)
-			if (*dco.watchChan) == nil {
+			fmt.Printf("watchers %v\n\n", *dco.watchers)
+			if (*dco.watchers) == nil {
 				return
 			}
-			fmt.Printf("Sending to %v\n", *(dco.watchChan))
-			(*dco.watchChan) <- objToNames(obj, dco.zones)
+			fmt.Printf("Sending to %v\n", *(dco.watchers))
+			(*dco.watchers) <- objToNames(obj, dco.zones)
 		},
 	}
 }

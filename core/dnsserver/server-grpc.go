@@ -22,7 +22,7 @@ type ServergRPC struct {
 	grpcServer *grpc.Server
 	listenAddr net.Addr
 	tlsConfig  *tls.Config
-	watch	   *watcher
+	watch      *watcher
 }
 
 // NewServergRPC returns a new CoreDNS GRPC server and compiles all plugin in to it.
@@ -137,6 +137,8 @@ func (s *ServergRPC) Query(ctx context.Context, in *pb.DnsPacket) (*pb.DnsPacket
 	return &pb.DnsPacket{Msg: packed}, nil
 }
 
+// Watch is the entrypoint called by the gRPC layer when the user asks
+// to watch a query.
 func (s *ServergRPC) Watch(stream pb.DnsService_WatchServer) error {
 	return s.watch.watch(stream)
 }

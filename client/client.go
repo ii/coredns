@@ -14,17 +14,20 @@ import (
 	creds "google.golang.org/grpc/credentials"
 )
 
+// Client provides a convenient interface to a gRPC-based DNS service.
 type Client struct {
 	pbClient pb.DnsServiceClient
 }
 
+// Watch is used to track access results from watching a particular query.
 type Watch struct {
-	WatchId int64
-	Msgs chan *dns.Msg
-	stream pb.DnsService_WatchClient
-	client *Client
+	WatchID int64
+	Msgs    chan *dns.Msg
+	stream  pb.DnsService_WatchClient
+	client  *Client
 }
 
+// NewClient establishes a connection to a server and returns a pointer to a Client.
 func NewClient(endpoint, cert, key, ca string) (*Client, error) {
 	var tlsargs []string
 	if cert != "" {
@@ -56,24 +59,26 @@ func NewClient(endpoint, cert, key, ca string) (*Client, error) {
 	return &Client{pbClient: pb.NewDnsServiceClient(conn)}, nil
 }
 
+// Query performs a query using the gRPC DNS server
 func (c *Client) Query(req *dns.Msg) (*dns.Msg, error) {
-        msg, err := req.Pack()
-        if err != nil {
-                return nil, err
-        }
+	msg, err := req.Pack()
+	if err != nil {
+		return nil, err
+	}
 
-        reply, err := c.pbClient.Query(context.Background(), &pb.DnsPacket{Msg: msg})
-        if err != nil {
-                return nil, err
-        }
-        d := new(dns.Msg)
-        err = d.Unpack(reply.Msg)
-        if err != nil {
-                return nil, err
-        }
-        return d, nil
+	reply, err := c.pbClient.Query(context.Background(), &pb.DnsPacket{Msg: msg})
+	if err != nil {
+		return nil, err
+	}
+	d := new(dns.Msg)
+	err = d.Unpack(reply.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
+// QueryNameAndType is a convenience function that queries by name and type, via gRPC.
 func (c *Client) QueryNameAndType(qname string, qtype uint16) (*dns.Msg, error) {
 	m := &dns.Msg{}
 	m.SetQuestion(dns.Fqdn(qname), qtype)
@@ -81,6 +86,8 @@ func (c *Client) QueryNameAndType(qname string, qtype uint16) (*dns.Msg, error) 
 	return c.Query(m)
 }
 
+// Watch requests that the server push change notifications to this client for a
+// specific query.
 func (c *Client) Watch(req *dns.Msg) (*Watch, error) {
 	p, err := req.Pack()
 	if err != nil {
@@ -101,12 +108,12 @@ func (c *Client) Watch(req *dns.Msg) (*Watch, error) {
 
 	in, err := stream.Recv()
 	if err == io.EOF {
-		return nil, fmt.Errorf("Server returned EOF after attempt to create watch.")
+		return nil, fmt.Errorf("server returned EOF after attempt to create watch")
 	}
 	if !in.Created {
-		return nil, fmt.Errorf("Unexpected non-created response from server: %v", in)
+		return nil, fmt.Errorf("unexpected non-created response from server: %v", in)
 	}
-	w := &Watch{WatchId: in.WatchId, Msgs: make(chan *dns.Msg), stream: stream, client: c}
+	w := &Watch{WatchID: in.WatchId, Msgs: make(chan *dns.Msg), stream: stream, client: c}
 	go func() {
 		for {
 			in, err := w.stream.Recv()
@@ -115,13 +122,13 @@ func (c *Client) Watch(req *dns.Msg) (*Watch, error) {
 				return
 			}
 			if err != nil {
-				log.Printf("[ERROR] Watch %d failed to receive from gRPC stream: %s\n", w.WatchId, err)
+				log.Printf("[ERROR] Watch %d failed to receive from gRPC stream: %s\n", w.WatchID, err)
 				close(w.Msgs)
 				return
 			}
 
 			if in.Created {
-				log.Printf("[ERROR] Watch %d unexpected created response from server: %v\n", w.WatchId, in)
+				log.Printf("[ERROR] Watch %d unexpected created response from server: %v\n", w.WatchID, in)
 				close(w.Msgs)
 				return
 			}
@@ -143,6 +150,7 @@ func (c *Client) Watch(req *dns.Msg) (*Watch, error) {
 	return w, nil
 }
 
+// WatchNameAndType is a convenience function to setup a watch by name and type.
 func (c *Client) WatchNameAndType(qname string, qtype uint16) (*Watch, error) {
 	m := &dns.Msg{}
 	m.SetQuestion(dns.Fqdn(qname), qtype)
@@ -150,8 +158,9 @@ func (c *Client) WatchNameAndType(qname string, qtype uint16) (*Watch, error) {
 	return c.Watch(m)
 }
 
-
+// Stop will cancel the watch in the server, so no further updates will be sent
+// for that particular query.
 func (w *Watch) Stop() error {
-	cr := &pb.WatchRequest_CancelRequest{CancelRequest: &pb.WatchCancelRequest{WatchId: w.WatchId}}
+	cr := &pb.WatchRequest_CancelRequest{CancelRequest: &pb.WatchCancelRequest{WatchId: w.WatchID}}
 	return w.stream.Send(&pb.WatchRequest{RequestUnion: cr})
 }

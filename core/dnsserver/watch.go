@@ -3,6 +3,7 @@ package dnsserver
 import (
 	"io"
 	"log"
+	"sync"
 
 	"github.com/miekg/dns"
 
@@ -11,12 +12,13 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/watch"
 )
 
-// watch contains all the data needed to manage watches
+// watcher contains all the data needed to manage watches
 type watcher struct {
-	changes  watch.WatchChan
+	changes  watch.NotifyChan
 	counter  int64
 	watches  map[string]watchlist
 	watchees []watch.Watchee
+	mutex    sync.Mutex
 }
 
 type watchlist map[int64]*watchquery
@@ -26,7 +28,7 @@ type watchquery struct {
 }
 
 func newWatcher(zones map[string]*Config) *watcher {
-	w := &watcher{changes: make(watch.WatchChan), watches: make(map[string]watchlist)}
+	w := &watcher{changes: make(watch.NotifyChan), watches: make(map[string]watchlist)}
 
 	for _, config := range zones {
 		plugins := config.Handlers()
@@ -41,12 +43,14 @@ func newWatcher(zones map[string]*Config) *watcher {
 	return w
 }
 
-func (w *watcher) Name() string { return "watch" }
-
 func (w *watcher) nextID() int64 {
-	// TODO: lock
-	w.counter += 1
-	return w.counter
+	w.mutex.Lock()
+
+	w.counter++
+	id := w.counter
+
+	w.mutex.Unlock()
+	return id
 }
 
 // watch is used to monitor the results of a given query. CoreDNS will push updated

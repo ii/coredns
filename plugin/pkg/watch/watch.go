@@ -11,8 +11,9 @@ type Watcher interface {
 
 // Watchee is the interface watchable plugins should implement
 type Watchee interface {
-	StartWatch(qname string, changes WatchChan) error
+	StartWatch(qname string, changes NotifyChan) error
 	StopWatch(qname string) error
 }
 
-type WatchChan chan []string
+// NotifyChan is used by plugins to inform the server when records have changed
+type NotifyChan chan []string
