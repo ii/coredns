@@ -48,6 +48,7 @@ type Kubernetes struct {
 	primaryZoneIndex   int
 	interfaceAddrsFunc func() net.IP
 	autoPathSearch     []string // Local search path from /etc/resolv.conf. Needed for autopath.
+	TransferTo         []string
 	watchers           watch.NotifyChan
 }
 
