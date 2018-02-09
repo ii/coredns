@@ -39,4 +39,9 @@ func TestMinMsgTTL(t *testing.T) {
 	if dur != time.Duration(3600*time.Second) {
 		t.Fatalf("Expected minttl duration to be %d, got %d", 3600, dur)
 	}
+
+	m.Ns = nil
+	if want, got := 0*time.Second, minMsgTTL(m, mt); want != got {
+		t.Fatalf("Expected minttl duration to be %s, got %s", want, got)
+	}
 }
