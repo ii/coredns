@@ -49,7 +49,8 @@ type Kubernetes struct {
 	interfaceAddrsFunc func() net.IP
 	autoPathSearch     []string // Local search path from /etc/resolv.conf. Needed for autopath.
 	TransferTo         []string
-	watchers           watch.NotifyChan
+	watchChan          watch.Chan
+	watched            map[string]bool // Names being watched
 }
 
 // New returns a initialized Kubernetes. It default interfaceAddrFunc to return 127.0.0.1. All other
@@ -62,6 +63,7 @@ func New(zones []string) *Kubernetes {
 	k.podMode = podModeDisabled
 	k.Proxy = proxy.Proxy{}
 	k.ttl = defaultTTL
+	k.watched = make(map[string]bool)
 
 	return k
 }
@@ -264,7 +266,8 @@ func (k *Kubernetes) initKubeCache(opts dnsControlOpts) (err error) {
 
 	opts.initPodCache = k.podMode == podModeVerified
 
-	opts.watchers = &(k.watchers)
+	opts.watchChan = &(k.watchChan)
+	opts.watched = k.watched
 	opts.zones = k.Zones
 	k.APIConn = newdnsController(kubeClient, opts)
 

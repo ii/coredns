@@ -1,19 +1,12 @@
 package watch
 
-import (
-	"github.com/coredns/coredns/pb"
-)
+// Chan is used to inform the server of a change
+type Chan chan []string
 
-// Watcher is the interface the Watch plugin implements
-type Watcher interface {
-	Watch(stream pb.DnsService_WatchServer) error
+// Watchable is the interface watchable plugins should implement
+type Watchable interface {
+	Name() string
+	SetWatchChan(Chan)
+	Watch(qname string) error
+	StopWatching(qname string)
 }
-
-// Watchee is the interface watchable plugins should implement
-type Watchee interface {
-	StartWatch(qname string, changes NotifyChan) error
-	StopWatch(qname string) error
-}
-
-// NotifyChan is used by plugins to inform the server when records have changed
-type NotifyChan chan []string

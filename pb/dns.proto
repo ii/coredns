@@ -43,7 +43,6 @@ message WatchResponse {
 	// No further events will be sent to the canceled watcher.
 	bool canceled = 3;
 
-	uint32 qtype = 4;
-	string qname = 5;
+	string qname = 4;
 	//DnsPacket reply = 6;
 }

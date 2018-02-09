@@ -55,6 +55,9 @@ func main() {
 	}
 
 	m, err := c.QueryNameAndType(qname, qtype)
+	if err != nil {
+		panic(err)
+	}
 	printMsg(verbose, m)
 
 	if watch {
@@ -75,6 +78,11 @@ func main() {
 func printMsg(verbose bool, m *dns.Msg) {
 	if verbose {
 		fmt.Printf("%s\n\n\n", m)
+		return
+	}
+
+	if m == nil {
+		fmt.Printf("<nil>\n\n\n")
 		return
 	}
 

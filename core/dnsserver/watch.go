@@ -14,27 +14,24 @@ import (
 
 // watcher contains all the data needed to manage watches
 type watcher struct {
-	changes  watch.NotifyChan
-	counter  int64
-	watches  map[string]watchlist
-	watchees []watch.Watchee
-	mutex    sync.Mutex
+	changes watch.Chan
+	counter int64
+	watches map[string]watchlist
+	plugins []watch.Watchable
+	mutex   sync.Mutex
 }
 
-type watchlist map[int64]*watchquery
-type watchquery struct {
-	qtype  uint32
-	stream pb.DnsService_WatchServer
-}
+type watchlist map[int64]pb.DnsService_WatchServer
 
 func newWatcher(zones map[string]*Config) *watcher {
-	w := &watcher{changes: make(watch.NotifyChan), watches: make(map[string]watchlist)}
+	w := &watcher{changes: make(watch.Chan), watches: make(map[string]watchlist)}
 
 	for _, config := range zones {
 		plugins := config.Handlers()
 		for _, p := range plugins {
-			if x, ok := p.(watch.Watchee); ok {
-				w.watchees = append(w.watchees, x)
+			if x, ok := p.(watch.Watchable); ok {
+				x.SetWatchChan(w.changes)
+				w.plugins = append(w.plugins, x)
 			}
 		}
 	}
@@ -75,16 +72,22 @@ func (w *watcher) watch(stream pb.DnsService_WatchServer) error {
 
 			id := w.nextID()
 
+			if err := stream.Send(&pb.WatchResponse{WatchId: id, Created: true}); err != nil {
+				return err
+			}
+
 			qname := msg.Question[0].Name
 			if _, ok := w.watches[qname]; !ok {
 				w.watches[qname] = make(watchlist)
 			}
-			w.watches[qname][id] = &watchquery{stream: stream, qtype: uint32(msg.Question[0].Qtype)}
-			for wee := range w.watchees {
-				w.watchees[wee].StartWatch(qname, w.changes)
-			}
-			if err := stream.Send(&pb.WatchResponse{WatchId: id, Created: true}); err != nil {
-				return err
+
+			w.watches[qname][id] = stream
+
+			for _, p := range w.plugins {
+				err := p.Watch(qname)
+				if err != nil {
+					log.Printf("[WARNING] Failed to start watch for %s in plugin %s: %s\n", qname, p.Name(), err)
+				}
 			}
 
 			log.Printf("watches: %v\n", w.watches)
@@ -95,20 +98,27 @@ func (w *watcher) watch(stream pb.DnsService_WatchServer) error {
 		if cancel != nil {
 			//TODO: lock
 			for qname, wl := range w.watches {
-				ww, ok := wl[cancel.WatchId]
+				ws, ok := wl[cancel.WatchId]
 				if !ok {
 					continue
 				}
-				if ww.stream != stream {
+
+				// only allow cancels from the client that started it
+				if ws != stream {
 					continue
 				}
+
 				delete(wl, cancel.WatchId)
+
+				// if there are no more watches for this qname, we should tell the plugins
 				if len(wl) == 0 {
-					for wee := range w.watchees {
-						w.watchees[wee].StopWatch(qname)
+					for _, p := range w.plugins {
+						p.StopWatching(qname)
 					}
 					delete(w.watches, qname)
 				}
+
+				// let the client know we canceled the watch
 				if err = stream.Send(&pb.WatchResponse{WatchId: cancel.WatchId, Canceled: true}); err != nil {
 					return err
 				}
@@ -130,10 +140,10 @@ func (w *watcher) processWatches() {
 					continue
 				}
 				log.Printf("Matches %s\n", qname)
-				for id, wq := range wl {
-					wr := pb.WatchResponse{WatchId: id, Qname: qname, Qtype: wq.qtype}
-					log.Printf("Sending %v over %v\n", wr, wq.stream)
-					err := wq.stream.Send(&wr)
+				for id, stream := range wl {
+					wr := pb.WatchResponse{WatchId: id, Qname: qname}
+					log.Printf("Sending %v over %v\n", wr, stream)
+					err := stream.Send(&wr)
 					log.Printf("Sent, err = %s", err)
 					if err != nil {
 						log.Printf("Error sending to watch %d: %s\n", id, err)

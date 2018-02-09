@@ -73,6 +73,11 @@ type dnsControl struct {
 	stopLock sync.Mutex
 	shutdown bool
 	stopCh   chan struct{}
+
+	// watch-related items channel
+	watchChan *dnswatch.Chan
+	watched   map[string]bool
+	zones     []string
 }
 
 type dnsControlOpts struct {
@@ -81,62 +86,21 @@ type dnsControlOpts struct {
 	// Label handling.
 	labelSelector *meta.LabelSelector
 	selector      labels.Selector
-	// watch channel
-	watchers *dnswatch.NotifyChan
-	zones    []string
-}
-
-func objToNames(obj interface{}, zones []string) []string {
-	s, ok := obj.(*api.Service)
-	if !ok {
-		fmt.Printf("Only changes in Services matter for now.\n")
-		return []string{}
-	}
-	z := make([]string, len(zones))
-	for i := range zones {
-		z[i] = s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace + ".svc." + zones[i]
-	}
-	return z
-}
-
-func (dco dnsControlOpts) resourceEventHandlerFuncs() cache.ResourceEventHandlerFuncs {
-	return cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			fmt.Printf("Add %v\n", obj)
-			fmt.Printf("watchers %v\n\n", *dco.watchers)
-			if (*dco.watchers) == nil {
-				return
-			}
-			fmt.Printf("Sending to %v\n", *(dco.watchers))
-			(*dco.watchers) <- objToNames(obj, dco.zones)
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			fmt.Printf("Update %v, %v\n", oldObj, newObj)
-			fmt.Printf("watchers %v\n\n", *dco.watchers)
-			if (*dco.watchers) == nil {
-				return
-			}
-			fmt.Printf("Sending to %v\n", *(dco.watchers))
-			(*dco.watchers) <- objToNames(newObj, dco.zones)
-		},
-		DeleteFunc: func(obj interface{}) {
-			fmt.Printf("Delete %v\n", obj)
-			fmt.Printf("watchers %v\n\n", *dco.watchers)
-			if (*dco.watchers) == nil {
-				return
-			}
-			fmt.Printf("Sending to %v\n", *(dco.watchers))
-			(*dco.watchers) <- objToNames(obj, dco.zones)
-		},
-	}
+	// watch-related items channel
+	watchChan *dnswatch.Chan
+	watched   map[string]bool
+	zones     []string
 }
 
 // newDNSController creates a controller for CoreDNS.
 func newdnsController(kubeClient *kubernetes.Clientset, opts dnsControlOpts) *dnsControl {
 	dns := dnsControl{
-		client:   kubeClient,
-		selector: opts.selector,
-		stopCh:   make(chan struct{}),
+		client:    kubeClient,
+		selector:  opts.selector,
+		stopCh:    make(chan struct{}),
+		watchChan: opts.watchChan,
+		watched:   opts.watched,
+		zones:     opts.zones,
 	}
 	dns.svcLister, dns.svcController = cache.NewIndexerInformer(
 		&cache.ListWatch{
@@ -481,6 +445,93 @@ func (dns *dnsControl) updateModifed() {
 	atomic.StoreInt64(&dns.modified, unix)
 }
 
-func (dns *dnsControl) Add(obj interface{})               { dns.updateModifed() }
-func (dns *dnsControl) Delete(obj interface{})            { dns.updateModifed() }
-func (dns *dnsControl) Update(objOld, newObj interface{}) { dns.updateModifed() }
+// sendUpdates sends a notification to the server if a watch
+// is enabled for the qname
+func (dns *dnsControl) sendUpdates(obj interface{}) {
+	s, ok := obj.(*api.Service)
+	if !ok {
+		fmt.Printf("Only changes in Services matter for now.\n")
+		return
+	}
+	z := []string{}
+	for i := range dns.zones {
+		name := s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace + ".svc." + dns.zones[i]
+		if _, ok := dns.watched[name]; ok {
+			z = append(z, name)
+		}
+	}
+	fmt.Printf("Sending update for %v\n", z)
+	if len(z) > 0 {
+		*dns.watchChan <- z
+	}
+}
+
+func (dns *dnsControl) Add(obj interface{}) {
+	fmt.Printf("Add %v\n", obj)
+	dns.updateModifed()
+	dns.sendUpdates(obj)
+}
+func (dns *dnsControl) Delete(obj interface{}) {
+	fmt.Printf("Delete %v\n", obj)
+	dns.updateModifed()
+	dns.sendUpdates(obj)
+}
+func (dns *dnsControl) Update(objOld, newObj interface{}) {
+	if o, ok := objOld.(*api.Endpoints); ok {
+		n := newObj.(*api.Endpoints)
+		if endpointsEquivalent(o, n) {
+			fmt.Printf("Endpoints equivalent, returning\n")
+			return
+		}
+	}
+
+	fmt.Printf("** old %v\n** new %v\n", objOld, newObj)
+	dns.updateModifed()
+	// names don't change, so just send new
+	dns.sendUpdates(newObj)
+}
+
+func endpointsEquivalent(a, b *api.Endpoints) bool {
+	// supposedly we should be able to rely on
+	// these being sorted and able to be compared
+	// they are supposed to be in a canonical format
+
+	if len(a.Subsets) != len(b.Subsets) {
+		return false
+	}
+
+	for i, sa := range a.Subsets {
+		// check the Addresses and Ports. Ignore unready addresses.
+		sb := b.Subsets[i]
+		if len(sa.Addresses) != len(sb.Addresses) {
+			return false
+		}
+		if len(sa.Ports) != len(sb.Ports) {
+			return false
+		}
+
+		for addr, aaddr := range sa.Addresses {
+			baddr := sb.Addresses[addr]
+			if aaddr.IP != baddr.IP {
+				return false
+			}
+			if aaddr.Hostname != baddr.Hostname {
+				return false
+			}
+		}
+
+		for port, aport := range sa.Ports {
+			bport := sb.Ports[port]
+			if aport.Name != bport.Name {
+				return false
+			}
+			if aport.Port != bport.Port {
+				return false
+			}
+			if aport.Protocol != bport.Protocol {
+				return false
+			}
+		}
+	}
+	return true
+}

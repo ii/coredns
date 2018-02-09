@@ -5,12 +5,23 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/watch"
 )
 
-// StartWatch is called when a watch is started for a name.
-func (k *Kubernetes) StartWatch(qname string, changes watch.NotifyChan) error {
-	fmt.Printf("starting watch for %s in k8s, %v", qname, changes)
-	k.watchers = changes
+// SetWatchChan implements watch.Watchable
+func (k *Kubernetes) SetWatchChan(c watch.Chan) {
+	k.watchChan = c
+}
+
+// Watch is called when a watch is started for a name.
+func (k *Kubernetes) Watch(qname string) error {
+	if k.watchChan == nil {
+		return fmt.Errorf("cannot start watch because the channel has not been set")
+	}
+	fmt.Printf("starting watch for %s in k8s\n", qname)
+	k.watched[qname] = true
 	return nil
 }
 
-// StopWatch is called when a watch is stopped for a name.
-func (k *Kubernetes) StopWatch(qname string) error { return nil }
+// StopWatching is called when no more watches remain for a name
+func (k *Kubernetes) StopWatching(qname string) error {
+	delete(k.watched, qname)
+	return nil
+}
