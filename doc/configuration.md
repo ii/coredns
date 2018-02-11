@@ -63,18 +63,27 @@ same port is an error:
 }
 ~~~
 
-Will generate an error on startup. Changing the second port number to 1055 makes these Server Block
+Will generate an error on startup. Changing the second port number to 1055 makes these Server Blocks
 two different Servers.
 
 ## Specifying a Protocol
 
+Currently CoreDNS accepts three different protocols: plain DNS, DNS over TLS and DNS over gRPC, you
+can specify what a server should accept if the configuration, by prefixing a zone name with
+a scheme, use:
+
+* `dns://` for plain DNS (the default is no scheme is specified).
+* `tls://` for DNS over TLS.
+* `grpc://` for DNS over gRPC.
 
 
 ## Plugins
 
+Each Server Block specifies a bunch of plugins (plugins.md)
 Directives
 
 
 ## External Plugin
 
-Compile time enabled.
+External plugins are plugins that are not compiled into the default CoreDNS. You can easily enable
+them, but you'll need to compile CoreDNS your self.
