@@ -1,7 +1,17 @@
 # Authoritative Serving from Files
 
-# Caching Forwarder
+# Forwarder
 
-# Caching Forwarding Rescursor
+# Forwarding Rescursor
+
+# Kubernetes
+
+## Federation
+
+## Autopath
 
 # More
+
+## Enabling Metrics
+
+## Enabling Caching
