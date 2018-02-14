@@ -7,14 +7,14 @@
 ## Description
 
 The *forward* plugin re-uses already opened sockets to the upstreams. It supports UDP, TCP and
-DNS-over-TLS and uses inband health checking.
+DNS-over-TLS and uses in band health checking.
 
-When it detects an error an health check is performed. This checks runs in a loop, every *0.5s*, for
-a long as the upstream reports unhealthy. Once healthy we stop health checking (until the next
+When it detects an error a health check is performed. This checks runs in a loop, every *0.5s*, for
+as long as the upstream reports unhealthy. Once healthy we stop health checking (until the next
 error). The health checks use a recursive DNS query (`. IN NS`) to get upstream health. Any response
-that is not an network error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a healthy upstream. The
-health check uses the same protocol as specific in **TO**. If `max_fails` is set to 0, no checking
-is performed and upstreams will ever be considered unhealthy.
+that is not a network error (REFUSED, NOTIMPL, SERVFAIL, etc) is taken as a healthy upstream. The
+health check uses the same protocol as specified in **TO**. If `max_fails` is set to 0, no checking
+is performed and upstreams will always be considered healthy.
 
 When *all* upstreams are down it assumes health checking as a mechanism has failed and will try to
 connect to a random upstream (which may or may not work).
@@ -123,7 +123,7 @@ Proxy everything except `example.org` using the host's `resolv.conf`'s nameserve
 ~~~
 
 Proxy all requests to 9.9.9.9 using the DNS-over-TLS protocol, and cache every answer for up to 30
-seconds. Note the `tls_servername` is mandatory if you want to working setup, as 9.9.9.9 can't be
+seconds. Note the `tls_servername` is mandatory if you want a working setup, as 9.9.9.9 can't be
 used in the TLS negotiation. Also set the health check duration to 5s to not completely swamp the
 service with health checks.
 
