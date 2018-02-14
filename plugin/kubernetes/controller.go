@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 	dnswatch "github.com/coredns/coredns/plugin/pkg/watch"
 
 	api "k8s.io/api/core/v1"
@@ -445,17 +446,12 @@ func (dns *dnsControl) updateModifed() {
 	atomic.StoreInt64(&dns.modified, unix)
 }
 
-// sendUpdates sends a notification to the server if a watch
-// is enabled for the qname
-func (dns *dnsControl) sendUpdates(obj interface{}) {
-	s, ok := obj.(*api.Service)
-	if !ok {
-		fmt.Printf("Only changes in Services matter for now.\n")
-		return
-	}
+func (dns *dnsControl) sendServiceUpdates(s *api.Service) {
 	z := []string{}
 	for i := range dns.zones {
-		name := s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace + ".svc." + dns.zones[i]
+		//TODO: Need a common way to form names, we do this in XFR and here and in normal lookups...
+		name := dnsutil.Join(append([]string{}, s.ObjectMeta.Name, s.ObjectMeta.Namespace, `svc`, dns.zones[i]))
+		fmt.Printf("Checking for watch on name '%s', %v\n", name, dns.watched)
 		if _, ok := dns.watched[name]; ok {
 			z = append(z, name)
 		}
@@ -463,6 +459,23 @@ func (dns *dnsControl) sendUpdates(obj interface{}) {
 	fmt.Printf("Sending update for %v\n", z)
 	if len(z) > 0 {
 		*dns.watchChan <- z
+	}
+}
+
+func (dns *dnsControl) sendEndpointsUpdates(ep *api.Endpoints) {
+	//TODO: implement this
+}
+
+// sendUpdates sends a notification to the server if a watch
+// is enabled for the qname
+func (dns *dnsControl) sendUpdates(obj interface{}) {
+	switch o := obj.(type) {
+	case *api.Service:
+		dns.sendServiceUpdates(o)
+	case *api.Endpoints:
+		dns.sendEndpointsUpdates(o)
+	default:
+		fmt.Printf("Updates for %T not supported.", o)
 	}
 }
 
@@ -476,21 +489,25 @@ func (dns *dnsControl) Delete(obj interface{}) {
 	dns.updateModifed()
 	dns.sendUpdates(obj)
 }
+
 func (dns *dnsControl) Update(objOld, newObj interface{}) {
+	// endpoint updates can come frequently, make sure
+	// it's a change we care about
 	if o, ok := objOld.(*api.Endpoints); ok {
 		n := newObj.(*api.Endpoints)
 		if endpointsEquivalent(o, n) {
-			fmt.Printf("Endpoints equivalent, returning\n")
 			return
 		}
 	}
-
-	fmt.Printf("** old %v\n** new %v\n", objOld, newObj)
+	fmt.Printf("Update %v\n", newObj)
 	dns.updateModifed()
+
 	// names don't change, so just send new
 	dns.sendUpdates(newObj)
 }
 
+// endpointsEquivalent checks if the update to an endpoint is something
+// that matters to us: ready addresses, host names, ports (including names for SRV)
 func endpointsEquivalent(a, b *api.Endpoints) bool {
 	// supposedly we should be able to rely on
 	// these being sorted and able to be compared

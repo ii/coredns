@@ -15,13 +15,11 @@ func (k *Kubernetes) Watch(qname string) error {
 	if k.watchChan == nil {
 		return fmt.Errorf("cannot start watch because the channel has not been set")
 	}
-	fmt.Printf("starting watch for %s in k8s\n", qname)
 	k.watched[qname] = true
 	return nil
 }
 
 // StopWatching is called when no more watches remain for a name
-func (k *Kubernetes) StopWatching(qname string) error {
+func (k *Kubernetes) StopWatching(qname string) {
 	delete(k.watched, qname)
-	return nil
 }

@@ -36,6 +36,7 @@ func newWatcher(zones map[string]*Config) *watcher {
 		}
 	}
 
+	//TODO: maybe a stop channel, work properly with reloads?
 	go w.processWatches()
 	return w
 }
