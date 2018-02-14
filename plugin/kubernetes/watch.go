@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+
 	"github.com/coredns/coredns/plugin/pkg/watch"
 )
 
