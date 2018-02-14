@@ -7,9 +7,9 @@ import (
 )
 
 func TestIsWatchable(t *testing.T) {
-		k := Kubernetes{}
-		var i interface{} = k
-		if _, ok := i.(watch.Watchable); !ok {
-			t.Error("Kubernetes should implement watch.Watchable and does not")
-		}
+	k := Kubernetes{}
+	var i interface{} = k
+	if _, ok := i.(watch.Watchable); !ok {
+		t.Error("Kubernetes should implement watch.Watchable and does not")
+	}
 }

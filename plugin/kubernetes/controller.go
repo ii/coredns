@@ -451,12 +451,10 @@ func (dns *dnsControl) sendServiceUpdates(s *api.Service) {
 	for i := range dns.zones {
 		//TODO: Need a common way to form names, we do this in XFR and here and in normal lookups...
 		name := dnsutil.Join(append([]string{}, s.ObjectMeta.Name, s.ObjectMeta.Namespace, `svc`, dns.zones[i]))
-		fmt.Printf("Checking for watch on name '%s', %v\n", name, dns.watched)
 		if _, ok := dns.watched[name]; ok {
 			z = append(z, name)
 		}
 	}
-	fmt.Printf("Sending update for %v\n", z)
 	if len(z) > 0 {
 		*dns.watchChan <- z
 	}
@@ -480,12 +478,10 @@ func (dns *dnsControl) sendUpdates(obj interface{}) {
 }
 
 func (dns *dnsControl) Add(obj interface{}) {
-	fmt.Printf("Add %v\n", obj)
 	dns.updateModifed()
 	dns.sendUpdates(obj)
 }
 func (dns *dnsControl) Delete(obj interface{}) {
-	fmt.Printf("Delete %v\n", obj)
 	dns.updateModifed()
 	dns.sendUpdates(obj)
 }
@@ -499,7 +495,6 @@ func (dns *dnsControl) Update(objOld, newObj interface{}) {
 			return
 		}
 	}
-	fmt.Printf("Update %v\n", newObj)
 	dns.updateModifed()
 
 	// names don't change, so just send new
