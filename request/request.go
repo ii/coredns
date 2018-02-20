@@ -179,34 +179,70 @@ type Result int
 const (
 	// ScrubIgnored is returned when Scrub did nothing to the message.
 	ScrubIgnored Result = iota
-	// ScrubDone is returned when the reply has been scrubbed.
-	ScrubDone
+	// ScrubExtra is returned when the reply has been scrubbed by removing RR from the additional section.
+	ScrubExtra
+	// ScrubAnswer is returned when the reply has been scrubbed by removing RR from the answer section.
+	ScrubAnswer
 )
 
-// Scrub scrubs the reply message so that it will fit the client's buffer. If
-// even after dropping the additional section it does not fit, the answer will
-// be cleared and the TC bit will be set on the message. Note, the TC bit will
-// be set regardless of protocol, even TCP message will get the bit, the client
-// should then retry with pigeons. TODO(referral).
+// Scrub scrubs the reply message so that it will fit the client's buffer. It
+// uses binary search to find a save cut off point in the additional section.
+// If even *without* the additional section the reply still doesn't fit we
+// repeat this process for the answer section. If we scrub the answer section
+// we set the TC bit on the reply; indicating the client should retry over TCP.
+// Note, the TC bit will be set regardless of protocol, even TCP message will
+// get the bit, the client should then retry with pigeons.
 func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, Result) {
 	size := r.Size()
-	l := reply.Len()
-	if size >= l {
+	rl := reply.Len()
+
+	if size >= rl {
 		return reply, ScrubIgnored
 	}
-	// TODO(miek): check for delegation
 
-	// If not delegation, drop additional section.
-	reply.Extra = nil
-	r.SizeAndDo(reply)
-	l = reply.Len()
-	if size >= l {
-		return reply, ScrubDone
+	origExtra := reply.Extra
+	re := len(reply.Extra)
+	l, m := 0, 0
+	for l < re {
+		m = (l + re) / 2
+		reply.Extra = origExtra[:m]
+		rl = reply.Len()
+		if rl < size {
+			l = m + 1
+			continue
+		}
+		if rl > size {
+			re = m - 1
+			continue
+		}
 	}
 
+	if rl < size {
+		r.SizeAndDo(reply)
+		return reply, ScrubExtra
+	}
+
+	origAnswer := reply.Answer
+	ra := len(reply.Answer)
+	l, m = 0, 0
+	for l < ra {
+		m = (l + ra) / 2
+		reply.Answer = origAnswer[:m]
+		rl = reply.Len()
+		if rl < size {
+			l = m + 1
+			continue
+		}
+		if rl > size {
+			ra = m - 1
+			continue
+		}
+	}
+
+	// It now fits, but Truncated.
+	r.SizeAndDo(reply)
 	reply.Truncated = true
-	reply.Answer = nil
-	return reply, ScrubDone
+	return reply, ScrubAnswer
 }
 
 // Type returns the type of the question as a string. If the request is malformed
