@@ -179,9 +179,9 @@ type Result int
 const (
 	// ScrubIgnored is returned when Scrub did nothing to the message.
 	ScrubIgnored Result = iota
-	// ScrubExtra is returned when the reply has been scrubbed by removing RR from the additional section.
+	// ScrubExtra is returned when the reply has been scrubbed by removing RRs from the additional section.
 	ScrubExtra
-	// ScrubAnswer is returned when the reply has been scrubbed by removing RR from the answer section.
+	// ScrubAnswer is returned when the reply has been scrubbed by removing RRs from the answer section.
 	ScrubAnswer
 )
 
