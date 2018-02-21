@@ -73,14 +73,14 @@ func TestRequestScrubAnswer(t *testing.T) {
 			fmt.Sprintf("large.example.com. 10 IN SRV 0 0 80 10-0-0-%d.default.pod.k8s.example.com.", i)))
 	}
 
-	msg, got := req.Scrub(reply)
+	_, got := req.Scrub(reply)
 	if want := ScrubAnswer; want != got {
 		t.Errorf("want scrub result %d, got %d", want, got)
 	}
-	if want, got := req.Size(), msg.Len(); want < got {
+	if want, got := req.Size(), reply.Len(); want < got {
 		t.Errorf("want scrub to reduce message length below %d bytes, got %d bytes", want, got)
 	}
-	if !msg.Truncated {
+	if !reply.Truncated {
 		t.Errorf("want scrub to set truncated bit")
 	}
 }
@@ -97,14 +97,14 @@ func TestRequestScrubExtra(t *testing.T) {
 			fmt.Sprintf("large.example.com. 10 IN SRV 0 0 80 10-0-0-%d.default.pod.k8s.example.com.", i)))
 	}
 
-	msg, got := req.Scrub(reply)
+	_, got := req.Scrub(reply)
 	if want := ScrubExtra; want != got {
 		t.Errorf("want scrub result %d, got %d", want, got)
 	}
-	if want, got := req.Size(), msg.Len(); want < got {
+	if want, got := req.Size(), reply.Len(); want < got {
 		t.Errorf("want scrub to reduce message length below %d bytes, got %d bytes", want, got)
 	}
-	if msg.Truncated {
+	if reply.Truncated {
 		t.Errorf("want scrub to not set truncated bit")
 	}
 }
