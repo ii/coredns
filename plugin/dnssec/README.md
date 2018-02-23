@@ -74,20 +74,3 @@ cluster.local {
     }
 }
 ~~~
-
-## Bugs
-
-Multiple *dnssec* plugins inside one server stanza will silently overwrite earlier ones, here
-`example.org` will overwrite the one for `cluster.local`.
-
-~~~
-. {
-    kubernetes cluster.local
-    dnssec cluster.local {
-      key file Kcluster.local+013+45129
-    }
-    dnssec example.org {
-      key file Kexample.org.+013+45330
-    }
-}
-~~~
