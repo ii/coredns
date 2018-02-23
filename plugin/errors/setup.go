@@ -40,7 +40,7 @@ func errorsParse(c *caddy.Controller) (errorHandler, error) {
 	i := 0
 	for c.Next() {
 		if i > 0 {
-			return nil, plugin.ErrOnce
+			return handler, plugin.ErrOnce
 		}
 		i++
 

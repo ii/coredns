@@ -63,7 +63,7 @@ func dnssecParse(c *caddy.Controller) ([]string, []*DNSKEY, int, error) {
 	i := 0
 	for c.Next() {
 		if i > 0 {
-			return nil, nil, plugin.ErrOnce
+			return nil, nil, 0, plugin.ErrOnce
 		}
 		i++
 
