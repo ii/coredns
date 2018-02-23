@@ -44,12 +44,7 @@ func setup(c *caddy.Controller) error {
 func logParse(c *caddy.Controller) ([]Rule, error) {
 	var rules []Rule
 
-	i := 0
 	for c.Next() {
-		if i > 0 {
-			return nil, plugin.ErrOnce
-		}
-		i++
 		args := c.RemainingArgs()
 
 		if len(args) == 0 {
