@@ -76,7 +76,8 @@ func dnssecParse(c *caddy.Controller) ([]string, []*DNSKEY, int, error) {
 		}
 
 		for c.NextBlock() {
-			switch c.Val() {
+
+			switch x := c.Val(); x {
 			case "key":
 				k, e := keyParse(c)
 				if e != nil {
@@ -93,6 +94,8 @@ func dnssecParse(c *caddy.Controller) ([]string, []*DNSKEY, int, error) {
 					return nil, nil, 0, err
 				}
 				capacity = cacheCap
+			default:
+				return nil, nil, 0, c.Errf("unknown property '%s'", x)
 			}
 
 		}
