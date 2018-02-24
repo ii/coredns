@@ -72,7 +72,7 @@ func hostsParse(c *caddy.Controller) (Hosts, error) {
 	i := 0
 	for c.Next() {
 		if i > 0 {
-			return nil, plugin.ErrOnce
+			return h, plugin.ErrOnce
 		}
 		i++
 

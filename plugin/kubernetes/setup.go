@@ -77,6 +77,7 @@ func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 		if i > 1 {
 			return nil, plugin.ErrOnce
 		}
+		i++
 
 		k8s, err = ParseStanza(c)
 		if err != nil {
