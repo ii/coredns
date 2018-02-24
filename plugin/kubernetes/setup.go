@@ -72,10 +72,12 @@ func (k *Kubernetes) RegisterKubeCache(c *caddy.Controller) {
 func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
 	var k8s *Kubernetes
 	var err error
-	for i := 1; c.Next(); i++ {
+	i := 0
+	for c.Next() {
 		if i > 1 {
-			return nil, fmt.Errorf("only one kubernetes section allowed per server block")
+			return nil, plugin.ErrOnce
 		}
+
 		k8s, err = ParseStanza(c)
 		if err != nil {
 			return k8s, err

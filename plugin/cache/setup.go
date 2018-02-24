@@ -61,7 +61,13 @@ func setup(c *caddy.Controller) error {
 func cacheParse(c *caddy.Controller) (*Cache, error) {
 	ca := New()
 
+	i := 0
 	for c.Next() {
+		if i > 0 {
+			return nil, plugin.ErrOnce
+		}
+		i++
+
 		// cache [ttl] [zones..]
 		origins := make([]string, len(c.ServerBlockKeys))
 		copy(origins, c.ServerBlockKeys)
