@@ -70,11 +70,14 @@ func (k *Kubernetes) RegisterKubeCache(c *caddy.Controller) {
 }
 
 func kubernetesParse(c *caddy.Controller) (*Kubernetes, error) {
-	var k8s *Kubernetes
-	var err error
+	var (
+		k8s *Kubernetes
+		err error
+	)
+
 	i := 0
 	for c.Next() {
-		if i > 1 {
+		if i > 0 {
 			return nil, plugin.ErrOnce
 		}
 		i++
