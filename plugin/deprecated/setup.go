@@ -19,6 +19,7 @@ import (
 	"github.com/mholt/caddy"
 )
 
+// removed has the names of the plugins that need to error on startup.
 var removed = []string{"startup", "shutdown"}
 
 func setup(c *caddy.Controller) error {
