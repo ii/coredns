@@ -1,15 +1,13 @@
-/*
-package deprecated is used when we deprecated plugin. In plugin.cfg just go from
-
-startup:github.com/mholt/caddy/startupshutdown
-
-To:
-
-startup:deprecated
-
-And things should work as expected. This means starting CoreDNS will fail with an error. We can only
-point to the release notes and what are the next steps to take
-*/
+// Package deprecated is used when we deprecated plugin. In plugin.cfg just go from
+//
+// startup:github.com/mholt/caddy/startupshutdown
+//
+// To:
+//
+// startup:deprecated
+//
+// And things should work as expected. This means starting CoreDNS will fail with an error. We can only
+// point to the release notes and what are the next steps to take
 package deprecated
 
 import (
