@@ -7,7 +7,8 @@
 // startup:deprecated
 //
 // And things should work as expected. This means starting CoreDNS will fail with an error. We can only
-// point to the release notes and what are the next steps to take
+// point to the release notes to details what next steps a user should take. I.e. there is no way to add this
+// to the error generated.
 package deprecated
 
 import (
