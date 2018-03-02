@@ -74,7 +74,7 @@ Set a lameduck duration of 1 second:
 
 ~~~ corefile
 . {
-    health localhost {
+    health localhost:8092 {
         lameduck 1s
     }
 }
