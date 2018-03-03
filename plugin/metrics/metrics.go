@@ -104,7 +104,12 @@ func (m *Metrics) OnStartup() error {
 }
 
 // OnShutdown tears down the metrics listener on shutdown and restart.
-func (m *Metrics) OnShutdown() error { return m.ln.Close() }
+func (m *Metrics) OnShutdown() error {
+	if m.ln != nil {
+		return m.ln.Close()
+	}
+	return nil
+}
 
 func keys(m map[string]bool) []string {
 	sx := []string{}
