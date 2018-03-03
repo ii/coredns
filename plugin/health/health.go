@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-var once sync.Once
-
 // Health implements healthchecks by polling plugins.
 type health struct {
 	Addr     string
