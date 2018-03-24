@@ -201,7 +201,7 @@ func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, Result) {
 		return reply, ScrubIgnored
 	}
 
-	// Account for to OPT record re-add in SizeAndDo(), subtract that length.
+	// Account for the OPT record that gets added in SizeAndDo(), subtract that length.
 	sub := 0
 	if r.Do() {
 		sub = optLen
