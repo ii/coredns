@@ -84,6 +84,7 @@ Wait:
 			for i = 0; i < len(t.conns[proto]); i++ {
 				pc := t.conns[proto][i]
 				if time.Since(pc.used) < t.expire {
+					// Found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
 					t.ret <- connErr{pc.c, nil}
 					continue Wait
@@ -97,13 +98,13 @@ Wait:
 			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len()))
 
 			go func() {
-				var c *dns.Conn
-				var err error
 				if proto != "tcp-tls" {
-					c, err = dns.DialTimeout(proto, t.addr, dialTimeout)
-				} else {
-					c, err = dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
+					c, err := dns.DialTimeout(proto, t.addr, dialTimeout)
+					t.ret <- connErr{c, err}
+					return
 				}
+
+				c, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
 				t.ret <- connErr{c, err}
 			}()
 
