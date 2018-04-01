@@ -5,6 +5,7 @@
 package forward
 
 import (
+	"io"
 	"strconv"
 	"time"
 
@@ -33,14 +34,30 @@ func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, me
 		conn.UDPSize = 512
 	}
 
-	conn.SetWriteDeadline(time.Now().Add(timeout))
-	if err := conn.WriteMsg(state.Req); err != nil {
-		conn.Close() // not giving it back
-		return nil, err
+	stop := 0
+	var ret *dns.Msg
+	for {
+		conn.SetWriteDeadline(time.Now().Add(timeout))
+		if err := conn.WriteMsg(state.Req); err != nil {
+			conn.Close() // not giving it back
+			return nil, err
+		}
+
+		conn.SetReadDeadline(time.Now().Add(timeout))
+		ret, err = conn.ReadMsg()
+
+		if err != nil && err == io.EOF && stop == 0 { // Remote side closed conn, can only happen with TCP.
+			conn, err = p.Dial(proto)
+			if err != nil {
+				return nil, err
+			}
+			stop++
+			continue
+		}
+
+		break
 	}
 
-	conn.SetReadDeadline(time.Now().Add(timeout))
-	ret, err := conn.ReadMsg()
 	if err != nil {
 		conn.Close() // not giving it back
 		return nil, err
