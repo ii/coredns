@@ -32,8 +32,6 @@ func setup(c *caddy.Controller) error {
 		return plugin.Error("forward", fmt.Errorf("more than %d TOs configured: %d", max, f.Len()))
 	}
 
-	println(f.proxies[0].client.TLSConfig.ServerName)
-
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		f.Next = next
 		return f
@@ -124,11 +122,10 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 					h = net.JoinHostPort(h1, "853")
 				}
 
-				pr := NewProxy(h, new(tls.Config))
-				f.proxies = append(f.proxies, pr)
+				f.tlsConfig = new(tls.Config)
 			}
 
-			pr := NewProxy(h, nil)
+			pr := NewProxy(h)
 			f.proxies = append(f.proxies, pr)
 		}
 
@@ -146,7 +143,6 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 	for i := range f.proxies {
 		f.proxies[i].SetExpire(f.expire)
 		f.proxies[i].SetTLSConfig(f.tlsConfig)
-		f.proxies[i].client = dnsClient(f.tlsConfig)
 	}
 	return f, nil
 }

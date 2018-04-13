@@ -27,13 +27,14 @@ type Proxy struct {
 }
 
 // NewProxy returns a new proxy.
-func NewProxy(addr string, tlsConfig *tls.Config) *Proxy {
+func NewProxy(addr string) *Proxy {
 	return &Proxy{
 		addr:      addr,
 		fails:     0,
 		probe:     up.New(),
-		transport: newTransport(addr, tlsConfig),
+		transport: newTransport(addr),
 		avgRtt:    int64(timeout / 2),
+		client:    dnsClient(nil),
 	}
 }
 
@@ -53,7 +54,10 @@ func dnsClient(tlsConfig *tls.Config) *dns.Client {
 }
 
 // SetTLSConfig sets the TLS config in the lower p.transport.
-func (p *Proxy) SetTLSConfig(cfg *tls.Config) { p.transport.SetTLSConfig(cfg) }
+func (p *Proxy) SetTLSConfig(cfg *tls.Config) {
+	p.transport.SetTLSConfig(cfg)
+	p.client = dnsClient(cfg)
+}
 
 // SetExpire sets the expire duration in the lower p.transport.
 func (p *Proxy) SetExpire(expire time.Duration) { p.transport.SetExpire(expire) }

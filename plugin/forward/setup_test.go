@@ -103,5 +103,9 @@ func TestSetupTLS(t *testing.T) {
 		if !test.shouldErr && test.expectedServerName != f.tlsConfig.ServerName {
 			t.Errorf("Test %d: expected: %q, actual: %q", i, test.expectedServerName, f.tlsConfig.ServerName)
 		}
+
+		if !test.shouldErr && test.expectedServerName != f.proxies[0].client.TLSConfig.ServerName {
+			t.Errorf("Test %d: expected: %q, actual: %q", i, test.expectedServerName, f.proxies[0].client.TLSConfig.ServerName)
+		}
 	}
 }
