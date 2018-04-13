@@ -28,15 +28,13 @@ type Proxy struct {
 
 // NewProxy returns a new proxy.
 func NewProxy(addr string, tlsConfig *tls.Config) *Proxy {
-	p := &Proxy{
+	return &Proxy{
 		addr:      addr,
 		fails:     0,
 		probe:     up.New(),
 		transport: newTransport(addr, tlsConfig),
 		avgRtt:    int64(timeout / 2),
 	}
-	p.client = dnsClient(tlsConfig)
-	return p
 }
 
 // dnsClient returns a client used for health checking.

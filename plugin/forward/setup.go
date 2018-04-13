@@ -1,6 +1,7 @@
 package forward
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"strconv"
@@ -30,6 +31,8 @@ func setup(c *caddy.Controller) error {
 	if f.Len() > max {
 		return plugin.Error("forward", fmt.Errorf("more than %d TOs configured: %d", max, f.Len()))
 	}
+
+	println(f.proxies[0].client.TLSConfig.ServerName)
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
 		f.Next = next
@@ -120,12 +123,13 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 				if p == "53" {
 					h = net.JoinHostPort(h1, "853")
 				}
+
+				pr := NewProxy(h, new(tls.Config))
+				f.proxies = append(f.proxies, pr)
 			}
 
-			// We can't set tlsConfig here, because we haven't parsed it yet.
-			// We set it below at the end of parseBlock, use nil now.
-			p := NewProxy(h, nil /* no TLS */)
-			f.proxies = append(f.proxies, p)
+			pr := NewProxy(h, nil)
+			f.proxies = append(f.proxies, pr)
 		}
 
 		for c.NextBlock() {
@@ -138,12 +142,11 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 	if f.tlsServerName != "" {
 		f.tlsConfig.ServerName = f.tlsServerName
 	}
+	// Update the proxies with possibly new TLS Configs.
 	for i := range f.proxies {
-		// Only set this for proxies that need it.
-		if protocols[i] == TLS {
-			f.proxies[i].SetTLSConfig(f.tlsConfig)
-		}
 		f.proxies[i].SetExpire(f.expire)
+		f.proxies[i].SetTLSConfig(f.tlsConfig)
+		f.proxies[i].client = dnsClient(f.tlsConfig)
 	}
 	return f, nil
 }
