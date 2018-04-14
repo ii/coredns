@@ -26,7 +26,14 @@ func (p *Proxy) readTimeout() time.Duration {
 
 func (p *Proxy) updateRtt(newRtt time.Duration) {
 	rtt := time.Duration(atomic.LoadInt64(&p.avgRtt))
-	atomic.AddInt64(&p.avgRtt, int64((newRtt-rtt)/rttCount))
+	avg := rtt + ((newRtt - rtt) / rttCount)
+	if avg < minTimeout {
+		avg = minTimeout
+	}
+	if avg > maxTimeout {
+		avg = maxTimeout
+	}
+	atomic.StoreInt64(&p.avgRtt, int64(avg))
 }
 
 func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, metric bool) (*dns.Msg, error) {
@@ -87,4 +94,8 @@ func (p *Proxy) connect(ctx context.Context, state request.Request, forceTCP, me
 	return ret, nil
 }
 
-const rttCount = 4
+const (
+	rttCount   = 4
+	minTimeout = time.Millisecond * 500
+	maxTimeout = dialTimeout // 4 s
+)
