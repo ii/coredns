@@ -5,42 +5,11 @@ import (
 
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
 	"github.com/coredns/coredns/plugin/test"
-	"github.com/coredns/coredns/request"
+
 	"github.com/mholt/caddy"
-
 	"github.com/miekg/dns"
+	"golang.org/x/net/context"
 )
-
-func TestForward(t *testing.T) {
-	s := dnstest.NewServer(func(w dns.ResponseWriter, r *dns.Msg) {
-		ret := new(dns.Msg)
-		ret.SetReply(r)
-		ret.Answer = append(ret.Answer, test.A("example.org. IN A 127.0.0.1"))
-		w.WriteMsg(ret)
-	})
-	defer s.Close()
-
-	f := New()
-	f.SetProxy(NewProxy(s.Addr))
-	defer f.Close()
-
-	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
-	state.Req.SetQuestion("example.org.", dns.TypeA)
-	resp, err := f.Forward(state)
-	if err != nil {
-		t.Fatal("Expected to receive reply, but didn't")
-	}
-	// expect answer section with A record in it
-	if len(resp.Answer) == 0 {
-		t.Fatalf("Expected to at least one RR in the answer section, got none: %s", resp)
-	}
-	if resp.Answer[0].Header().Rrtype != dns.TypeA {
-		t.Errorf("Expected RR to A, got: %d", resp.Answer[0].Header().Rrtype)
-	}
-	if resp.Answer[0].(*dns.A).A.String() != "127.0.0.1" {
-		t.Errorf("Expected 127.0.0.1, got: %s", resp.Answer[0].(*dns.A).A.String())
-	}
-}
 
 func TestProxy(t *testing.T) {
 	s := dnstest.NewServer(func(w dns.ResponseWriter, r *dns.Msg) {
@@ -51,28 +20,22 @@ func TestProxy(t *testing.T) {
 	})
 	defer s.Close()
 
-	println(s.Addr)
 	c := caddy.NewTestController("dns", "forward . "+s.Addr)
 	f, err := parseForward(c)
 	if err != nil {
 		t.Errorf("Failed to create forwarder: %s", err)
 	}
-	defer f.Close()
+	f.OnStartup()
+	defer f.OnShutdown()
 
-	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
-	state.Req.SetQuestion("example.org.", dns.TypeA)
-	resp, err := f.Ser(state)
-	if err != nil {
+	m := new(dns.Msg)
+	m.SetQuestion("example.org.", dns.TypeA)
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
+
+	if _, err := f.ServeDNS(context.TODO(), rec, m); err != nil {
 		t.Fatal("Expected to receive reply, but didn't")
 	}
-	// expect answer section with A record in it
-	if len(resp.Answer) == 0 {
-		t.Fatalf("Expected to at least one RR in the answer section, got none: %s", resp)
-	}
-	if resp.Answer[0].Header().Rrtype != dns.TypeA {
-		t.Errorf("Expected RR to A, got: %d", resp.Answer[0].Header().Rrtype)
-	}
-	if resp.Answer[0].(*dns.A).A.String() != "127.0.0.1" {
-		t.Errorf("Expected 127.0.0.1, got: %s", resp.Answer[0].(*dns.A).A.String())
+	if x := rec.Msg.Answer[0].Header().Name; x != "example.org." {
+		t.Errorf("Expected %s, got %s", "example.org.", x)
 	}
 }

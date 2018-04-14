@@ -137,6 +137,9 @@ func parseForward(c *caddy.Controller) (*Forward, error) {
 	}
 
 	if f.tlsServerName != "" {
+		if f.tlsConfig == nil {
+			return f, fmt.Errorf("tls_servername set for non TLS upstream: %s", f.tlsServerName)
+		}
 		f.tlsConfig.ServerName = f.tlsServerName
 	}
 	// Update the proxies with possibly new TLS Configs.

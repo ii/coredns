@@ -77,9 +77,14 @@ func TestSetupTLS(t *testing.T) {
 		expectedErr        string
 	}{
 		// positive
-		{`forward . 127.0.0.1 {
+		{`forward . tls://127.0.0.1 {
 			tls_servername dns
 		}`, false, "dns", ""},
+
+		// negative
+		{`forward . 127.0.0.1 {
+			tls_servername dns
+		}`, true, "dns", "tls_servername set for non TLS"},
 	}
 
 	for i, test := range tests {
