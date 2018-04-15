@@ -21,7 +21,7 @@ import (
 type Logger struct {
 	Next      plugin.Handler
 	Rules     []Rule
-	ErrorFunc func(dns.ResponseWriter, *dns.Msg, int) // failover error handler
+	ErrorFunc func(context.Context, dns.ResponseWriter, *dns.Msg, int) // failover error handler
 }
 
 // ServeDNS implements the plugin.Handler interface.
@@ -45,7 +45,7 @@ func (l Logger) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 				answer.SetRcode(r, rc)
 				state.SizeAndDo(answer)
 
-				vars.Report(state, vars.Dropped, rcode.ToString(rc), answer.Len(), time.Now())
+				vars.Report(ctx, state, vars.Dropped, rcode.ToString(rc), answer.Len(), time.Now())
 
 				w.WriteMsg(answer)
 			}
