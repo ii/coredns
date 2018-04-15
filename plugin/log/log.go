@@ -39,7 +39,7 @@ func (l Logger) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 			// There was an error up the chain, but no response has been written yet.
 			// The error must be handled here so the log entry will record the response size.
 			if l.ErrorFunc != nil {
-				l.ErrorFunc(rrw, r, rc)
+				l.ErrorFunc(ctx, rrw, r, rc)
 			} else {
 				answer := new(dns.Msg)
 				answer.SetRcode(r, rc)
