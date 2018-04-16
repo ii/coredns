@@ -19,7 +19,7 @@ func Report(ctx context.Context, req request.Request, zone, rcode string, size i
 		fam = "2"
 	}
 
-	server := withServer(ctx)
+	server := WithServer(ctx)
 
 	typ := req.QType()
 	RequestCount.WithLabelValues(server, zone, net, fam).Inc()
@@ -41,8 +41,8 @@ func Report(ctx context.Context, req request.Request, zone, rcode string, size i
 	ResponseRcode.WithLabelValues(server, zone, rcode).Inc()
 }
 
-// Copy WithServer from ../context.go here to prevent a cyclic dependency...
-func withServer(ctx context.Context) string {
+// WithServer returns the current server handling the request.
+func WithServer(ctx context.Context) string {
 	srv := ctx.Value(plugin.ServerCtx{})
 	if srv == nil {
 		return ""
