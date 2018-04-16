@@ -24,9 +24,8 @@ Each counter has a label `zone` which is the zonename used for the request/respo
 Extra labels used are:
 
 * `server` is identifying the server responsible for the request. This is a string formatted
-  as theserver's listening address: `<scheme>://[<bind>]:<port>`. I.e. for a "normal" DNS server
-  this is `dns://:53`. If you are using the *bind* plugin an IP address is be included, e.g.: `dns://127.0.0.53:53`.
-  Note that this label is usually the first in a metric.
+  as the server's listening address: `<scheme>://[<bind>]:<port>`. I.e. for a "normal" DNS server
+  this is `dns://:53`. If you are using the *bind* plugin an IP address is included, e.g.: `dns://127.0.0.53:53`.
 * `proto` which holds the transport of the response ("udp" or "tcp")
 * The address family (`family`) of the transport (1 = IP (IP version 4), 2 = IP6 (IP version 6)).
 * `type` which holds the query type. It holds most common types (A, AAAA, MX, SOA, CNAME, PTR, TXT,
