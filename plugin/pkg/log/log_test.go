@@ -24,6 +24,24 @@ func TestDebug(t *testing.T) {
 	}
 }
 
+func TestDebugx(t *testing.T) {
+	var f bytes.Buffer
+	log.SetOutput(&f)
+
+	D = true
+
+	Debugf("%s", "debug")
+	if x := f.String(); !strings.Contains(x, debug+"debug") {
+		t.Errorf("Expected debug log to be %s, got %s", debug+"debug", x)
+	}
+
+	Debugln("debug")
+	if x := f.String(); !strings.Contains(x, debug+"debug\n") {
+		t.Errorf("Expected debug log to be %s, got %s", debug+"debug", x)
+	}
+
+}
+
 func TestPrint(t *testing.T) {
 	var f bytes.Buffer
 	log.SetOutput(&f)
