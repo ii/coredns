@@ -1,8 +1,12 @@
 // The log package implements a small wrapper around the std lib log package.
-// All logging can be done as-is, but in addition debug logging can be done
-// as well.
+// All logging can be done as-is, but in addition debug logging is available.
 //
-// These last ones only show output when the *debug* plugin is loaded.
+// I.e. normal use: log.Print("[INFO] this is some logging").
+//
+// Debug logging: log.Debug("this is debug output"). Note "[DEBUG] " is prepended
+// to the output.
+//
+// These last one only show output when the *debug* plugin is loaded.
 package log
 
 import (
