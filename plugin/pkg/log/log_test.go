@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDebugLog(t *testing.T) {
+func TestDebug(t *testing.T) {
 	var f bytes.Buffer
 	log.SetOutput(&f)
 
@@ -21,5 +21,15 @@ func TestDebugLog(t *testing.T) {
 	Debug("debug")
 	if x := f.String(); !strings.Contains(x, debug+"debug") {
 		t.Errorf("Expected debug log to be %s, got %s", debug+"debug", x)
+	}
+}
+
+func TestPrint(t *testing.T) {
+	var f bytes.Buffer
+	log.SetOutput(&f)
+
+	Print("debug")
+	if x := f.String(); !strings.Contains(x, "debug") {
+		t.Errorf("Expected log to be %s, got %s", "debug", x)
 	}
 }
