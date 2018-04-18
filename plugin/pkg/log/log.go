@@ -1,4 +1,4 @@
-// The log package implements a small wrapper around the std lib log package.
+// Package log implements a small wrapper around the std lib log package.
 // All logging can be done as-is, but in addition debug logging is available.
 //
 // I.e. normal use: log.Print("[INFO] this is some logging").
@@ -14,7 +14,7 @@ import (
 	golog "log"
 )
 
-// When D is true, debugging output will be shown.
+// D controls whether we should ouput debug logs. If true, we do.
 var D bool
 
 // Debug is equivalent to log.Print() but prefixed with "[DEBUG] ".
@@ -26,7 +26,7 @@ func Debug(v ...interface{}) {
 	golog.Print(s)
 }
 
-// Debug is equivalent to log.Printf() but prefixed with "[DEBUG] ".
+// Debugf is equivalent to log.Printf() but prefixed with "[DEBUG] ".
 func Debugf(format string, v ...interface{}) {
 	if !D {
 		return
