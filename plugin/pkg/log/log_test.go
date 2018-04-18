@@ -2,14 +2,14 @@ package log
 
 import (
 	"bytes"
-	"log"
+	golog "log"
 	"strings"
 	"testing"
 )
 
 func TestDebug(t *testing.T) {
 	var f bytes.Buffer
-	log.SetOutput(&f)
+	golog.SetOutput(&f)
 
 	// D == false
 	Debug("debug")
@@ -26,7 +26,7 @@ func TestDebug(t *testing.T) {
 
 func TestDebugx(t *testing.T) {
 	var f bytes.Buffer
-	log.SetOutput(&f)
+	golog.SetOutput(&f)
 
 	D = true
 
@@ -35,19 +35,27 @@ func TestDebugx(t *testing.T) {
 		t.Errorf("Expected debug log to be %s, got %s", debug+"debug", x)
 	}
 
-	Debugln("debug")
-	if x := f.String(); !strings.Contains(x, debug+"debug\n") {
+	Debug("debug")
+	if x := f.String(); !strings.Contains(x, debug+"debug") {
 		t.Errorf("Expected debug log to be %s, got %s", debug+"debug", x)
 	}
-
 }
 
-func TestPrint(t *testing.T) {
+func TestLevels(t *testing.T) {
 	var f bytes.Buffer
-	log.SetOutput(&f)
+	const ts = "test"
+	golog.SetOutput(&f)
 
-	Print("debug")
-	if x := f.String(); !strings.Contains(x, "debug") {
-		t.Errorf("Expected log to be %s, got %s", "debug", x)
+	Info(ts)
+	if x := f.String(); !strings.Contains(x, info+ts) {
+		t.Errorf("Expected log to be %s, got %s", info+ts, x)
+	}
+	Warning(ts)
+	if x := f.String(); !strings.Contains(x, warning+ts) {
+		t.Errorf("Expected log to be %s, got %s", warning+ts, x)
+	}
+	Error(ts)
+	if x := f.String(); !strings.Contains(x, err+ts) {
+		t.Errorf("Expected log to be %s, got %s", err+ts, x)
 	}
 }
