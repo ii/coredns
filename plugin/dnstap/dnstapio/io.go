@@ -112,7 +112,7 @@ func (dio *dnstapIO) flushBuffer() {
 		if err := dio.newConnect(); err != nil {
 			log.Errorf("Cannot connect to dnstap: %s", err)
 		} else {
-			log.Error("Reconnected to dnstap")
+			log.Info("Reconnected to dnstap")
 		}
 	}
 }
