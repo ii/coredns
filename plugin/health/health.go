@@ -61,6 +61,17 @@ func (h *health) OnStartup() error {
 	return nil
 }
 
+func (h *health) OnRestart() error {
+	// relingish our listener as we re-listen on successfull reload
+	if h.ln != nil {
+		if err := h.ln.Close(); err != nil {
+			return err
+		}
+		h.ln = nil
+	}
+	return nil
+}
+
 func (h *health) OnShutdown() error {
 	// Stop polling plugins
 	h.pollstop <- true

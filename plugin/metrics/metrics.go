@@ -104,6 +104,17 @@ func (m *Metrics) OnStartup() error {
 	return nil
 }
 
+func (m *Metrics) OnRestart() error {
+	// relingish our listener as we re-listen on successfull reload
+	if m.ln != nil {
+		if err := m.ln.Close(); err != nil {
+			return err
+		}
+		m.ln = nil
+	}
+	return nil
+}
+
 // OnShutdown tears down the metrics listener on shutdown and restart.
 func (m *Metrics) OnShutdown() error {
 	// We allow prometheus statements in multiple Server Blocks, but only the first
