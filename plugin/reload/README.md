@@ -13,7 +13,8 @@ or SIGUSR1 after changing the Corefile.
 
 The reloads are graceful - you should not see any loss of service when the
 reload happens. Even if the new Corefile has an error, CoreDNS will continue
-to run the old config and an error message will be printed to the log.
+to run the old config and an error message will be printed to the log. But see
+the Bugs section for failure modes.
 
 In some environments (for example, Kubernetes), there may be many CoreDNS
 instances that started very near the same time and all share a common
@@ -59,3 +60,27 @@ Check every 10 seconds (jitter is automatically set to 10 / 2 = 5 in this case):
     erratic
 }
 ~~~
+
+## Bugs
+
+The reload happens without data loss (i.e. DNS queries keep flowing), but there is a corner case
+where the reload "succeeds", but you can still loose functionally. Consider the following Corefile:
+
+~~~ corefile
+. {
+	health :8080
+	whoami
+}
+~~~
+
+CoreDNS starts and serves health from :8080. Now you change `:8080` to `:443` not knowing a process
+is already listening on that port. The process reloads, and performs the following steps:
+
+1. close the listener on 8080
+2. reload and parse the config again
+3. fail to start a new listener on 443
+
+Now failing step 3 *does not cause* the reload to fail, instead almost everything works, except the
+health exporting because there is no new listener.
+
+Note the same is true for prometheus metrics plugin.
