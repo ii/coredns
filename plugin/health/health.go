@@ -83,11 +83,14 @@ func (h *health) OnShutdown() error {
 		time.Sleep(h.lameduck)
 	}
 
+	h.stop <- true
+	return nil
+}
+
+func (h *health) OnFinalShutdown() error {
 	if h.ln != nil {
 		return h.ln.Close()
 	}
-
-	h.stop <- true
 	return nil
 }
 

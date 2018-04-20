@@ -36,7 +36,7 @@ func setup(c *caddy.Controller) error {
 		uniqAddr.a[a] = done
 	}
 
-	c.OnShutdown(m.OnShutdown)
+	c.OnShutdown(m.OnFinalShutdown)
 	c.OnRestart(m.OnRestart)
 
 	return nil
