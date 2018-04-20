@@ -104,6 +104,7 @@ func (m *Metrics) OnStartup() error {
 	return nil
 }
 
+// OnRestart stops the listener on reload.
 func (m *Metrics) OnRestart() error {
 	// relingish our listener as we re-listen on successfull reload
 	if m.ln != nil {
