@@ -72,7 +72,7 @@ func (h *health) OnRestart() error {
 	return nil
 }
 
-func (h *health) OnShutdown() error {
+func (h *health) OnFinalShutdown() error {
 	// Stop polling plugins
 	h.pollstop <- true
 	// NACK health
@@ -83,14 +83,11 @@ func (h *health) OnShutdown() error {
 		time.Sleep(h.lameduck)
 	}
 
-	h.stop <- true
-	return nil
-}
-
-func (h *health) OnFinalShutdown() error {
 	if h.ln != nil {
 		return h.ln.Close()
 	}
+
+	h.stop <- true
 	return nil
 }
 
