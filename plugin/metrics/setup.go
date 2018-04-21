@@ -30,13 +30,7 @@ func setup(c *caddy.Controller) error {
 	})
 
 	c.OnStartup(func() error {
-		for a, v := range uniqAddr.a {
-			println("setting up for", a)
-			if v == todo {
-				c.OncePerServerBlock(m.OnStartup)
-			}
-			uniqAddr.a[a] = done
-		}
+		uniqAddr.forEachTodo(m.OnStartup)
 		return nil
 	})
 
@@ -50,7 +44,7 @@ func prometheusParse(c *caddy.Controller) (*Metrics, error) {
 	var met = New(defaultAddr)
 
 	defer func() {
-		uniqAddr.SetAddress(met.Addr)
+		uniqAddr.setAddress(met.Addr)
 	}()
 
 	i := 0
@@ -80,26 +74,5 @@ func prometheusParse(c *caddy.Controller) (*Metrics, error) {
 	return met, nil
 }
 
-// addrs keeps track on which addrs we listen, so we only start one listener, is
-// prometheus is used in multiple Server Blocks.
-type addrs struct {
-	a map[string]int
-}
-
-var uniqAddr addrs
-
-func (a *addrs) SetAddress(addr string) {
-	// If already there and set to done, we've already started this listener.
-	if a.a[addr] == done {
-		return
-	}
-	a.a[addr] = todo
-}
-
 // defaultAddr is the address the where the metrics are exported by default.
 const defaultAddr = "localhost:9153"
-
-const (
-	todo = 1
-	done = 2
-)

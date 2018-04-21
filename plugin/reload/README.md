@@ -66,7 +66,7 @@ Check every 10 seconds (jitter is automatically set to 10 / 2 = 5 in this case):
 The reload happens without data loss (i.e. DNS queries keep flowing), but there is a corner case
 where the reload "succeeds", but you can still loose functionally. Consider the following Corefile:
 
-~~~ corefile
+~~~ txt
 . {
 	health :8080
 	whoami
@@ -81,6 +81,5 @@ is already listening on that port. The process reloads, and performs the followi
 3. fail to start a new listener on 443
 
 Now failing step 3 *does not cause* the reload to fail, instead almost everything works, except the
-health exporting because there is no new listener.
-
-Note the same is true for prometheus metrics plugin.
+health exporting because there is no new listener. Note the same is true for prometheus metrics plugin.
+In general be careful with assigning new port and expecting reload to work.
