@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -92,6 +93,8 @@ func TestReloadMetricsHealth(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer c1.Stop()
+
+	time.Sleep(1 * time.Second)
 
 	// Send query to trigger monitoring to export on the new process
 	udp, _ := CoreDNSServerPorts(c1, 0)
