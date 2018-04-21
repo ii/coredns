@@ -55,7 +55,11 @@ func (h *health) OnStartup() error {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	})
 
-	go func() { http.Serve(h.ln, h.mux) }()
+	go func() {
+		http.Serve(
+			h.ln,
+			h.mux)
+	}()
 	go func() { h.overloaded() }()
 
 	return nil
