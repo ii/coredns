@@ -3,37 +3,37 @@ package metrics
 // addrs keeps track on which addrs we listen, so we only start one listener, is
 // prometheus is used in multiple Server Blocks.
 type addrs struct {
-	a map[string]int
+	a map[string]value
+}
+
+type value struct {
+	state int
+	f     func() error
 }
 
 var uniqAddr addrs
 
-func (a *addrs) setAddress(addr string) {
-	// If already there and set to done, we've already started this listener.
-	if a.a[addr] == done {
+func newAddress() addrs {
+	return addrs{a: make(map[string]value)}
+}
+
+func (a addrs) setAddress(addr string, f func() error) {
+	if a.a[addr].state == done {
 		return
 	}
-	a.a[addr] = todo
+	a.a[addr] = value{todo, f}
 }
 
 // forEachTodo iterates for a and executes f for each element that is 'todo' and sets it to 'done'.
-func (a *addrs) forEachTodo(f func() error) {
-	for a, v := range uniqAddr.a {
-		if v == todo {
-			f()
+func (a addrs) forEachTodo() error {
+	for k, v := range a.a {
+		if v.state == todo {
+			v.f()
 		}
-		uniqAddr.a[a] = done
+		v.state = done
+		a.a[k] = v
 	}
-}
-
-// forEachDone iterates for a and executes f for each element that is 'done' and sets it to 'todo'.
-func (a *addrs) forEachDone(f func() error) {
-	for a, v := range uniqAddr.a {
-		if v == done {
-			f()
-		}
-		uniqAddr.a[a] = todo
-	}
+	return nil
 }
 
 const (

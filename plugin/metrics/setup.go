@@ -15,7 +15,7 @@ func init() {
 		Action:     setup,
 	})
 
-	uniqAddr = addrs{a: make(map[string]int)}
+	uniqAddr = newAddress()
 }
 
 func setup(c *caddy.Controller) error {
@@ -29,8 +29,10 @@ func setup(c *caddy.Controller) error {
 		return m
 	})
 
-	c.OnStartup(func() error {
-		uniqAddr.forEachTodo(m.OnStartup)
+	c.OncePerServerBlock(func() error {
+		c.OnStartup(func() error {
+			return uniqAddr.forEachTodo()
+		})
 		return nil
 	})
 
@@ -44,7 +46,7 @@ func prometheusParse(c *caddy.Controller) (*Metrics, error) {
 	var met = New(defaultAddr)
 
 	defer func() {
-		uniqAddr.setAddress(met.Addr)
+		uniqAddr.setAddress(met.Addr, met.OnStartup)
 	}()
 
 	i := 0
