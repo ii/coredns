@@ -55,26 +55,13 @@ func (h *health) OnStartup() error {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	})
 
-	go func() {
-		http.Serve(
-			h.ln,
-			h.mux)
-	}()
+	go func() { http.Serve(h.ln, h.mux) }()
 	go func() { h.overloaded() }()
 
 	return nil
 }
 
-func (h *health) OnRestart() error {
-	// relingish our listener as we re-listen on successfull reload
-	if h.ln != nil {
-		if err := h.ln.Close(); err != nil {
-			return err
-		}
-		h.ln = nil
-	}
-	return nil
-}
+func (h *health) OnRestart() error { return h.OnFinalShutdown() }
 
 func (h *health) OnFinalShutdown() error {
 	// Stop polling plugins
