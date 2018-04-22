@@ -10,7 +10,7 @@ type P struct {
 	plugin string
 }
 
-// NewWithPlugin return a logger that shows the plugin that logs the message.
+// NewWithPlugin returns a logger that includes "plugin/name: " in the log message.
 // I.e [INFO] plugin/<name>: message.
 func NewWithPlugin(name string) P { return P{name} }
 
