@@ -3,8 +3,6 @@ package log
 import (
 	"fmt"
 	golog "log"
-
-	"github.com/coredns/coredns/plugin"
 )
 
 // P is a logger that includes the plugin doing the logging.
@@ -14,7 +12,7 @@ type P struct {
 
 // NewWithPlugin return a logger that shows the plugin that logs the message.
 // I.e [INFO] plugin/<name>: message.
-func NewWithPlugin(h plugin.Handler) P { return P{h.Name()} }
+func NewWithPlugin(name string) P { return P{name} }
 
 func (p P) logf(level, format string, v ...interface{}) {
 	s := level + pFormat(p.plugin) + fmt.Sprintf(format, v...)
