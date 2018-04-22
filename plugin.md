@@ -43,7 +43,7 @@ a `f` variant. The plugin's name should be included, by using the log package li
 ~~~ go
 import clog "github.com/coredns/coredns/plugin/pkg/log"
 
-var log = clog.NewWithPlugin(Whoami{})
+var log = clog.NewWithPlugin("whoami")
 
 log.Info("message") // outputs: [INFO] plugin/whoami: message
 ~~~
