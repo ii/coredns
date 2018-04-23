@@ -10,11 +10,11 @@ PRESUBMIT:=core coremain plugin
 all: coredns
 
 .PHONY: coredns
-coredns: presubmit $(CHECKS)
+coredns: $(CHECKS)
 	CGO_ENABLED=0 $(SYSTEM) go build $(VERBOSE) -ldflags="-s -w -X github.com/coredns/coredns/coremain.GitCommit=$(GITCOMMIT)" -o $(BINARY)
 
 .PHONY: check
-check: linter goimports core/zplugin.go core/dnsserver/zdirectives.go godeps
+check: presubmit linter goimports core/zplugin.go core/dnsserver/zdirectives.go godeps
 
 .PHONY: test
 test: check
