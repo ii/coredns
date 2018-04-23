@@ -5,6 +5,7 @@ SYSTEM:=
 CHECKS:=check godeps
 VERBOSE:=-v
 GOPATH?=$(HOME)/go
+PRESUBMIT:=core coremain plugin
 
 all: coredns
 
@@ -86,6 +87,11 @@ linter:
 .PHONY: goimports
 goimports:
 	( gometalinter --deadline=2m --disable-all --enable=goimports --vendor --exclude=^pb/ ./... || true )
+
+# Presubmit runs all scripts in .presubmit; any non 0 exit code will fail the build.
+.PHONY: presubmit
+presubmit:
+	@for pre in $(PWD)/.presubmit/* ; do "$$pre" $(PRESUBMIT); done
 
 .PHONY: clean
 clean:
