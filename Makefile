@@ -10,7 +10,7 @@ PRESUBMIT:=core coremain plugin
 all: coredns
 
 .PHONY: coredns
-coredns: $(CHECKS)
+coredns: presubmit $(CHECKS)
 	CGO_ENABLED=0 $(SYSTEM) go build $(VERBOSE) -ldflags="-s -w -X github.com/coredns/coredns/coremain.GitCommit=$(GITCOMMIT)" -o $(BINARY)
 
 .PHONY: check
