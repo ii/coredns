@@ -43,14 +43,6 @@ func setup(c *caddy.Controller) error {
 		return nil
 	})
 
-	// Initialize all counters and gauges.
-	cacheSize.WithLabelValues(Success)
-	cacheSize.WithLabelValues(Denial)
-	cacheCapacity.WithLabelValues(Success).Set(float64(ca.pcap))
-	cacheCapacity.WithLabelValues(Denial).Set(float64(ca.ncap))
-	cacheHits.WithLabelValues(Success)
-	cacheHits.WithLabelValues(Denial)
-
 	return nil
 }
 
