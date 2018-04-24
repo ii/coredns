@@ -51,7 +51,14 @@ func newTransport(addr string, tlsConfig *tls.Config) *transport {
 		lenc:    make(chan bool),
 		lencOut: make(chan int),
 	}
-	go t.connManager()
+	go func() {
+		t.connManager()
+		// if connManager returns it has been stopped.
+		close(t.stop)
+		close(t.yield)
+		close(t.dial)
+		// close(t.ret) // we can still be dialing and wanting to send back the socket on t.ret
+	}()
 	return t
 }
 
