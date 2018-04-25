@@ -48,6 +48,16 @@ net {
 }
 ~~~
 
+Note this is also true if you format your Corefile as:
+
+~~~ corefile
+com net {
+    whoami
+    erratic
+    health :8080
+}
+~~~~
+
 ## Plugins
 
 Any plugin that implements the Healther interface will be used to report health.
