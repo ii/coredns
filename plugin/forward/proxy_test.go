@@ -2,7 +2,6 @@ package forward
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
@@ -30,25 +29,10 @@ func TestProxyClose(t *testing.T) {
 		p := NewProxy(s.Addr, nil /* no TLS */)
 		p.start(hcDuration)
 
-		var wg sync.WaitGroup
-		wg.Add(4)
-		go func() {
-			p.connect(ctx, state, false, false)
-			wg.Done()
-		}()
-		go func() {
-			p.connect(ctx, state, true, false)
-			wg.Done()
-		}()
-		go func() {
-			p.connect(ctx, state, false, false)
-			wg.Done()
-		}()
-		go func() {
-			p.connect(ctx, state, true, false)
-			wg.Done()
-		}()
-		wg.Wait()
+		go func() { p.connect(ctx, state, false, false) }()
+		go func() { p.connect(ctx, state, true, false) }()
+		go func() { p.connect(ctx, state, false, false) }()
+		go func() { p.connect(ctx, state, true, false) }()
 
 		p.close()
 
