@@ -31,17 +31,13 @@ func TestProxyClose(t *testing.T) {
 		p.start(hcDuration)
 
 		var wg sync.WaitGroup
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			p.connect(ctx, state, false, false)
 			wg.Done()
 		}()
 		go func() {
 			p.connect(ctx, state, true, false)
-			wg.Done()
-		}()
-		go func() {
-			p.close()
 			wg.Done()
 		}()
 		go func() {
@@ -53,6 +49,8 @@ func TestProxyClose(t *testing.T) {
 			wg.Done()
 		}()
 		wg.Wait()
+
+		p.close()
 
 		if p.inProgress != 0 {
 			t.Errorf("unexpected query in progress")
