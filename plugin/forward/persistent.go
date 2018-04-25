@@ -16,9 +16,8 @@ type persistConn struct {
 
 // connErr is used to communicate the connection manager.
 type connErr struct {
-	c      *dns.Conn
-	err    error
-	cached bool
+	c   *dns.Conn
+	err error
 }
 
 // transport hold the persistent cache.
@@ -80,7 +79,7 @@ Wait:
 				if time.Since(pc.used) < t.expire {
 					// Found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
-					t.ret <- connErr{pc.c, nil, true}
+					t.ret <- connErr{pc.c, nil}
 					continue Wait
 				}
 				// This conn has expired. Close it.
@@ -91,16 +90,7 @@ Wait:
 			t.conns[proto] = t.conns[proto][i:]
 			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len()))
 
-			go func() {
-				if proto != "tcp-tls" {
-					c, err := dns.DialTimeout(proto, t.addr, dialTimeout)
-					t.ret <- connErr{c, err, false}
-					return
-				}
-
-				c, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
-				t.ret <- connErr{c, err, false}
-			}()
+			t.ret <- connErr{nil, errCachedNotFound}
 
 		case conn := <-t.yield:
 
@@ -134,12 +124,26 @@ func (t *transport) Dial(proto string) (*dns.Conn, bool, error) {
 
 	t.dial <- proto
 	c := <-t.ret
-	return c.c, c.cached, c.err
+
+	if c.err == nil {
+		return c.c, true, c.err
+	}
+
+	var conn *dns.Conn
+	var err error
+	if c.err == errCachedNotFound {
+		if proto == "tcp-tls" {
+			conn, err = dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
+		} else {
+			conn, err = dns.DialTimeout(proto, t.addr, dialTimeout)
+		}
+	}
+	return conn, false, err
 }
 
 // Yield return the connection to transport for reuse.
 func (t *transport) Yield(c *dns.Conn) {
-	t.yield <- connErr{c, nil, false}
+	t.yield <- connErr{c, nil}
 }
 
 // Stop stops the transport's connection manager.
