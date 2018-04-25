@@ -109,7 +109,7 @@ var (
 		Subsystem: "cache",
 		Name:      "capacity",
 		Help:      "The cache's capacity.",
-	}, []string{"type"})
+	}, []string{"server", "type"})
 
 	cacheHits = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: plugin.Namespace,
