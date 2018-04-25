@@ -26,7 +26,7 @@ func TestProxyClose(t *testing.T) {
 	ctx := context.TODO()
 
 	for i := 0; i < 100; i++ {
-		p := NewProxy(s.Addr, nil /* no TLS */)
+		p := NewProxy(s.Addr, nil)
 		p.start(hcDuration)
 
 		go func() { p.connect(ctx, state, false, false) }()
@@ -35,13 +35,6 @@ func TestProxyClose(t *testing.T) {
 		go func() { p.connect(ctx, state, true, false) }()
 
 		p.close()
-
-		if p.inProgress != 0 {
-			t.Errorf("unexpected query in progress")
-		}
-		if p.state != stopped {
-			t.Errorf("unexpected proxy state, expected %d, got %d", stopped, p.state)
-		}
 	}
 }
 
