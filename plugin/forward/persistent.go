@@ -43,7 +43,7 @@ func newTransport(addr string, tlsConfig *tls.Config) *transport {
 		close(t.stop)
 		close(t.yield)
 		close(t.dial)
-		// close(t.ret) // we can still be dialing and wanting to send back the socket on t.ret
+		close(t.ret)
 	}()
 	return t
 }
