@@ -14,12 +14,6 @@ type persistConn struct {
 	used time.Time
 }
 
-// connErr is used to communicate the connection manager.
-type connErr struct {
-	c   *dns.Conn
-	err error
-}
-
 // transport hold the persistent cache.
 type transport struct {
 	conns     map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
@@ -28,8 +22,8 @@ type transport struct {
 	tlsConfig *tls.Config
 
 	dial  chan string
-	yield chan connErr
-	ret   chan connErr
+	yield chan *dns.Conn
+	ret   chan *dns.Conn
 	stop  chan bool
 }
 
@@ -39,8 +33,8 @@ func newTransport(addr string, tlsConfig *tls.Config) *transport {
 		expire: defaultExpire,
 		addr:   addr,
 		dial:   make(chan string),
-		yield:  make(chan connErr),
-		ret:    make(chan connErr),
+		yield:  make(chan *dns.Conn),
+		ret:    make(chan *dns.Conn),
 		stop:   make(chan bool),
 	}
 	go func() {
@@ -79,7 +73,7 @@ Wait:
 				if time.Since(pc.used) < t.expire {
 					// Found one, remove from pool and return this conn.
 					t.conns[proto] = t.conns[proto][i+1:]
-					t.ret <- connErr{pc.c, nil}
+					t.ret <- pc.c
 					continue Wait
 				}
 				// This conn has expired. Close it.
@@ -90,24 +84,24 @@ Wait:
 			t.conns[proto] = t.conns[proto][i:]
 			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len()))
 
-			t.ret <- connErr{nil, errCachedNotFound}
+			t.ret <- nil
 
 		case conn := <-t.yield:
 
 			SocketGauge.WithLabelValues(t.addr).Set(float64(t.len() + 1))
 
 			// no proto here, infer from config and conn
-			if _, ok := conn.c.Conn.(*net.UDPConn); ok {
-				t.conns["udp"] = append(t.conns["udp"], &persistConn{conn.c, time.Now()})
+			if _, ok := conn.Conn.(*net.UDPConn); ok {
+				t.conns["udp"] = append(t.conns["udp"], &persistConn{conn, time.Now()})
 				continue Wait
 			}
 
 			if t.tlsConfig == nil {
-				t.conns["tcp"] = append(t.conns["tcp"], &persistConn{conn.c, time.Now()})
+				t.conns["tcp"] = append(t.conns["tcp"], &persistConn{conn, time.Now()})
 				continue Wait
 			}
 
-			t.conns["tcp-tls"] = append(t.conns["tcp-tls"], &persistConn{conn.c, time.Now()})
+			t.conns["tcp-tls"] = append(t.conns["tcp-tls"], &persistConn{conn, time.Now()})
 
 		case <-t.stop:
 			return
@@ -125,26 +119,20 @@ func (t *transport) Dial(proto string) (*dns.Conn, bool, error) {
 	t.dial <- proto
 	c := <-t.ret
 
-	if c.err == nil {
-		return c.c, true, c.err
+	if c != nil {
+		return c, true, nil
 	}
 
-	var conn *dns.Conn
-	var err error
-	if c.err == errCachedNotFound {
-		if proto == "tcp-tls" {
-			conn, err = dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
-		} else {
-			conn, err = dns.DialTimeout(proto, t.addr, dialTimeout)
-		}
+	if proto == "tcp-tls" {
+		conn, err := dns.DialTimeoutWithTLS("tcp", t.addr, t.tlsConfig, dialTimeout)
+		return conn, false, err
 	}
+	conn, err := dns.DialTimeout(proto, t.addr, dialTimeout)
 	return conn, false, err
 }
 
 // Yield return the connection to transport for reuse.
-func (t *transport) Yield(c *dns.Conn) {
-	t.yield <- connErr{c, nil}
-}
+func (t *transport) Yield(c *dns.Conn) { t.yield <- c }
 
 // Stop stops the transport's connection manager.
 func (t *transport) Stop() { t.stop <- true }

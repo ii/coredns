@@ -181,12 +181,11 @@ func (f *Forward) isAllowedDomain(name string) bool {
 func (f *Forward) list() []*Proxy { return f.p.List(f.proxies) }
 
 var (
-	errInvalidDomain  = errors.New("invalid domain for forward")
-	errNoHealthy      = errors.New("no healthy proxies")
-	errNoForward      = errors.New("no forwarder defined")
-	errCachedClosed   = errors.New("cached connection was closed by peer")
-	errStopped        = errors.New("proxy has been stopped")
-	errCachedNotFound = errors.New("no cached connection could be found")
+	errInvalidDomain = errors.New("invalid domain for forward")
+	errNoHealthy     = errors.New("no healthy proxies")
+	errNoForward     = errors.New("no forwarder defined")
+	errCachedClosed  = errors.New("cached connection was closed by peer")
+	errStopped       = errors.New("proxy has been stopped")
 )
 
 // policy tells forward what policy for selecting upstream it uses.
