@@ -48,9 +48,10 @@ net {
 }
 ~~~
 
-Note this is also true if you format your Corefile as:
+Note that if you format this in one server block you will get an error on startup, that the second
+server can't setup the health plugin (on the same port).
 
-~~~ corefile
+~~~ txt
 com net {
     whoami
     erratic
