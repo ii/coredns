@@ -26,9 +26,6 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	now := c.now().UTC()
 
 	server := metrics.WithServer(ctx)
-	// We don't have access to 'server' in setup, to set and set capacity here...
-	cacheCapacity.WithLabelValues(server, Success).Set(float64(c.pcap))
-	cacheCapacity.WithLabelValues(server, Denial).Set(float64(c.ncap))
 
 	i, ttl := c.get(now, state, server)
 	if i != nil && ttl > 0 {
@@ -102,13 +99,6 @@ var (
 		Subsystem: "cache",
 		Name:      "size",
 		Help:      "The number of elements in the cache.",
-	}, []string{"server", "type"})
-
-	cacheCapacity = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: plugin.Namespace,
-		Subsystem: "cache",
-		Name:      "capacity",
-		Help:      "The cache's capacity.",
 	}, []string{"server", "type"})
 
 	cacheHits = prometheus.NewCounterVec(prometheus.CounterOpts{
