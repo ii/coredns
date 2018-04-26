@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo "** presubmit/$(basename $0)"
-
-go vet ./...
