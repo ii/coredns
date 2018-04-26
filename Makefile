@@ -83,6 +83,8 @@ linter:
 	go get -u github.com/alecthomas/gometalinter
 	gometalinter --install golint
 	gometalinter --deadline=2m --disable-all --enable=golint --vendor --exclude=^pb/ ./...
+	go vet ./...
+
 
 .PHONY: goimports
 goimports:
