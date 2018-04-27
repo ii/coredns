@@ -403,20 +403,25 @@ func newAddress(s msg.Service, name string, ip net.IP, what uint16) dns.RR {
 	return &dns.AAAA{Hdr: hdr, AAAA: ip}
 }
 
+// checkForApex checks the spcecial apex.dns directory for records that will be returned as A or AAAA.
 func checkForApex(b ServiceBackend, zone string, state request.Request, opt Options) ([]msg.Service, error) {
-	var services []msg.Service
-	var err error
-	// if the zone name itself is queried we fake the query to search for a special entry
-	// this is equivalent to the NS search code
-	if state.Name() == zone {
-		old := state.QName()
-		state.Clear()
-		state.Req.Question[0].Name = dnsutil.Join([]string{"apex.dns", zone})
-
-		services, err := b.Services(state, false, opt)
-		defer func() { state.Req.Question[0].Name = old }()
+	if state.Name() != zone {
 		return b.Services(state, false, opt)
 	}
+
+	// If the zone name itself is queried we fake the query to search for a special entry
+	// this is equivalent to the NS search code.
+	old := state.QName()
+	state.Clear()
+	state.Req.Question[0].Name = dnsutil.Join([]string{"apex.dns", zone})
+
+	services, err := b.Services(state, false, opt)
+	if err == nil {
+		state.Req.Question[0].Name = old
+		return services, err
+	}
+
+	state.Req.Question[0].Name = old
 	return b.Services(state, false, opt)
 }
 
