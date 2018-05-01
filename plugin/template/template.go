@@ -105,7 +105,7 @@ func (h Handler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		}
 
 		state.SizeAndDo(msg)
-		state.Scrube(msg)
+		state.Scrub(msg)
 		w.WriteMsg(msg)
 		return template.rcode, nil
 	}
