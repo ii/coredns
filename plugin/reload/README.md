@@ -2,7 +2,9 @@
 
 ## Name
 
-*reload* - allows automatic reload of a changed Corefile
+*reload* - allows automatic reload of a changed _Corefile_<sup>*</sup>
+
+<sub>* To enable automatic reloading of a _zone file_, use the `auto` plugin.</sub>
 
 ## Description
 
