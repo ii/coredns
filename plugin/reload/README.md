@@ -4,7 +4,7 @@
 
 *reload* - allows automatic reload of a changed _Corefile_<sup>*</sup>
 
-<sub>* To enable automatic reloading of a _zone file_, use the `auto` plugin.</sub>
+<sub>* To enable automatic reloading of a _zone file_, use the [`auto`](https://github.com/coredns/coredns/blob/master/plugin/auto/README.md) plugin.</sub>
 
 ## Description
 
