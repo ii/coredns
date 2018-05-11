@@ -2,11 +2,12 @@
 
 ## Name
 
-*reload* - allows automatic reload of a changed _Corefile_<sup>*</sup>
-
-<sub>* To enable automatic reloading of a _zone file_, use the [`auto`](https://github.com/coredns/coredns/blob/master/plugin/auto/README.md) plugin.</sub>
+*reload* - allows automatic reload of a changed Corefile
 
 ## Description
+
+This plugin allows automatic reload of a changed _Corefile_.
+To enable automatic reloading of _zone file_ changes, use the `auto` plugin.
 
 This plugin periodically checks if the Corefile has changed by reading
 it and calculating its MD5 checksum. If the file has changed, it reloads
