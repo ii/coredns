@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
@@ -87,6 +88,8 @@ func (e *Etcd) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 	m.Answer = append(m.Answer, records...)
 	m.Extra = append(m.Extra, extra...)
 
+	// TODO(miek): get rid of this by not adding dups in the first place, dnsutil.Append()?
+	m = dnsutil.Dedup(m)
 	state.SizeAndDo(m)
 	m, _ = state.Scrub(m)
 	w.WriteMsg(m)
