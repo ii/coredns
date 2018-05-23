@@ -6,6 +6,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+// TODO(miek): this test needs to be fleshed out.
+
 func TestFileUpstream(t *testing.T) {
 	name, rm, err := TempFile(".", `$ORIGIN example.org.
 @	3600 IN	SOA sns.dns.icann.org. noc.dns.icann.org. (
