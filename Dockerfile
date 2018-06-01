@@ -1,8 +1,12 @@
-FROM alpine:latest
+FROM debian:stable-slim
 
-# Only need ca-certificates & openssl if want to use DNS over TLS (RFC 7858).
-RUN apk --no-cache add bind-tools ca-certificates openssl && update-ca-certificates
+RUN apt-get update && apt-get -uy upgrade
+RUN apt-get -y install ca-certificates && update-ca-certificates
 
+FROM scratch
+
+COPY --from=0 /etc/ca-certificates /etc/ca-certificates
+COPY --from=0 /etc/ssl /etc/ssl
 ADD coredns /coredns
 
 EXPOSE 53 53/udp
