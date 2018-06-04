@@ -5,8 +5,7 @@ RUN apt-get -y install ca-certificates && update-ca-certificates
 
 FROM scratch
 
-COPY --from=0 /etc/ca-certificates /etc/ca-certificates
-COPY --from=0 /etc/ssl /etc/ssl
+COPY --from=0 /etc/ssl/certs /etc/ssl/certs
 ADD coredns /coredns
 
 EXPOSE 53 53/udp
