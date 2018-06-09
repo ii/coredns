@@ -14,7 +14,7 @@ import (
 
 // Upstream is used to resolve CNAME targets
 type Upstream struct {
-	Self    bool
+	self    bool
 	Forward *proxy.Proxy
 }
 
@@ -23,10 +23,10 @@ type Upstream struct {
 func NewUpstream(dests []string) (Upstream, error) {
 	u := Upstream{}
 	if len(dests) == 0 {
-		u.Self = true
+		u.self = true
 		return u, nil
 	}
-	u.Self = false
+	u.self = false
 	ups, err := dnsutil.ParseHostPortOrFile(dests...)
 	if err != nil {
 		return u, err
@@ -38,7 +38,7 @@ func NewUpstream(dests []string) (Upstream, error) {
 
 // Lookup routes lookups to our selves or forward to a remote.
 func (u Upstream) Lookup(state request.Request, name string, typ uint16) (*dns.Msg, error) {
-	if u.Self {
+	if u.self {
 		req := new(dns.Msg)
 		req.SetQuestion(name, typ)
 
