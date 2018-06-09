@@ -377,6 +377,9 @@ func (z *Zone) externalLookup(state request.Request, target string, qtype uint16
 		// TODO(miek): Log, or return error here?
 		return nil
 	}
+	if m == nil {
+		return nil
+	}
 	return m.Answer
 }
 
