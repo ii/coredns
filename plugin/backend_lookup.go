@@ -164,6 +164,11 @@ func SRV(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 		p uint16
 	}
 	dup := make(map[s]bool)
+	type a struct {
+		n string
+		a string
+	}
+	dupAddr := make(map[a]bool)
 
 	// Looping twice to get the right weight vs priority. This might break because we may drop duplicate SRV records latter on.
 	w := make(map[int]int)
@@ -228,6 +233,7 @@ func SRV(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 			// IPv6 lookups here as well? AAAA(zone, state1, nil).
 
 		case dns.TypeA, dns.TypeAAAA:
+			addr := serv.Host
 			serv.Host = msg.Domain(serv.Key)
 			srv := serv.NewSRV(state.QName(), weight)
 
@@ -235,9 +241,9 @@ func SRV(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 				dup[s{srv.Target, srv.Port}] = true
 				records = append(records, srv)
 			}
-			// Fake port to be 0 for address...
-			if _, ok := dup[s{serv.Host, 0}]; !ok {
-				dup[s{serv.Host, 0}] = true
+
+			if _, ok := dupAddr[a{srv.Target, addr}]; !ok {
+				dupAddr[a{srv.Target, addr}] = true
 				extra = append(extra, newAddress(serv, srv.Target, ip, what))
 			}
 		}
@@ -257,6 +263,11 @@ func MX(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 		p uint16
 	}
 	dup := make(map[s]bool)
+	type a struct {
+		n string
+		a string
+	}
+	dupAddr := make(map[a]bool)
 
 	lookup := make(map[string]bool)
 	for _, serv := range services {
@@ -300,6 +311,7 @@ func MX(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 			// e.AAAA as well
 
 		case dns.TypeA, dns.TypeAAAA:
+			addr := serv.Host
 			serv.Host = msg.Domain(serv.Key)
 			mx := serv.NewMX(state.QName())
 
@@ -308,8 +320,8 @@ func MX(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 				records = append(records, mx)
 			}
 			// Fake port to be 0 for address...
-			if _, ok := dup[s{serv.Host, 0}]; !ok {
-				dup[s{serv.Host, 0}] = true
+			if _, ok := dupAddr[a{serv.Host, addr}]; !ok {
+				dupAddr[a{serv.Host, addr}] = true
 				extra = append(extra, newAddress(serv, serv.Host, ip, what))
 			}
 		}
