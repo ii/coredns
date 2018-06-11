@@ -19,6 +19,8 @@ func A(b ServiceBackend, zone string, state request.Request, previousRecords []d
 		return nil, err
 	}
 
+	dup := make(map[string]bool)
+
 	for _, serv := range services {
 
 		what, ip := serv.HostType()
@@ -67,10 +69,13 @@ func A(b ServiceBackend, zone string, state request.Request, previousRecords []d
 			continue
 
 		case dns.TypeA:
-			records = append(records, serv.NewA(state.QName(), ip))
+			if _, ok := dup[serv.Host]; !ok {
+				dup[serv.Host] = true
+				records = append(records, serv.NewA(state.QName(), ip))
+			}
 
 		case dns.TypeAAAA:
-			// nodata?
+			// nada
 		}
 	}
 	return records, nil
@@ -82,6 +87,8 @@ func AAAA(b ServiceBackend, zone string, state request.Request, previousRecords 
 	if err != nil {
 		return nil, err
 	}
+
+	dup := make(map[string]bool)
 
 	for _, serv := range services {
 
@@ -135,7 +142,10 @@ func AAAA(b ServiceBackend, zone string, state request.Request, previousRecords 
 			// nada
 
 		case dns.TypeAAAA:
-			records = append(records, serv.NewAAAA(state.QName(), ip))
+			if _, ok := dup[serv.Host]; !ok {
+				dup[serv.Host] = true
+				records = append(records, serv.NewAAAA(state.QName(), ip))
+			}
 		}
 	}
 	return records, nil
@@ -221,7 +231,7 @@ func SRV(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 			serv.Host = msg.Domain(serv.Key)
 			srv := serv.NewSRV(state.QName(), weight)
 
-			if _, found := dup[s{srv.Target, srv.Port}]; !found {
+			if _, ok := dup[s{srv.Target, srv.Port}]; !ok {
 				dup[s{srv.Target, srv.Port}] = true
 				records = append(records, srv)
 			}
@@ -290,7 +300,7 @@ func MX(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 			serv.Host = msg.Domain(serv.Key)
 			mx := serv.NewMX(state.QName())
 
-			if _, found := dup[s{mx.Mx, mx.Preference}]; !found {
+			if _, ok := dup[s{mx.Mx, mx.Preference}]; !ok {
 				dup[s{mx.Mx, mx.Preference}] = true
 				records = append(records, mx)
 			}
@@ -344,7 +354,7 @@ func PTR(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 
 	for _, serv := range services {
 		if ip := net.ParseIP(serv.Host); ip == nil {
-			if _, found := dup[serv.Host]; !found {
+			if _, ok := dup[serv.Host]; !ok {
 				dup[serv.Host] = true
 				records = append(records, serv.NewPTR(state.QName(), serv.Host))
 			}
