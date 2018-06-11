@@ -235,8 +235,11 @@ func SRV(b ServiceBackend, zone string, state request.Request, opt Options) (rec
 				dup[s{srv.Target, srv.Port}] = true
 				records = append(records, srv)
 			}
-			// We should still add a possible new IP - although technically this can dup as well.
-			extra = append(extra, newAddress(serv, srv.Target, ip, what))
+			// Fake port to be 0 for address...
+			if _, ok := dup[s{serv.Host, 0}]; !ok {
+				dup[s{serv.Host, 0}] = true
+				extra = append(extra, newAddress(serv, srv.Target, ip, what))
+			}
 		}
 	}
 	return records, extra, nil
@@ -304,8 +307,11 @@ func MX(b ServiceBackend, zone string, state request.Request, opt Options) (reco
 				dup[s{mx.Mx, mx.Preference}] = true
 				records = append(records, mx)
 			}
-
-			extra = append(extra, newAddress(serv, serv.Host, ip, what))
+			// Fake port to be 0 for address...
+			if _, ok := dup[s{serv.Host, 0}]; !ok {
+				dup[s{serv.Host, 0}] = true
+				extra = append(extra, newAddress(serv, serv.Host, ip, what))
+			}
 		}
 	}
 	return records, extra, nil
