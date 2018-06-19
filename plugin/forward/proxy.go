@@ -34,7 +34,7 @@ func NewProxy(addr string, tlsConfig *tls.Config) *Proxy {
 		fails:     0,
 		probe:     up.New(),
 		transport: newTransport(addr, tlsConfig),
-		avgRtt:    int64(timeout / 2),
+		avgRtt:    int64(maxTimeout / 2),
 	}
 	p.client = dnsClient(tlsConfig)
 	runtime.SetFinalizer(p, (*Proxy).finalizer)
@@ -48,9 +48,8 @@ func (p *Proxy) Addr() (addr string) { return p.addr }
 func dnsClient(tlsConfig *tls.Config) *dns.Client {
 	c := new(dns.Client)
 	c.Net = "udp"
-	// TODO(miek): this should be half of hcDuration?
-	c.ReadTimeout = 1 * time.Second
-	c.WriteTimeout = 1 * time.Second
+	c.ReadTimeout = hcInterval / 2
+	c.WriteTimeout = hcInterval / 2
 
 	if tlsConfig != nil {
 		c.Net = "tcp-tls"
@@ -106,8 +105,7 @@ func (p *Proxy) start(duration time.Duration) {
 }
 
 const (
-	timeout    = 2 * time.Second
 	maxTimeout = 2 * time.Second
-	minTimeout = 10 * time.Millisecond
-	hcDuration = 500 * time.Millisecond
+	minTimeout = 200 * time.Millisecond
+	hcInterval = 500 * time.Millisecond
 )
