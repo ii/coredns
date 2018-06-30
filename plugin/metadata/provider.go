@@ -57,7 +57,7 @@ type key struct{}
 func keys(m map[string]string) []string {
 	s := make([]string, len(m))
 	i := 0
-	for k, _ := range m {
+	for k := range m {
 		s[i] = k
 		i++
 	}
