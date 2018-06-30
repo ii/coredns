@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/coredns/coredns/plugin"
-	"github.com/coredns/coredns/plugin/pkg/variables"
 	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
@@ -37,15 +36,4 @@ func (m *Metadata) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 	rcode, err := plugin.NextOrFailure(m.Name(), m.Next, ctx, w, r)
 
 	return rcode, err
-}
-
-// MetadataVarNames implements the plugin.Provider interface.
-func (m *Metadata) MetadataVarNames() []string { return variables.All }
-
-// Metadata implements the plugin.Provider interface.
-func (m *Metadata) Metadata(ctx context.Context, state request.Request, varName string) (interface{}, bool) {
-	if val, err := variables.GetValue(state, varName); err == nil {
-		return val, true
-	}
-	return nil, false
 }
