@@ -259,52 +259,43 @@ func (rule *edns0VariableRule) ruleData(state request.Request) ([]byte, error) {
 	return nil, fmt.Errorf("unable to extract data for variable %s", rule.variable)
 }
 
-// Rewrite will alter the request EDNS0 local options with specified variables
+// Rewrite will alter the request EDNS0 local options with specified variables.
 func (rule *edns0VariableRule) Rewrite(state request.Request) Result {
-	result := RewriteIgnored
-
 	data, err := rule.ruleData(state)
 	if err != nil || data == nil {
-		return result
+		return RewriteIgnored
 	}
 
 	o := setupEdns0Opt(state.Req)
-	found := false
 	for _, s := range o.Option {
-		switch e := s.(type) {
-		case *dns.EDNS0_LOCAL:
+		if e, ok := s.(*dns.EDNS0_LOCAL); ok {
 			if rule.code == e.Code {
 				if rule.action == Replace || rule.action == Set {
 					e.Data = data
-					result = RewriteDone
+					return RewriteDone
 				}
-				found = true
-				break
+				return RewriteIgnored
 			}
 		}
 	}
 
 	// add option if not found
-	if !found && (rule.action == Append || rule.action == Set) {
-		var opt dns.EDNS0_LOCAL
-		opt.Code = rule.code
-		opt.Data = data
-		o.Option = append(o.Option, &opt)
-		result = RewriteDone
+	if rule.action == Append || rule.action == Set {
+
+		opt := &dns.EDNS0_LOCAL{Code: rule.code, Data: data}
+		o.Option = append(o.Option, opt)
+
+		return RewriteDone
 	}
 
-	return result
+	return RewriteIgnored
 }
 
-// Mode returns the processing mode
-func (rule *edns0VariableRule) Mode() string {
-	return rule.mode
-}
+// Mode returns the processing mode.
+func (rule *edns0VariableRule) Mode() string { return rule.mode }
 
 // GetResponseRule return a rule to rewrite the response with. Currently not implemented.
-func (rule *edns0VariableRule) GetResponseRule() ResponseRule {
-	return ResponseRule{}
-}
+func (rule *edns0VariableRule) GetResponseRule() ResponseRule { return ResponseRule{} }
 
 func isValidVariable(variable string) bool {
 	switch variable {
@@ -380,31 +371,29 @@ func (rule *edns0SubnetRule) fillEcsData(state request.Request, ecs *dns.EDNS0_S
 
 // Rewrite will alter the request EDNS0 subnet option.
 func (rule *edns0SubnetRule) Rewrite(state request.Request) Result {
-	result := RewriteIgnored
 	o := setupEdns0Opt(state.Req)
-	found := false
+
 	for _, s := range o.Option {
 		if e, ok := s.(*dns.EDNS0_SUBNET); ok {
 			if rule.action == Replace || rule.action == Set {
 				if rule.fillEcsData(state, e) == nil {
-					result = RewriteDone
+					return RewriteDone
 				}
 			}
-			found = true
-			break
+			return RewriteIgnored
 		}
 	}
 
 	// add option if not found
-	if !found && (rule.action == Append || rule.action == Set) {
+	if rule.action == Append || rule.action == Set {
 		opt := &dns.EDNS0_SUBNET{Code: dns.EDNS0SUBNET}
 		if rule.fillEcsData(state, opt) == nil {
 			o.Option = append(o.Option, opt)
-			result = RewriteDone
+			return RewriteDone
 		}
 	}
 
-	return result
+	return RewriteIgnored
 }
 
 // Mode returns the processing mode
