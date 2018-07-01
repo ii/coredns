@@ -14,7 +14,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-// edns0LocalRule is a rewrite rule for EDNS0_LOCAL options
+// edns0LocalRule is a rewrite rule for EDNS0_LOCAL options.
 type edns0LocalRule struct {
 	mode   string
 	action string
@@ -22,7 +22,7 @@ type edns0LocalRule struct {
 	data   []byte
 }
 
-// edns0VariableRule is a rewrite rule for EDNS0_LOCAL options with variable
+// edns0VariableRule is a rewrite rule for EDNS0_LOCAL options with variable.
 type edns0VariableRule struct {
 	mode     string
 	action   string
@@ -30,13 +30,13 @@ type edns0VariableRule struct {
 	variable string
 }
 
-// ends0NsidRule is a rewrite rule for EDNS0_NSID options
+// ends0NsidRule is a rewrite rule for EDNS0_NSID options.
 type edns0NsidRule struct {
 	mode   string
 	action string
 }
 
-// setupEdns0Opt will retrieve the EDNS0 OPT or create it if it does not exist
+// setupEdns0Opt will retrieve the EDNS0 OPT or create it if it does not exist.
 func setupEdns0Opt(r *dns.Msg) *dns.OPT {
 	o := r.IsEdns0()
 	if o == nil {
@@ -47,20 +47,19 @@ func setupEdns0Opt(r *dns.Msg) *dns.OPT {
 }
 
 // Rewrite will alter the request EDNS0 NSID option
-func (rule *edns0NsidRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
+func (rule *edns0NsidRule) Rewrite(state request.Request) Result {
 	result := RewriteIgnored
-	o := setupEdns0Opt(r)
+	o := setupEdns0Opt(state.Req)
 	found := false
-Option:
+
 	for _, s := range o.Option {
-		switch e := s.(type) {
-		case *dns.EDNS0_NSID:
+		if e, ok := s.(*dns.EDNS0_NSID); ok {
 			if rule.action == Replace || rule.action == Set {
 				e.Nsid = "" // make sure it is empty for request
 				result = RewriteDone
 			}
 			found = true
-			break Option
+			break
 		}
 	}
 
@@ -73,24 +72,19 @@ Option:
 	return result
 }
 
-// Mode returns the processing mode
-func (rule *edns0NsidRule) Mode() string {
-	return rule.mode
-}
+// Mode returns the processing mode.
+func (rule *edns0NsidRule) Mode() string { return rule.mode }
 
 // GetResponseRule return a rule to rewrite the response with. Currently not implemented.
-func (rule *edns0NsidRule) GetResponseRule() ResponseRule {
-	return ResponseRule{}
-}
+func (rule *edns0NsidRule) GetResponseRule() ResponseRule { return ResponseRule{} }
 
-// Rewrite will alter the request EDNS0 local options
-func (rule *edns0LocalRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
+// Rewrite will alter the request EDNS0 local options.
+func (rule *edns0LocalRule) Rewrite(state request.Request) Result {
 	result := RewriteIgnored
-	o := setupEdns0Opt(r)
+	o := setupEdns0Opt(state.Req)
 	found := false
 	for _, s := range o.Option {
-		switch e := s.(type) {
-		case *dns.EDNS0_LOCAL:
+		if e, ok := s.(*dns.EDNS0_LOCAL); ok {
 			if rule.code == e.Code {
 				if rule.action == Replace || rule.action == Set {
 					e.Data = rule.data
@@ -114,15 +108,11 @@ func (rule *edns0LocalRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
 	return result
 }
 
-// Mode returns the processing mode
-func (rule *edns0LocalRule) Mode() string {
-	return rule.mode
-}
+// Mode returns the processing mode.
+func (rule *edns0LocalRule) Mode() string { return rule.mode }
 
 // GetResponseRule return a rule to rewrite the response with. Currently not implemented.
-func (rule *edns0LocalRule) GetResponseRule() ResponseRule {
-	return ResponseRule{}
-}
+func (rule *edns0LocalRule) GetResponseRule() ResponseRule { return ResponseRule{} }
 
 // newEdns0Rule creates an EDNS0 rule of the appropriate type based on the args
 func newEdns0Rule(mode string, args ...string) (Rule, error) {
@@ -145,7 +135,7 @@ func newEdns0Rule(mode string, args ...string) (Rule, error) {
 		if len(args) != 4 {
 			return nil, fmt.Errorf("EDNS0 local rules require exactly three args")
 		}
-		//Check for variable option
+		// Check for variable option.
 		if strings.HasPrefix(args[3], "{") && strings.HasSuffix(args[3], "}") {
 			return newEdns0VariableRule(mode, action, args[2], args[3])
 		}
@@ -238,56 +228,47 @@ func (rule *edns0VariableRule) family(ip net.Addr) int {
 	return 2
 }
 
-// ruleData returns the data specified by the variable
-func (rule *edns0VariableRule) ruleData(w dns.ResponseWriter, r *dns.Msg) ([]byte, error) {
+// ruleData returns the data specified by the variable.
+func (rule *edns0VariableRule) ruleData(state request.Request) ([]byte, error) {
 
-	req := request.Request{W: w, Req: r}
 	switch rule.variable {
 	case queryName:
 		//Query name is written as ascii string
-		return []byte(req.QName()), nil
+		return []byte(state.QName()), nil
 
 	case queryType:
-		return rule.uint16ToWire(req.QType()), nil
+		return rule.uint16ToWire(state.QType()), nil
 
 	case clientIP:
-		return rule.ipToWire(req.Family(), req.IP())
+		return rule.ipToWire(state.Family(), state.IP())
 
 	case clientPort:
-		return rule.portToWire(req.Port())
+		return rule.portToWire(state.Port())
 
 	case protocol:
 		// Proto is written as ascii string
-		return []byte(req.Proto()), nil
+		return []byte(state.Proto()), nil
 
 	case serverIP:
-		ip, _, err := net.SplitHostPort(w.LocalAddr().String())
-		if err != nil {
-			ip = w.RemoteAddr().String()
-		}
-		return rule.ipToWire(rule.family(w.RemoteAddr()), ip)
+		return []byte(state.LocalIP()), nil
 
 	case serverPort:
-		_, port, err := net.SplitHostPort(w.LocalAddr().String())
-		if err != nil {
-			port = "0"
-		}
-		return rule.portToWire(port)
+		return rule.portToWire(state.LocalPort())
 	}
 
 	return nil, fmt.Errorf("unable to extract data for variable %s", rule.variable)
 }
 
 // Rewrite will alter the request EDNS0 local options with specified variables
-func (rule *edns0VariableRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
+func (rule *edns0VariableRule) Rewrite(state request.Request) Result {
 	result := RewriteIgnored
 
-	data, err := rule.ruleData(w, r)
+	data, err := rule.ruleData(state)
 	if err != nil || data == nil {
 		return result
 	}
 
-	o := setupEdns0Opt(r)
+	o := setupEdns0Opt(state.Req)
 	found := false
 	for _, s := range o.Option {
 		switch e := s.(type) {
@@ -353,8 +334,8 @@ func newEdns0SubnetRule(mode, action, v4BitMaskLen, v6BitMaskLen string) (*edns0
 	if err != nil {
 		return nil, err
 	}
-	// Validate V4 length
-	if v4Len > maxV4BitMaskLen {
+	// validate V4 length
+	if v4Len > net.IPv4len*8 {
 		return nil, fmt.Errorf("invalid IPv4 bit mask length %d", v4Len)
 	}
 
@@ -362,8 +343,8 @@ func newEdns0SubnetRule(mode, action, v4BitMaskLen, v6BitMaskLen string) (*edns0
 	if err != nil {
 		return nil, err
 	}
-	//Validate V6 length
-	if v6Len > maxV6BitMaskLen {
+	// validate V6 length
+	if v6Len > net.IPv6len*8 {
 		return nil, fmt.Errorf("invalid IPv6 bit mask length %d", v6Len)
 	}
 
@@ -372,10 +353,8 @@ func newEdns0SubnetRule(mode, action, v4BitMaskLen, v6BitMaskLen string) (*edns0
 }
 
 // fillEcsData sets the subnet data into the ecs option
-func (rule *edns0SubnetRule) fillEcsData(w dns.ResponseWriter, r *dns.Msg, ecs *dns.EDNS0_SUBNET) error {
-
-	req := request.Request{W: w, Req: r}
-	family := req.Family()
+func (rule *edns0SubnetRule) fillEcsData(state request.Request, ecs *dns.EDNS0_SUBNET) error {
+	family := state.Family()
 	if (family != 1) && (family != 2) {
 		return fmt.Errorf("unable to fill data for EDNS0 subnet due to invalid IP family")
 	}
@@ -383,7 +362,7 @@ func (rule *edns0SubnetRule) fillEcsData(w dns.ResponseWriter, r *dns.Msg, ecs *
 	ecs.Family = uint16(family)
 	ecs.SourceScope = 0
 
-	ipAddr := req.IP()
+	ipAddr := state.IP()
 	switch family {
 	case 1:
 		ipv4Mask := net.CIDRMask(int(rule.v4BitMaskLen), 32)
@@ -399,16 +378,15 @@ func (rule *edns0SubnetRule) fillEcsData(w dns.ResponseWriter, r *dns.Msg, ecs *
 	return nil
 }
 
-// Rewrite will alter the request EDNS0 subnet option
-func (rule *edns0SubnetRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
+// Rewrite will alter the request EDNS0 subnet option.
+func (rule *edns0SubnetRule) Rewrite(state request.Request) Result {
 	result := RewriteIgnored
-	o := setupEdns0Opt(r)
+	o := setupEdns0Opt(state.Req)
 	found := false
 	for _, s := range o.Option {
-		switch e := s.(type) {
-		case *dns.EDNS0_SUBNET:
+		if e, ok := s.(*dns.EDNS0_SUBNET); ok {
 			if rule.action == Replace || rule.action == Set {
-				if rule.fillEcsData(w, r, e) == nil {
+				if rule.fillEcsData(state, e) == nil {
 					result = RewriteDone
 				}
 			}
@@ -419,9 +397,9 @@ func (rule *edns0SubnetRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
 
 	// add option if not found
 	if !found && (rule.action == Append || rule.action == Set) {
-		opt := dns.EDNS0_SUBNET{Code: dns.EDNS0SUBNET}
-		if rule.fillEcsData(w, r, &opt) == nil {
-			o.Option = append(o.Option, &opt)
+		opt := &dns.EDNS0_SUBNET{Code: dns.EDNS0SUBNET}
+		if rule.fillEcsData(state, opt) == nil {
+			o.Option = append(o.Option, opt)
 			result = RewriteDone
 		}
 	}
@@ -430,14 +408,10 @@ func (rule *edns0SubnetRule) Rewrite(w dns.ResponseWriter, r *dns.Msg) Result {
 }
 
 // Mode returns the processing mode
-func (rule *edns0SubnetRule) Mode() string {
-	return rule.mode
-}
+func (rule *edns0SubnetRule) Mode() string { return rule.mode }
 
 // GetResponseRule return a rule to rewrite the response with. Currently not implemented.
-func (rule *edns0SubnetRule) GetResponseRule() ResponseRule {
-	return ResponseRule{}
-}
+func (rule *edns0SubnetRule) GetResponseRule() ResponseRule { return ResponseRule{} }
 
 // These are all defined actions.
 const (
@@ -455,10 +429,4 @@ const (
 	protocol   = "{protocol}"
 	serverIP   = "{server_ip}"
 	serverPort = "{server_port}"
-)
-
-// Subnet maximum bit mask length
-const (
-	maxV4BitMaskLen = 32
-	maxV6BitMaskLen = 128
 )

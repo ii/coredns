@@ -47,6 +47,15 @@ func (r *Request) IP() string {
 	return ip
 }
 
+// LocalIP gets the (local) IP address of server handling the request.
+func (r *Request) LocalIP() string {
+	ip, _, err := net.SplitHostPort(r.W.LocalAddr().String())
+	if err != nil {
+		return r.W.LocalAddr().String()
+	}
+	return ip
+}
+
 // Port gets the (remote) port of the client making the request.
 func (r *Request) Port() string {
 	_, port, err := net.SplitHostPort(r.W.RemoteAddr().String())
