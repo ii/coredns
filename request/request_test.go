@@ -202,3 +202,22 @@ func testRequest() Request {
 	m.SetEdns0(4097, true)
 	return Request{W: &test.ResponseWriter{}, Req: m}
 }
+
+func TestRequestClear(t *testing.T) {
+	st := testRequest()
+	if st.IP() != "10.240.0.1" {
+		t.Fatalf("Wrong IP from request")
+	}
+	p := st.Port()
+	if p == "" {
+		t.Fatalf("Failed to get Port from request")
+	}
+	st.Clear()
+	if st.ip != "" {
+		t.Errorf("Expected st.ip to be cleared after Clear")
+	}
+
+	if st.port != "" {
+		t.Errorf("Expected st.ip to be cleared after Clear")
+	}
+}
