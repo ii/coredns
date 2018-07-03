@@ -21,7 +21,6 @@ func TestFormErr(t *testing.T) {
 
 	c.ServeDNS(context.TODO(), rec, req)
 
-	qname := rec.Msg.Question[0].Name
 	if c.pcache.Len() != 0 {
 		t.Errorf("Cached %s, while reply had %d", "example.org.", rec.Msg.Rcode)
 	}
