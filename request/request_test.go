@@ -14,21 +14,21 @@ func TestRequestDo(t *testing.T) {
 
 	st.Do()
 	if st.do == nil {
-		t.Fatalf("Expected st.do to be set")
+		t.Errorf("Expected st.do to be set")
 	}
 }
 
 func TestRequestRemote(t *testing.T) {
 	st := testRequest()
 	if st.IP() != "10.240.0.1" {
-		t.Fatalf("Wrong IP from request")
+		t.Errorf("Wrong IP from request")
 	}
 	p := st.Port()
 	if p == "" {
-		t.Fatalf("Failed to get Port from request")
+		t.Errorf("Failed to get Port from request")
 	}
 	if p != "40212" {
-		t.Fatalf("Wrong port from request")
+		t.Errorf("Wrong port from request")
 	}
 }
 
@@ -206,11 +206,11 @@ func testRequest() Request {
 func TestRequestClear(t *testing.T) {
 	st := testRequest()
 	if st.IP() != "10.240.0.1" {
-		t.Fatalf("Wrong IP from request")
+		t.Errorf("Wrong IP from request")
 	}
 	p := st.Port()
 	if p == "" {
-		t.Fatalf("Failed to get Port from request")
+		t.Errorf("Failed to get Port from request")
 	}
 	st.Clear()
 	if st.ip != "" {
@@ -218,6 +218,6 @@ func TestRequestClear(t *testing.T) {
 	}
 
 	if st.port != "" {
-		t.Errorf("Expected st.ip to be cleared after Clear")
+		t.Errorf("Expected st.port to be cleared after Clear")
 	}
 }
