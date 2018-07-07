@@ -166,9 +166,7 @@ func (f *Forward) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 }
 
 func (f *Forward) match(state request.Request) bool {
-	from := f.from
-
-	if !plugin.Name(from).Matches(state.Name()) || !f.isAllowedDomain(state.Name()) {
+	if !plugin.Name(f.from).Matches(state.Name()) || !f.isAllowedDomain(state.Name()) {
 		return false
 	}
 
@@ -187,9 +185,6 @@ func (f *Forward) isAllowedDomain(name string) bool {
 	}
 	return true
 }
-
-// From returns the base domain to match for the request to be forwarded.
-func (f *Forward) From() string { return f.from }
 
 // ForceTCP returns if TCP is forced to be used even when the request comes in over UDP.
 func (f *Forward) ForceTCP() bool { return f.opts.forceTCP }
