@@ -83,8 +83,8 @@ func TestLabelFormat(t *testing.T) {
 	}
 
 	for _, test := range labels {
-		if IsLabel(test.label) != test.isValid {
-			t.Errorf("Label %v expected %v,, got: %v", test.label, test.isValid)
+		if x := IsLabel(test.label); x != test.isValid {
+			t.Errorf("Label %v expected %v, got: %v", test.label, test.isValid, x)
 		}
 	}
 }
