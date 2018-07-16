@@ -1,4 +1,4 @@
-package log
+package dnsserver
 
 import clog "github.com/coredns/coredns/plugin/pkg/log"
 

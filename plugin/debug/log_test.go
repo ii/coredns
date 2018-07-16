@@ -1,4 +1,4 @@
-package log
+package debug
 
 import clog "github.com/coredns/coredns/plugin/pkg/log"
 
