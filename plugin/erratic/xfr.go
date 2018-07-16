@@ -12,11 +12,11 @@ import (
 // allRecords returns a small zone file. The first RR must be a SOA.
 func allRecords(name string) []dns.RR {
 	var rrs = []dns.RR{
-		test.SOA("xx.		3600	IN	SOA	sns.dns.icann.org. noc.dns.icann.org. 2018050825 7200 3600 1209600 3600"),
-		test.NS("xx.		86400	IN	NS	b.xx."),
-		test.NS("xx.		86400	IN	NS	a.xx."),
-		test.AAAA("a.xx.		1800	IN	AAAA	2001:bd8::53"),
-		test.AAAA("b.xx.		1800	IN	AAAA	2001:500::54"),
+		test.SOA("xx.		0	IN	SOA	sns.dns.icann.org. noc.dns.icann.org. 2018050825 7200 3600 1209600 3600"),
+		test.NS("xx.		0	IN	NS	b.xx."),
+		test.NS("xx.		0	IN	NS	a.xx."),
+		test.AAAA("a.xx.	0	IN	AAAA	2001:bd8::53"),
+		test.AAAA("b.xx.	0	IN	AAAA	2001:500::54"),
 	}
 
 	for _, r := range rrs {
