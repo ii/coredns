@@ -68,6 +68,7 @@ func Discard() { golog.SetOutput(ioutil.Discard) }
 const (
 	debug   = "[DEBUG] "
 	err     = "[ERROR] "
-	warning = "[WARNING] "
+	fatal   = "[FATAL] "
 	info    = "[INFO] "
+	warning = "[WARNING] "
 )
