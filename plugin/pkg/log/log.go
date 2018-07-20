@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	golog "log"
+	"os"
 )
 
 // D controls whether we should output debug logs. If true, we do.
@@ -61,6 +62,14 @@ func Error(v ...interface{}) { log(err, v...) }
 
 // Errorf is equivalent to log.Printf, but prefixed with "[ERROR] ".
 func Errorf(format string, v ...interface{}) { logf(err, format, v...) }
+
+// Fatal is equivalent to log.Print, but prefixed with "[FATAL] ", and calling
+// os.Exit(1).
+func Fatal(v ...interface{}) { log(fatal, v...); os.Exit(1) }
+
+// Fatalf is equivalent to log.Printf, but prefixed with "[FATAL] ", and calling
+// os.Exit(1)
+func Fatalf(format string, v ...interface{}) { logf(fatal, format, v...); os.Exit(1) }
 
 // Discard sets the log output to /dev/null.
 func Discard() { golog.SetOutput(ioutil.Discard) }
