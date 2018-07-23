@@ -41,8 +41,7 @@ plugin/loop: Seen "HINFO IN 5577006791947779410.8674665223082153551." more than 
 
 ## Limitations
 
-This plugin only attempts to find simple static forwarding loops in the default forwarder at start up time.  Examples of loops that this plugin will _not_ catch:
+This plugin only attempts to find simple static forwarding loops at start up time.  To detect a loop, all of the following must be true
 
-* forwarding loops that are not present at start up time.
-* forwarding loops that only loop on one specific query type (e.g. `A`).
-* forwarding loops that only occur in a stub zone (e.g. via `proxy mystub.zone 1.2.3.4`).
+* the loop must be present at start up time.
+* the loop must occur for at least the `HINFO` query type.
