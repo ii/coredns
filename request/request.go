@@ -226,7 +226,11 @@ func (r *Request) SizeAndDo(m *dns.Msg) bool {
 	return true
 }
 
-// Scrub scrubs the reply message so that it will fit the client's buffer. It will first
+// Scrub is a noop function, added for backwards compatibility reasons. The original Scrub is now called
+// automatically by the server on writing the reply. See ScrubWriter.
+func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, int) { return reply, 0 }
+
+// scrub scrubs the reply message so that it will fit the client's buffer. It will first
 // check if the reply fits without compression and then *with* compression.
 // Scrub will then use binary search to find a save cut off point in the additional section.
 // If even *without* the additional section the reply still doesn't fit we
@@ -234,19 +238,19 @@ func (r *Request) SizeAndDo(m *dns.Msg) bool {
 // we set the TC bit on the reply; indicating the client should retry over TCP.
 // Note, the TC bit will be set regardless of protocol, even TCP message will
 // get the bit, the client should then retry with pigeons.
-func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, int) {
+func (r *Request) scrub(reply *dns.Msg) *dns.Msg {
 	size := r.Size()
 
 	reply.Compress = false
 	rl := reply.Len()
 	if size >= rl {
-		return reply, 0
+		return reply
 	}
 
 	reply.Compress = true
 	rl = reply.Len()
 	if size >= rl {
-		return reply, 0
+		return reply
 	}
 
 	// Account for the OPT record that gets added in SizeAndDo(), subtract that length.
@@ -282,7 +286,7 @@ func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, int) {
 
 	if rl < size {
 		r.SizeAndDo(reply)
-		return reply, 0
+		return reply
 	}
 
 	origAnswer := reply.Answer
@@ -315,7 +319,7 @@ func (r *Request) Scrub(reply *dns.Msg) (*dns.Msg, int) {
 	// It now fits, but Truncated. We can't call sizeAndDo() because that adds a new record (OPT)
 	// in the additional section.
 	reply.Truncated = true
-	return reply, 0
+	return reply
 }
 
 // Type returns the type of the question as a string. If the request is malformed
