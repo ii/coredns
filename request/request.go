@@ -234,7 +234,7 @@ func (r *Request) SizeAndDo(m *dns.Msg) bool {
 // we set the TC bit on the reply; indicating the client should retry over TCP.
 // Note, the TC bit will be set regardless of protocol, even TCP message will
 // get the bit, the client should then retry with pigeons.
-func (r *Request) Scrub(reply *dns.Msg) *dns.Msg {
+func (r *Request) scrub(reply *dns.Msg) *dns.Msg {
 	size := r.Size()
 
 	reply.Compress = false
