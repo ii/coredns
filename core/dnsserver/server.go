@@ -134,7 +134,7 @@ func (s *Server) ServePacket(p net.PacketConn) error {
 
 // Listen implements caddy.TCPServer interface.
 func (s *Server) Listen() (net.Listener, error) {
-	l, err := net.Listen("tcp", s.Addr[len(TransportDNS+"://"):])
+	l, err := net.Listen("tcp", s.Addr[len(plugin.TransportDNS+"://"):])
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (s *Server) Listen() (net.Listener, error) {
 
 // ListenPacket implements caddy.UDPServer interface.
 func (s *Server) ListenPacket() (net.PacketConn, error) {
-	p, err := net.ListenPacket("udp", s.Addr[len(TransportDNS+"://"):])
+	p, err := net.ListenPacket("udp", s.Addr[len(plugin.TransportDNS+"://"):])
 	if err != nil {
 		return nil, err
 	}

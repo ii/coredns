@@ -111,29 +111,29 @@ func (h *dnsContext) MakeServers() ([]caddy.Server, error) {
 	var servers []caddy.Server
 	for addr, group := range groups {
 		// switch on addr
-		switch Transport(addr) {
-		case TransportDNS:
+		switch tr, _ := plugin.Transport(addr); tr {
+		case plugin.TransportDNS:
 			s, err := NewServer(addr, group)
 			if err != nil {
 				return nil, err
 			}
 			servers = append(servers, s)
 
-		case TransportTLS:
+		case plugin.TransportTLS:
 			s, err := NewServerTLS(addr, group)
 			if err != nil {
 				return nil, err
 			}
 			servers = append(servers, s)
 
-		case TransportGRPC:
+		case plugin.TransportGRPC:
 			s, err := NewServergRPC(addr, group)
 			if err != nil {
 				return nil, err
 			}
 			servers = append(servers, s)
 
-		case TransportHTTPS:
+		case plugin.TransportHTTPS:
 			s, err := NewServerHTTPS(addr, group)
 			if err != nil {
 				return nil, err
