@@ -5,6 +5,8 @@ import (
 	"net"
 	"os"
 
+	"github.com/coredns/coredns/plugin/pkg/transport"
+
 	"github.com/miekg/dns"
 )
 
@@ -14,9 +16,9 @@ import (
 // the nameservers found are returned.
 func ParseHostPortOrFile(s ...string) ([]string, error) {
 	var servers []string
-	for _, host := range s {
+	for _, h := range s {
 
-		//transport, host := plugin.Transport(h)
+		_, host := transport.Parse(h)
 
 		addr, _, err := net.SplitHostPort(host)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/transport"
 
 	"github.com/miekg/dns"
 )
@@ -32,23 +33,8 @@ func (z zoneAddr) String() string {
 func normalizeZone(str string) (zoneAddr, error) {
 	var err error
 
-	// Default to DNS if there isn't a transport protocol prefix.
-	trans := plugin.TransportDNS
-
-	switch {
-	case strings.HasPrefix(str, plugin.TransportTLS+"://"):
-		trans = plugin.TransportTLS
-		str = str[len(plugin.TransportTLS+"://"):]
-	case strings.HasPrefix(str, plugin.TransportDNS+"://"):
-		trans = plugin.TransportDNS
-		str = str[len(plugin.TransportDNS+"://"):]
-	case strings.HasPrefix(str, plugin.TransportGRPC+"://"):
-		trans = plugin.TransportGRPC
-		str = str[len(plugin.TransportGRPC+"://"):]
-	case strings.HasPrefix(str, plugin.TransportHTTPS+"://"):
-		trans = plugin.TransportHTTPS
-		str = str[len(plugin.TransportHTTPS+"://"):]
-	}
+	var trans string
+	trans, str = transport.Parse(str)
 
 	host, port, ipnet, err := plugin.SplitHostPort(str)
 	if err != nil {
@@ -56,17 +42,15 @@ func normalizeZone(str string) (zoneAddr, error) {
 	}
 
 	if port == "" {
-		if trans == plugin.TransportDNS {
+		switch trans {
+		case transport.DNS:
 			port = Port
-		}
-		if trans == plugin.TransportTLS {
-			port = TLSPort
-		}
-		if trans == plugin.TransportGRPC {
-			port = GRPCPort
-		}
-		if trans == plugin.TransportHTTPS {
-			port = HTTPSPort
+		case transport.TLS:
+			port = transport.TLSPort
+		case transport.GRPC:
+			port = transport.GRPCPort
+		case transport.HTTPS:
+			port = transport.HTTPSPort
 		}
 	}
 

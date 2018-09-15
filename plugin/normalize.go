@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/coredns/coredns/plugin/pkg/transport"
+
 	"github.com/miekg/dns"
 )
 
@@ -58,37 +60,11 @@ type (
 	Host string
 )
 
-// Transport returns the Transport defined in s and a string where the
-// transport prefix is removed (if there was any). If no transport is defined
-// we default to TransportDNS
-func Transport(s string) (transport string, addr string) {
-	switch {
-	case strings.HasPrefix(s, TransportTLS+"://"):
-		s = s[len(TransportTLS+"://"):]
-		return TransportTLS, s
-
-	case strings.HasPrefix(s, TransportDNS+"://"):
-		s = s[len(TransportDNS+"://"):]
-		return TransportDNS, s
-
-	case strings.HasPrefix(s, TransportGRPC+"://"):
-		s = s[len(TransportGRPC+"://"):]
-		return TransportGRPC, s
-
-	case strings.HasPrefix(s, TransportHTTPS+"://"):
-		s = s[len(TransportHTTPS+"://"):]
-
-		return TransportHTTPS, s
-	}
-
-	return TransportDNS, s
-}
-
 // Normalize will return the host portion of host, stripping
 // of any port or transport. The host will also be fully qualified and lowercased.
 func (h Host) Normalize() string {
 	s := string(h)
-	_, s = Transport(s)
+	_, s = transport.Parse(s)
 
 	// The error can be ignore here, because this function is called after the corefile has already been vetted.
 	host, _, _, _ := SplitHostPort(s)
@@ -152,11 +128,3 @@ func SplitHostPort(s string) (host, port string, ipnet *net.IPNet, err error) {
 	}
 	return host, port, n, nil
 }
-
-// Supported transports.
-const (
-	TransportDNS   = "dns"
-	TransportTLS   = "tls"
-	TransportGRPC  = "grpc"
-	TransportHTTPS = "https"
-)
