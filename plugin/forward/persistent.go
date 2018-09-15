@@ -18,7 +18,7 @@ type persistConn struct {
 // Transport hold the persistent cache.
 type Transport struct {
 	avgDialTime int64                     // kind of average time of dial time
-	conns       map[string][]*persistConn //  Buckets for udp, tcp and tcp-tls.
+	conns       map[string][]*persistConn // Buckets for udp, tcp and tcp-tls.
 	expire      time.Duration             // After this duration a connection is expired.
 	addr        string
 	tlsConfig   *tls.Config

@@ -110,7 +110,7 @@ func ParseForwardStanza(c *caddyfile.Dispenser) (*Forward, error) {
 
 	transports := make([]string, len(toHosts))
 	for i, host := range toHosts {
-		h, trans := transport.Parse(host)
+		trans, h := transport.Parse(host)
 		p := NewProxy(h, trans)
 		f.proxies = append(f.proxies, p)
 		transports[i] = trans

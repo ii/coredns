@@ -31,7 +31,7 @@ func NewProxy(addr, trans string) *Proxy {
 		addr:      addr,
 		fails:     0,
 		probe:     up.New(),
-		transport: newTransport(trans),
+		transport: newTransport(addr),
 		avgRtt:    int64(maxTimeout / 2),
 	}
 	p.health = NewHealthChecker(trans)
