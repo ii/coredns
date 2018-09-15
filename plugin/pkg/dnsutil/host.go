@@ -18,7 +18,7 @@ func ParseHostPortOrFile(s ...string) ([]string, error) {
 	var servers []string
 	for _, h := range s {
 
-		_, host := transport.Parse(h)
+		trans, host := transport.Parse(h)
 
 		addr, _, err := net.SplitHostPort(host)
 		if err != nil {
@@ -32,7 +32,17 @@ func ParseHostPortOrFile(s ...string) ([]string, error) {
 				}
 				return servers, fmt.Errorf("not an IP address or file: %q", host)
 			}
-			ss := net.JoinHostPort(host, "53")
+			var ss string
+			switch trans {
+			case transport.DNS:
+				ss = net.JoinHostPort(host, "53")
+			case transport.TLS:
+				ss = net.JoinHostPort(host, transport.TLSPort)
+			case transport.GRPC:
+				ss = net.JoinHostPort(host, transport.GRPCPort)
+			case transport.HTTPS:
+				ss = net.JoinHostPort(host, transport.HTTPSPort)
+			}
 			servers = append(servers, ss)
 			continue
 		}
