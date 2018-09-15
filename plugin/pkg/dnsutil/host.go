@@ -37,11 +37,11 @@ func ParseHostPortOrFile(s ...string) ([]string, error) {
 			case transport.DNS:
 				ss = net.JoinHostPort(host, "53")
 			case transport.TLS:
-				ss = net.JoinHostPort(host, transport.TLSPort)
+				ss = transport.TLS + "://" + net.JoinHostPort(host, transport.TLSPort)
 			case transport.GRPC:
-				ss = net.JoinHostPort(host, transport.GRPCPort)
+				ss = transport.GRPC + "://" + net.JoinHostPort(host, transport.GRPCPort)
 			case transport.HTTPS:
-				ss = net.JoinHostPort(host, transport.HTTPSPort)
+				ss = transport.HTTPS + "://" + net.JoinHostPort(host, transport.HTTPSPort)
 			}
 			servers = append(servers, ss)
 			continue
@@ -56,7 +56,7 @@ func ParseHostPortOrFile(s ...string) ([]string, error) {
 			}
 			return servers, fmt.Errorf("not an IP address or file: %q", host)
 		}
-		servers = append(servers, host)
+		servers = append(servers, h)
 	}
 	return servers, nil
 }
