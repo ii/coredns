@@ -17,14 +17,6 @@ coredns: $(CHECKS)
 .PHONY: check
 check: presubmit core/zplugin.go core/dnsserver/zdirectives.go godeps
 
-.PHONY: test
-test: check
-	go test -race $(VERBOSE) ./test ./plugin/...
-
-.PHONY: testk8s
-testk8s: check
-	go test -race $(VERBOSE) -tags=k8s -run 'TestKubernetes' ./test ./plugin/kubernetes/...
-
 .PHONY: godeps
 godeps:
 	@ # Not vendoring these, so external plugins compile, avoiding:
@@ -46,7 +38,7 @@ travis: check
 ifeq ($(TEST_TYPE),core)
 	( cd request ; go test -v  -tags 'etcd' -race ./... )
 	( cd core ; go test -v  -tags 'etcd' -race  ./... )
-	( cd coremain go test -v  -tags 'etcd' -race ./... )
+	( cd coremain ; go test -v  -tags 'etcd' -race ./... )
 endif
 ifeq ($(TEST_TYPE),integration)
 	( cd test ; go test -v  -tags 'etcd' -race ./... )
