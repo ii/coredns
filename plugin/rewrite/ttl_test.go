@@ -116,7 +116,6 @@ func doTtlTests(rules []Rule, t *testing.T) {
 	}
 	ctx := context.TODO()
 	for i, tc := range tests {
-		failed := false
 		m := new(dns.Msg)
 		m.SetQuestion(tc.from, tc.fromType)
 		m.Question[0].Qclass = dns.ClassINET
@@ -131,13 +130,11 @@ func doTtlTests(rules []Rule, t *testing.T) {
 		resp := rec.Msg
 		if len(resp.Answer) == 0 {
 			t.Errorf("Test %d: FAIL %s (%d) Expected valid response but received %q", i, tc.from, tc.fromType, resp)
-			failed = true
 			continue
 		}
 		for _, a := range resp.Answer {
 			if a.Header().Ttl != tc.ttl {
 				t.Errorf("Test %d: FAIL %s (%d) Expected TTL to be %d but was %d", i, tc.from, tc.fromType, tc.ttl, a.Header().Ttl)
-				failed = true
 				break
 			}
 		}
