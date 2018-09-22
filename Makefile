@@ -72,9 +72,8 @@ ifeq ($(TEST_TYPE),benchmark)
 	( cd request; go test -run=NONE -bench=. -benchmem=true -tags 'etcd' ./... ) >> old
 	( cd core; go test -run=NONE -bench=. -benchmem=true -tags 'etcd' ./... ) >> old
 	( cd coremain; go test -run=NONE -bench=. -benchmem=true -tags 'etcd' ./... ) >> old
-	if command -v benchcmp; then
-		benchcmp old new
-	fi
+	if command -v benchcmp; then ; benchcmp old new ; fi
+	git checkout -
 endif
 
 core/zplugin.go core/dnsserver/zdirectives.go: plugin.cfg
