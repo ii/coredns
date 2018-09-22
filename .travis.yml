@@ -1,5 +1,4 @@
 sudo: required
-# Trusty distribution is much faster when sudo is required
 dist: trusty
 
 services:
@@ -13,6 +12,10 @@ go_import_path: github.com/coredns/coredns
 
 git:
   depth: 3
+
+branches:
+  only:
+  - master
 
 env:
   - TEST_TYPE=coverage ETCD_VERSION=3.3.8
