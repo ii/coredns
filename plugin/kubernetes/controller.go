@@ -177,7 +177,7 @@ func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
 	if !ok {
 		return nil, errors.New("obj was not an *api.Service")
 	}
-	return []string{s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace}, nil
+	return []string{s.ObjectMeta.Name, ".", s.ObjectMeta.Namespace}, nil
 }
 
 func epNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
