@@ -445,6 +445,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EndpointsList() }
 	} else {
 		idx := r.service + "." + r.namespace
+		println("SEARCHING FOR", idx)
 		serviceList = k.APIConn.SvcIndex(idx)
 		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EpIndex(idx) }
 	}
