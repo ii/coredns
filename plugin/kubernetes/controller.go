@@ -179,7 +179,6 @@ func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
 	if !ok {
 		return nil, errObj
 	}
-	println("INDEX UNDER", s.Index)
 	return []string{s.Index}, nil
 }
 
@@ -343,11 +342,11 @@ func (dns *dnsControl) HasSynced() bool {
 func (dns *dnsControl) ServiceList() (svcs []*object.Service) {
 	os := dns.svcLister.List()
 	for _, o := range os {
-		s, ok := o.(*object.Service)
+		s, ok := o.(*api.Service)
 		if !ok {
 			continue
 		}
-		svcs = append(svcs, s)
+		svcs = append(svcs, object.ToService(s).(*object.Service))
 	}
 	return svcs
 }
