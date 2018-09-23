@@ -7,16 +7,16 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/coredns/coredns/plugin/kubernetes/object"
 	dnswatch "github.com/coredns/coredns/plugin/pkg/watch"
 
 	api "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
-
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -31,7 +31,7 @@ type dnsController interface {
 	ServiceList() []*api.Service
 	SvcIndex(string) []*api.Service
 	SvcIndexReverse(string) []*api.Service
-	PodIndex(string) []*api.Pod
+	PodIndex(string) []*object.Pod
 	EpIndex(string) []*api.Endpoints
 	EpIndexReverse(string) []*api.Endpoints
 	EndpointsList() []*api.Endpoints
@@ -121,15 +121,17 @@ func newdnsController(kubeClient kubernetes.Interface, opts dnsControlOpts) *dns
 		cache.Indexers{svcNameNamespaceIndex: svcNameNamespaceIndexFunc, svcIPIndex: svcIPIndexFunc})
 
 	if opts.initPodCache {
-		dns.podLister, dns.podController = cache.NewIndexerInformer(
+		dns.podLister, dns.podController = object.NewIndexerInformer(
 			&cache.ListWatch{
 				ListFunc:  podListFunc(dns.client, api.NamespaceAll, dns.selector),
 				WatchFunc: podWatchFunc(dns.client, api.NamespaceAll, dns.selector),
 			},
-			&api.Pod{},
+			&object.Pod{},
 			opts.resyncPeriod,
 			cache.ResourceEventHandlerFuncs{AddFunc: dns.Add, UpdateFunc: dns.Update, DeleteFunc: dns.Delete},
-			cache.Indexers{podIPIndex: podIPIndexFunc})
+			cache.Indexers{podIPIndex: podIPIndexFunc},
+			object.ToPod,
+		)
 	}
 
 	if opts.initEndpointsCache {
@@ -155,11 +157,11 @@ func newdnsController(kubeClient kubernetes.Interface, opts dnsControlOpts) *dns
 }
 
 func podIPIndexFunc(obj interface{}) ([]string, error) {
-	p, ok := obj.(*api.Pod)
+	p, ok := obj.(*object.Pod)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{p.Status.PodIP}, nil
+	return []string{p.PodIP}, nil
 }
 
 func svcIPIndexFunc(obj interface{}) ([]string, error) {
@@ -347,7 +349,7 @@ func (dns *dnsControl) ServiceList() (svcs []*api.Service) {
 	return svcs
 }
 
-func (dns *dnsControl) PodIndex(ip string) (pods []*api.Pod) {
+func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
 	if dns.podLister == nil {
 		return nil
 	}
@@ -356,7 +358,7 @@ func (dns *dnsControl) PodIndex(ip string) (pods []*api.Pod) {
 		return nil
 	}
 	for _, o := range os {
-		p, ok := o.(*api.Pod)
+		p, ok := o.(*object.Pod)
 		if !ok {
 			continue
 		}

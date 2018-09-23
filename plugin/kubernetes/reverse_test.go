@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/coredns/coredns/plugin/kubernetes/object"
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
 	"github.com/coredns/coredns/plugin/pkg/watch"
 	"github.com/coredns/coredns/plugin/test"
@@ -18,7 +19,7 @@ type APIConnReverseTest struct{}
 func (APIConnReverseTest) HasSynced() bool                 { return true }
 func (APIConnReverseTest) Run()                            { return }
 func (APIConnReverseTest) Stop() error                     { return nil }
-func (APIConnReverseTest) PodIndex(string) []*api.Pod      { return nil }
+func (APIConnReverseTest) PodIndex(string) []*object.Pod   { return nil }
 func (APIConnReverseTest) EpIndex(string) []*api.Endpoints { return nil }
 func (APIConnReverseTest) EndpointsList() []*api.Endpoints { return nil }
 func (APIConnReverseTest) ServiceList() []*api.Service     { return nil }

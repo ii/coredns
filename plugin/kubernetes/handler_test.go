@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/coredns/coredns/plugin/kubernetes/object"
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
 	"github.com/coredns/coredns/plugin/pkg/watch"
 	"github.com/coredns/coredns/plugin/test"
@@ -378,15 +379,10 @@ func (APIConnServeTest) SetWatchChan(watch.Chan)                {}
 func (APIConnServeTest) Watch(string) error                     { return nil }
 func (APIConnServeTest) StopWatching(string)                    {}
 
-func (APIConnServeTest) PodIndex(string) []*api.Pod {
-	a := []*api.Pod{{
-		ObjectMeta: meta.ObjectMeta{
-			Namespace: "podns",
-		},
-		Status: api.PodStatus{
-			PodIP: "10.240.0.1", // Remote IP set in test.ResponseWriter
-		},
-	}}
+func (APIConnServeTest) PodIndex(string) []*object.Pod {
+	a := []*object.Pod{
+		{Namespace: "podns", PodIP: "10.240.0.1"}, // Remote IP set in test.ResponseWriter
+	}
 	return a
 }
 

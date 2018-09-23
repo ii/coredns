@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"testing"
 
+	"github.com/coredns/coredns/plugin/kubernetes/object"
 	"github.com/coredns/coredns/plugin/pkg/watch"
 
 	api "k8s.io/api/core/v1"
@@ -14,7 +15,7 @@ type APIConnTest struct{}
 func (APIConnTest) HasSynced() bool                       { return true }
 func (APIConnTest) Run()                                  { return }
 func (APIConnTest) Stop() error                           { return nil }
-func (APIConnTest) PodIndex(string) []*api.Pod            { return nil }
+func (APIConnTest) PodIndex(string) []*object.Pod         { return nil }
 func (APIConnTest) SvcIndex(string) []*api.Service        { return nil }
 func (APIConnTest) SvcIndexReverse(string) []*api.Service { return nil }
 func (APIConnTest) EpIndex(string) []*api.Endpoints       { return nil }
