@@ -179,6 +179,7 @@ func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
 	if !ok {
 		return nil, errObj
 	}
+	println("INDEX UNDER", s.Index)
 	return []string{s.Index}, nil
 }
 
