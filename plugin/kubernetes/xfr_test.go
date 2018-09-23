@@ -89,7 +89,7 @@ func TestKubernetesXFR(t *testing.T) {
 
 	diff = difference(gotRRs, testRRs)
 	if len(diff) != 0 {
-		t.Errorf("Found %d records we're missing tham test cases, should be 0:", len(diff))
+		t.Errorf("Found %d records we're missing, should be 0:", len(diff))
 		for _, rec := range diff {
 			t.Errorf("%+v", rec)
 		}

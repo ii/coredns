@@ -186,6 +186,16 @@ var dnsTestCases = []test.Case{
 			test.A("dup-name.hdls1.testns.svc.cluster.local.	5	IN	A	172.0.0.5"),
 		},
 	},
+	{ // An A record query for an existing headless service should return a record for each of its ipv4 endpoints
+		Qname: "hdls1.testns.svc.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("hdls1.testns.svc.cluster.local.	5	IN	A	172.0.0.2"),
+			test.A("hdls1.testns.svc.cluster.local.	5	IN	A	172.0.0.3"),
+			test.A("hdls1.testns.svc.cluster.local.	5	IN	A	172.0.0.4"),
+			test.A("hdls1.testns.svc.cluster.local.	5	IN	A	172.0.0.5"),
+		},
+	},
 	// SRV Service (Headless and portless)
 	{
 		Qname: "*.*.hdlsprtls.testns.svc.cluster.local.", Qtype: dns.TypeSRV,
