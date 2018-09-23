@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// NewIndexInformer is a copy of the cache.NewIndexInformer function, but allows Process to have a conversion function (ToFunc).
+// NewIndexerInformer is a copy of the cache.NewIndexInformer function, but allows Process to have a conversion function (ToFunc).
 func NewIndexerInformer(lw cache.ListerWatcher, objType runtime.Object, resyncPeriod time.Duration, h cache.ResourceEventHandler, indexers cache.Indexers, convert ToFunc) (cache.Indexer, cache.Controller) {
 	clientState := cache.NewIndexer(cache.DeletionHandlingMetaNamespaceKeyFunc, indexers)
 
