@@ -28,9 +28,9 @@ const (
 )
 
 type dnsController interface {
-	ServiceList() []*api.Service
-	SvcIndex(string) []*api.Service
-	SvcIndexReverse(string) []*api.Service
+	ServiceList() []*object.Service
+	SvcIndex(string) []*object.Service
+	SvcIndexReverse(string) []*object.Service
 	PodIndex(string) []*object.Pod
 	EpIndex(string) []*api.Endpoints
 	EpIndexReverse(string) []*api.Endpoints
@@ -110,15 +110,17 @@ func newdnsController(kubeClient kubernetes.Interface, opts dnsControlOpts) *dns
 		endpointNameMode: opts.endpointNameMode,
 	}
 
-	dns.svcLister, dns.svcController = cache.NewIndexerInformer(
+	dns.svcLister, dns.svcController = object.NewIndexerInformer(
 		&cache.ListWatch{
 			ListFunc:  serviceListFunc(dns.client, api.NamespaceAll, dns.selector),
 			WatchFunc: serviceWatchFunc(dns.client, api.NamespaceAll, dns.selector),
 		},
-		&api.Service{},
+		&object.Service{},
 		opts.resyncPeriod,
 		cache.ResourceEventHandlerFuncs{AddFunc: dns.Add, UpdateFunc: dns.Update, DeleteFunc: dns.Delete},
-		cache.Indexers{svcNameNamespaceIndex: svcNameNamespaceIndexFunc, svcIPIndex: svcIPIndexFunc})
+		cache.Indexers{svcNameNamespaceIndex: svcNameNamespaceIndexFunc, svcIPIndex: svcIPIndexFunc},
+		object.ToService,
+	)
 
 	if opts.initPodCache {
 		dns.podLister, dns.podController = object.NewIndexerInformer(
@@ -165,19 +167,19 @@ func podIPIndexFunc(obj interface{}) ([]string, error) {
 }
 
 func svcIPIndexFunc(obj interface{}) ([]string, error) {
-	svc, ok := obj.(*api.Service)
+	svc, ok := obj.(*object.Service)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{svc.Spec.ClusterIP}, nil
+	return []string{svc.ClusterIP}, nil
 }
 
 func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
-	s, ok := obj.(*api.Service)
+	s, ok := obj.(*object.Service)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace}, nil
+	return []string{s.Index}, nil
 }
 
 func epNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
@@ -337,10 +339,10 @@ func (dns *dnsControl) HasSynced() bool {
 	return a && b && c && d
 }
 
-func (dns *dnsControl) ServiceList() (svcs []*api.Service) {
+func (dns *dnsControl) ServiceList() (svcs []*object.Service) {
 	os := dns.svcLister.List()
 	for _, o := range os {
-		s, ok := o.(*api.Service)
+		s, ok := o.(*object.Service)
 		if !ok {
 			continue
 		}
@@ -367,7 +369,7 @@ func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
 	return pods
 }
 
-func (dns *dnsControl) SvcIndex(idx string) (svcs []*api.Service) {
+func (dns *dnsControl) SvcIndex(idx string) (svcs []*object.Service) {
 	if dns.svcLister == nil {
 		return nil
 	}
@@ -376,7 +378,7 @@ func (dns *dnsControl) SvcIndex(idx string) (svcs []*api.Service) {
 		return nil
 	}
 	for _, o := range os {
-		s, ok := o.(*api.Service)
+		s, ok := o.(*object.Service)
 		if !ok {
 			continue
 		}
@@ -385,7 +387,7 @@ func (dns *dnsControl) SvcIndex(idx string) (svcs []*api.Service) {
 	return svcs
 }
 
-func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*api.Service) {
+func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*object.Service) {
 	if dns.svcLister == nil {
 		return nil
 	}
@@ -395,7 +397,7 @@ func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*api.Service) {
 	}
 
 	for _, o := range os {
-		s, ok := o.(*api.Service)
+		s, ok := o.(*object.Service)
 		if !ok {
 			continue
 		}

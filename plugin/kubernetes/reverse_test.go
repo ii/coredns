@@ -22,54 +22,38 @@ func (APIConnReverseTest) Stop() error                     { return nil }
 func (APIConnReverseTest) PodIndex(string) []*object.Pod   { return nil }
 func (APIConnReverseTest) EpIndex(string) []*api.Endpoints { return nil }
 func (APIConnReverseTest) EndpointsList() []*api.Endpoints { return nil }
-func (APIConnReverseTest) ServiceList() []*api.Service     { return nil }
+func (APIConnReverseTest) ServiceList() []*object.Service  { return nil }
 func (APIConnReverseTest) Modified() int64                 { return 0 }
 func (APIConnReverseTest) SetWatchChan(watch.Chan)         {}
 func (APIConnReverseTest) Watch(string) error              { return nil }
 func (APIConnReverseTest) StopWatching(string)             {}
 
-func (APIConnReverseTest) SvcIndex(svc string) []*api.Service {
+func (APIConnReverseTest) SvcIndex(svc string) []*object.Service {
 	if svc != "svc1.testns" {
 		return nil
 	}
-	svcs := []*api.Service{
+	svcs := []*object.Service{
 		{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
-			Spec: api.ServiceSpec{
-				ClusterIP: "192.168.1.100",
-				Ports: []api.ServicePort{{
-					Name:     "http",
-					Protocol: "tcp",
-					Port:     80,
-				}},
-			},
+			Name:      "svc1",
+			Namespace: "testns",
+			ClusterIP: "192.168.1.100",
+			Ports:     []api.ServicePort{{Name: "http", Protocol: "tcp", Port: 80}},
 		},
 	}
 	return svcs
 
 }
 
-func (APIConnReverseTest) SvcIndexReverse(ip string) []*api.Service {
+func (APIConnReverseTest) SvcIndexReverse(ip string) []*object.Service {
 	if ip != "192.168.1.100" {
 		return nil
 	}
-	svcs := []*api.Service{
+	svcs := []*object.Service{
 		{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
-			Spec: api.ServiceSpec{
-				ClusterIP: "192.168.1.100",
-				Ports: []api.ServicePort{{
-					Name:     "http",
-					Protocol: "tcp",
-					Port:     80,
-				}},
-			},
+			Name:      "svc1",
+			Namespace: "testns",
+			ClusterIP: "192.168.1.100",
+			Ports:     []api.ServicePort{{Name: "http", Protocol: "tcp", Port: 80}},
 		},
 	}
 	return svcs

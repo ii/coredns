@@ -12,6 +12,7 @@ type Pod struct {
 	PodIP             string
 	Namespace         string
 	DeletionTimestamp time.Time
+
 	*Empty
 }
 

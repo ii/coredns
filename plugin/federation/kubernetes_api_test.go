@@ -13,15 +13,15 @@ type APIConnFederationTest struct {
 	zone, region string
 }
 
-func (APIConnFederationTest) HasSynced() bool                        { return true }
-func (APIConnFederationTest) Run()                                   { return }
-func (APIConnFederationTest) Stop() error                            { return nil }
-func (APIConnFederationTest) SvcIndexReverse(string) []*api.Service  { return nil }
-func (APIConnFederationTest) EpIndexReverse(string) []*api.Endpoints { return nil }
-func (APIConnFederationTest) Modified() int64                        { return 0 }
-func (APIConnFederationTest) SetWatchChan(watch.Chan)                {}
-func (APIConnFederationTest) Watch(string) error                     { return nil }
-func (APIConnFederationTest) StopWatching(string)                    {}
+func (APIConnFederationTest) HasSynced() bool                          { return true }
+func (APIConnFederationTest) Run()                                     { return }
+func (APIConnFederationTest) Stop() error                              { return nil }
+func (APIConnFederationTest) SvcIndexReverse(string) []*object.Service { return nil }
+func (APIConnFederationTest) EpIndexReverse(string) []*api.Endpoints   { return nil }
+func (APIConnFederationTest) Modified() int64                          { return 0 }
+func (APIConnFederationTest) SetWatchChan(watch.Chan)                  {}
+func (APIConnFederationTest) Watch(string) error                       { return nil }
+func (APIConnFederationTest) StopWatching(string)                      {}
 
 func (APIConnFederationTest) PodIndex(string) []*object.Pod {
 	return []*object.Pod{
@@ -29,43 +29,27 @@ func (APIConnFederationTest) PodIndex(string) []*object.Pod {
 	}
 }
 
-func (APIConnFederationTest) SvcIndex(string) []*api.Service {
-	svcs := []*api.Service{
+func (APIConnFederationTest) SvcIndex(string) []*object.Service {
+	svcs := []*object.Service{
 		{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
-			Spec: api.ServiceSpec{
-				ClusterIP: "10.0.0.1",
-				Ports: []api.ServicePort{{
-					Name:     "http",
-					Protocol: "tcp",
-					Port:     80,
-				}},
+			Name:      "svc1",
+			Namespace: "testns",
+			ClusterIP: "10.0.0.1",
+			Ports: []api.ServicePort{
+				{Name: "http", Protocol: "tcp", Port: 80},
 			},
 		},
 		{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "hdls1",
-				Namespace: "testns",
-			},
-			Spec: api.ServiceSpec{
-				ClusterIP: api.ClusterIPNone,
-			},
+			Name:      "hdls1",
+			Namespace: "testns",
+			ClusterIP: api.ClusterIPNone,
 		},
 		{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "external",
-				Namespace: "testns",
-			},
-			Spec: api.ServiceSpec{
-				ExternalName: "ext.interwebs.test",
-				Ports: []api.ServicePort{{
-					Name:     "http",
-					Protocol: "tcp",
-					Port:     80,
-				}},
+			Name:         "external",
+			Namespace:    "testns",
+			ExternalName: "ext.interwebs.test",
+			Ports: []api.ServicePort{
+				{Name: "http", Protocol: "tcp", Port: 80},
 			},
 		},
 	}
