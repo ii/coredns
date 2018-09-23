@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"errors"
 	"fmt"
+	goos "os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -342,7 +343,7 @@ func (dns *dnsControl) HasSynced() bool {
 func (dns *dnsControl) ServiceList() (svcs []*object.Service) {
 	os := dns.svcLister.List()
 	for _, o := range os {
-		fmt.Printf("ServiceList: WHAT HAVE WE HERE %T\n", o)
+		fmt.Fprintf(goos.Stderr, "ServiceList: WHAT HAVE WE HERE %T\n", o)
 		s, ok := o.(*object.Service)
 		if !ok {
 			continue
@@ -361,7 +362,7 @@ func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
 		return nil
 	}
 	for _, o := range os {
-		fmt.Printf("PodIndex: WHAT HAVE WE HERE %T\n", o)
+		fmt.Fprintf(goos.Stderr, "PodIndex: WHAT HAVE WE HERE %T\n", o)
 		p, ok := o.(*object.Pod)
 		if !ok {
 			continue
