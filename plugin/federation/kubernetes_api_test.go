@@ -2,6 +2,7 @@ package federation
 
 import (
 	"github.com/coredns/coredns/plugin/kubernetes"
+	"github.com/coredns/coredns/plugin/kubernetes/object"
 	"github.com/coredns/coredns/plugin/pkg/watch"
 
 	api "k8s.io/api/core/v1"
@@ -22,16 +23,10 @@ func (APIConnFederationTest) SetWatchChan(watch.Chan)                {}
 func (APIConnFederationTest) Watch(string) error                     { return nil }
 func (APIConnFederationTest) StopWatching(string)                    {}
 
-func (APIConnFederationTest) PodIndex(string) []*api.Pod {
-	a := []*api.Pod{{
-		ObjectMeta: meta.ObjectMeta{
-			Namespace: "podns",
-		},
-		Status: api.PodStatus{
-			PodIP: "10.240.0.1", // Remote IP set in test.ResponseWriter
-		},
-	}}
-	return a
+func (APIConnFederationTest) PodIndex(string) []*object.Pod {
+	return []*object.Pod{
+		{Namespace: "podns", PodIP: "10.240.0.1"}, // Remote IP set in test.ResponseWriter
+	}
 }
 
 func (APIConnFederationTest) SvcIndex(string) []*api.Service {
