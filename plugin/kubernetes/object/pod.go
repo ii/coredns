@@ -57,5 +57,5 @@ func (p *Pod) SetNamespace(namespace string) {}
 // GetName implements the metav1.Object interface.
 func (p *Pod) GetName() string { return p.Name }
 
-// Setname implements the metav1.Object interface.
+// SetName implements the metav1.Object interface.
 func (p *Pod) SetName(name string) {}
