@@ -2,6 +2,8 @@ package index
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,6 +23,7 @@ func NewInformer(lw cache.ListerWatcher, objType runtime.Object, r time.Duration
 		FullResyncPeriod: r,
 		RetryOnError:     false,
 		Process: func(obj interface{}) error {
+			fmt.Fprintf(os.Stderr, "%T", obj)
 			for _, d := range obj.(cache.Deltas) {
 
 				obj := convert(d.Object)
@@ -52,6 +55,7 @@ func NewInformer(lw cache.ListerWatcher, objType runtime.Object, r time.Duration
 }
 
 func metaNamespaceKeyFunc(obj interface{}) (string, error) {
+	fmt.Fprintf(os.Stderr, "%T", obj)
 	o, ok := obj.(Object)
 	if !ok {
 		return "", errObj
@@ -60,6 +64,7 @@ func metaNamespaceKeyFunc(obj interface{}) (string, error) {
 }
 
 func deletionHandlingMetaNamespaceKeyFunc(obj interface{}) (string, error) {
+	fmt.Fprintf(os.Stderr, "%T", obj)
 	// if d, ok := obj.(DeletedFinalStateUnknown); ok {
 	//	return d.Key, nil
 	// }
