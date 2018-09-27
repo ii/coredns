@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// NewIndexerInformer is a copy of the cache.NewIndexInformer function, but allows Process to have a conversion function (ToFunc).
+// NewInformer is a copy of the cache.NewIndexInformer function, but allows Process to have a conversion function (ToFunc).
 func NewInformer(lw cache.ListerWatcher, objType runtime.Object, r time.Duration, h cache.ResourceEventHandler, indexers cache.Indexers, convert ToFunc) (cache.Indexer, cache.Controller) {
 	clientState := cache.NewIndexer(deletionHandlingMetaNamespaceKeyFunc, indexers)
 
@@ -54,7 +54,7 @@ func NewInformer(lw cache.ListerWatcher, objType runtime.Object, r time.Duration
 func metaNamespaceKeyFunc(obj interface{}) (string, error) {
 	o, ok := obj.(Object)
 	if !ok {
-		return "", ErrObj
+		return "", errObj
 	}
 	return o.UniqueKey(), nil
 }
@@ -66,4 +66,4 @@ func deletionHandlingMetaNamespaceKeyFunc(obj interface{}) (string, error) {
 	return metaNamespaceKeyFunc(obj)
 }
 
-var ErrObj = errors.New("wrong object")
+var errObj = errors.New("wrong object")

@@ -43,6 +43,7 @@ func ToService(obj interface{}) runtime.Object {
 
 var _ runtime.Object = &Service{}
 
+// UniqueKey implements the Object interface.
 func (s *Service) UniqueKey() string { return s.uniqueKey }
 
 // DeepCopyObject implements the runtime.Object interface.

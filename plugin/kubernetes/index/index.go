@@ -5,6 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+// Object is an interface that each of our object (services, endpoints, etc.) need to implement.
 type Object interface {
 	UniqueKey() string
 }
