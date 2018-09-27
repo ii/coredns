@@ -17,7 +17,7 @@ type Empty struct{}
 func (e *Empty) GetObjectKind() schema.ObjectKind { return schema.EmptyObjectKind }
 
 // DeepCopyObject implementss the ObjectKind interface as a noop.
-func (s *Empty) DeepCopyObject() runtime.Object { return nil }
+func (e *Empty) DeepCopyObject() runtime.Object { return nil }
 
 // GetGenerateName implements the metav1.Object interface.
 func (e *Empty) GetGenerateName() string { return "" }
