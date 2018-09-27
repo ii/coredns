@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -338,8 +339,9 @@ func (dns *dnsControl) HasSynced() bool {
 }
 
 func (dns *dnsControl) ServiceList() (svcs []*index.Service) {
-	os := dns.svcLister.List()
-	for _, o := range os {
+	l := dns.svcLister.List()
+	for _, o := range l {
+		fmt.Fprintf(os.Stderr, "ServiceList %T", o)
 		s, ok := o.(*index.Service)
 		if !ok {
 			continue
@@ -353,11 +355,11 @@ func (dns *dnsControl) PodIndex(ip string) (pods []*api.Pod) {
 	if dns.podLister == nil {
 		return nil
 	}
-	os, err := dns.podLister.ByIndex(podIPIndex, ip)
+	l, err := dns.podLister.ByIndex(podIPIndex, ip)
 	if err != nil {
 		return nil
 	}
-	for _, o := range os {
+	for _, o := range l {
 		p, ok := o.(*api.Pod)
 		if !ok {
 			continue
@@ -371,11 +373,12 @@ func (dns *dnsControl) SvcIndex(idx string) (svcs []*index.Service) {
 	if dns.svcLister == nil {
 		return nil
 	}
-	os, err := dns.svcLister.ByIndex(svcNameNamespaceIndex, idx)
+	l, err := dns.svcLister.ByIndex(svcNameNamespaceIndex, idx)
 	if err != nil {
 		return nil
 	}
-	for _, o := range os {
+	for _, o := range l {
+		fmt.Fprintf(os.Stderr, "SvcIndex %T", o)
 		s, ok := o.(*index.Service)
 		if !ok {
 			continue
@@ -389,11 +392,12 @@ func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*index.Service) {
 	if dns.svcLister == nil {
 		return nil
 	}
-	os, err := dns.svcLister.ByIndex(svcIPIndex, ip)
+	l, err := dns.svcLister.ByIndex(svcIPIndex, ip)
 	if err != nil {
 		return nil
 	}
-	for _, o := range os {
+	for _, o := range l {
+		fmt.Fprintf(os.Stderr, "SvnIndexReverse %T", o)
 		s, ok := o.(*index.Service)
 		if !ok {
 			continue
