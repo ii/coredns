@@ -166,19 +166,19 @@ func podIPIndexFunc(obj interface{}) ([]string, error) {
 }
 
 func svcIPIndexFunc(obj interface{}) ([]string, error) {
-	svc, ok := obj.(*index.Service)
+	svc, ok := obj.(*api.Service)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{svc.ClusterIP}, nil
+	return []string{svc.Spec.ClusterIP}, nil
 }
 
 func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
-	s, ok := obj.(*index.Service)
+	s, ok := obj.(*api.Service)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{s.UniqueKey()}, nil
+	return []string{index.ServiceKey(s.ObjectMeta.Name, s.ObjectMeta.Namespace)}, nil
 }
 
 func epNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
