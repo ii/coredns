@@ -11,6 +11,7 @@ import (
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/plugin/etcd/msg"
+	"github.com/coredns/coredns/plugin/kubernetes/index"
 	"github.com/coredns/coredns/plugin/pkg/dnsutil"
 	"github.com/coredns/coredns/plugin/pkg/fall"
 	"github.com/coredns/coredns/plugin/pkg/healthcheck"
@@ -422,7 +423,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 	var (
 		endpointsListFunc func() []*api.Endpoints
 		endpointsList     []*api.Endpoints
-		serviceList       []*api.Service
+		serviceList       []*index.Service
 	)
 
 	// handle empty service name
@@ -439,7 +440,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		serviceList = k.APIConn.ServiceList()
 		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EndpointsList() }
 	} else {
-		idx := r.service + "." + r.namespace
+		idx := r.service + "." + r.namespace // must match index.Serice's uniqueKey
 		serviceList = k.APIConn.SvcIndex(idx)
 		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EpIndex(idx) }
 	}
@@ -455,7 +456,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 			continue
 		}
 
-		if k.opts.ignoreEmptyService && svc.Spec.ClusterIP != api.ClusterIPNone {
+		if k.opts.ignoreEmptyService && svc.ClusterIP != api.ClusterIPNone {
 			// serve NXDOMAIN if no endpoint is able to answer
 			podsCount := 0
 			for _, ep := range endpointsListFunc() {
@@ -470,7 +471,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		}
 
 		// Endpoint query or headless service
-		if svc.Spec.ClusterIP == api.ClusterIPNone || r.endpoint != "" {
+		if svc.ClusterIP == api.ClusterIPNone || r.endpoint != "" {
 			if endpointsList == nil {
 				endpointsList = endpointsListFunc()
 			}
@@ -512,8 +513,8 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		}
 
 		// External service
-		if svc.Spec.Type == api.ServiceTypeExternalName {
-			s := msg.Service{Key: strings.Join([]string{zonePath, Svc, svc.Namespace, svc.Name}, "/"), Host: svc.Spec.ExternalName, TTL: k.ttl}
+		if svc.Type == api.ServiceTypeExternalName {
+			s := msg.Service{Key: strings.Join([]string{zonePath, Svc, svc.Namespace, svc.Name}, "/"), Host: svc.ExternalName, TTL: k.ttl}
 			if t, _ := s.HostType(); t == dns.TypeCNAME {
 				s.Key = strings.Join([]string{zonePath, Svc, svc.Namespace, svc.Name}, "/")
 				services = append(services, s)
@@ -524,18 +525,18 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		}
 
 		// ClusterIP service
-		if len(svc.Spec.Ports) == 0 {
+		if len(svc.Ports) == 0 {
 			// add a sentinel port (-1) entry so we create records for services without any declared ports
-			svc.Spec.Ports = append(svc.Spec.Ports, api.ServicePort{Port: -1})
+			svc.Ports = []api.ServicePort{api.ServicePort{Port: -1}}
 		}
-		for _, p := range svc.Spec.Ports {
+		for _, p := range svc.Ports {
 			if !(match(r.port, p.Name) && match(r.protocol, string(p.Protocol))) {
 				continue
 			}
 
 			err = nil
 
-			s := msg.Service{Host: svc.Spec.ClusterIP, Port: int(p.Port), TTL: k.ttl}
+			s := msg.Service{Host: svc.ClusterIP, Port: int(p.Port), TTL: k.ttl}
 			s.Key = strings.Join([]string{zonePath, Svc, svc.Namespace, svc.Name}, "/")
 
 			services = append(services, s)
