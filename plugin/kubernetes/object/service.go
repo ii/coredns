@@ -18,6 +18,8 @@ type Service struct {
 	*Empty
 }
 
+func ServiceKey(name, namespace string) string { return name + "." + namespace }
+
 // ToService converts an api.Service to a *Service.
 func ToService(obj interface{}) interface{} {
 	svc, ok := obj.(*api.Service)
@@ -28,7 +30,7 @@ func ToService(obj interface{}) interface{} {
 	s := &Service{
 		Name:         svc.GetName(),
 		Namespace:    svc.GetNamespace(),
-		Index:        svc.GetName() + "." + svc.GetNamespace(),
+		Index:        ServiceKey(svc.GetName(), svc.GetNamespace()),
 		ClusterIP:    svc.Spec.ClusterIP,
 		Type:         svc.Spec.Type,
 		ExternalName: svc.Spec.ExternalName,
