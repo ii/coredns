@@ -32,8 +32,8 @@ func ToService(obj interface{}) interface{} {
 		ClusterIP:    svc.Spec.ClusterIP,
 		Type:         svc.Spec.Type,
 		ExternalName: svc.Spec.ExternalName,
-		Ports:        svc.Spec.Ports,
 	}
+	copy(s.Ports, svc.Spec.Ports)
 
 	return s
 }
