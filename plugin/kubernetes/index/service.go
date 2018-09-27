@@ -18,7 +18,8 @@ type Service struct {
 	*Empty
 }
 
-func (s *Service) UniqueKey() string { return s.uniqueKey }
+// ServiceKey return a unique key used for indexing this service.
+func ServiceKey(name, namespace string) string { return name + "." + namespace }
 
 // ToService converts an api.Service to a *Service.
 func ToService(obj interface{}) runtime.Object {
@@ -33,7 +34,7 @@ func ToService(obj interface{}) runtime.Object {
 		ClusterIP:    svc.Spec.ClusterIP,
 		Type:         svc.Spec.Type,
 		ExternalName: svc.Spec.ExternalName,
-		uniqueKey:    svc.GetName() + "." + svc.GetNamespace(),
+		uniqueKey:    ServiceKey(svc.GetName(), svc.GetNamespace()),
 	}
 	copy(s.Ports, svc.Spec.Ports)
 
@@ -41,6 +42,8 @@ func ToService(obj interface{}) runtime.Object {
 }
 
 var _ runtime.Object = &Service{}
+
+func (s *Service) UniqueKey() string { return s.uniqueKey }
 
 // DeepCopyObject implements the runtime.Object interface.
 func (s *Service) DeepCopyObject() runtime.Object {
