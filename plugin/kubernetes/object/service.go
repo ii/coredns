@@ -18,6 +18,7 @@ type Service struct {
 	*Empty
 }
 
+// ServiceKey return a string using for the index.
 func ServiceKey(name, namespace string) string { return name + "." + namespace }
 
 // ToService converts an api.Service to a *Service.
@@ -41,20 +42,6 @@ func ToService(obj interface{}) interface{} {
 }
 
 var _ runtime.Object = &Service{}
-
-// DeepCopyObject implements the runtime.Object interface.
-func (s *Service) DeepCopyObject() runtime.Object {
-	s1 := &Service{
-		Name:         s.GetName(),
-		Namespace:    s.GetNamespace(),
-		Index:        s.GetName() + "." + s.GetNamespace(),
-		ClusterIP:    s.ClusterIP,
-		Type:         s.Type,
-		ExternalName: s.ExternalName,
-	}
-	copy(s1.Ports, s.Ports)
-	return s1
-}
 
 // GetNamespace implements the metav1.Object interface.
 func (s *Service) GetNamespace() string { return s.Namespace }
