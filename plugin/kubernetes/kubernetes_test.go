@@ -366,11 +366,9 @@ func TestServices(t *testing.T) {
 
 func TestServiceFQDN(t *testing.T) {
 	fqdn := serviceFQDN(
-		&api.Service{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
+		&object.Service{
+			Name:      "svc1",
+			Namespace: "testns",
 		}, "cluster.local")
 
 	expected := "svc1.testns.svc.cluster.local."
@@ -381,14 +379,10 @@ func TestServiceFQDN(t *testing.T) {
 
 func TestPodFQDN(t *testing.T) {
 	fqdn := podFQDN(
-		&api.Pod{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "pod1",
-				Namespace: "testns",
-			},
-			Status: api.PodStatus{
-				PodIP: "10.10.0.10",
-			},
+		&object.Pod{
+			Name:      "pod1",
+			Namespace: "testns",
+			PodIP:     "10.10.0.10",
 		}, "cluster.local")
 
 	expected := "10-10-0-10.testns.pod.cluster.local."
@@ -396,14 +390,10 @@ func TestPodFQDN(t *testing.T) {
 		t.Errorf("Expected '%v', got '%v'.", expected, fqdn)
 	}
 	fqdn = podFQDN(
-		&api.Pod{
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "pod1",
-				Namespace: "testns",
-			},
-			Status: api.PodStatus{
-				PodIP: "aaaa:bbbb:cccc::zzzz",
-			},
+		&object.Pod{
+			Name:      "pod1",
+			Namespace: "testns",
+			PodIP:     "aaaa:bbbb:cccc::zzzz",
 		}, "cluster.local")
 
 	expected = "aaaa-bbbb-cccc--zzzz.testns.pod.cluster.local."

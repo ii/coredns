@@ -492,7 +492,7 @@ func (dns *dnsControl) updateModifed() {
 	atomic.StoreInt64(&dns.modified, unix)
 }
 
-func (dns *dnsControl) sendServiceUpdates(s *api.Service) {
+func (dns *dnsControl) sendServiceUpdates(s *object.Service) {
 	for i := range dns.zones {
 		name := serviceFQDN(s, dns.zones[i])
 		if _, ok := dns.watched[name]; ok {
@@ -501,7 +501,7 @@ func (dns *dnsControl) sendServiceUpdates(s *api.Service) {
 	}
 }
 
-func (dns *dnsControl) sendPodUpdates(p *api.Pod) {
+func (dns *dnsControl) sendPodUpdates(p *object.Pod) {
 	for i := range dns.zones {
 		name := podFQDN(p, dns.zones[i])
 		if _, ok := dns.watched[name]; ok {
@@ -561,7 +561,7 @@ func (dns *dnsControl) sendUpdates(oldObj, newObj interface{}) {
 		obj = oldObj
 	}
 	switch ob := obj.(type) {
-	case *api.Service:
+	case *object.Service:
 		dns.updateModifed()
 		dns.sendServiceUpdates(ob)
 	case *api.Endpoints:
@@ -577,7 +577,7 @@ func (dns *dnsControl) sendUpdates(oldObj, newObj interface{}) {
 		}
 		dns.updateModifed()
 		dns.sendEndpointsUpdates(endpointsSubsetDiffs(p, ob))
-	case *api.Pod:
+	case *object.Pod:
 		dns.updateModifed()
 		dns.sendPodUpdates(ob)
 	default:

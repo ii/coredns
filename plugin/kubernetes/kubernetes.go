@@ -301,13 +301,13 @@ func serviceFQDN(obj meta.Object, zone string) string {
 }
 
 // podFQDN returns the k8s cluster dns spec FQDN for the pod.
-func podFQDN(p *api.Pod, zone string) string {
-	if strings.Contains(p.Status.PodIP, ".") {
-		name := strings.Replace(p.Status.PodIP, ".", "-", -1)
+func podFQDN(p *object.Pod, zone string) string {
+	if strings.Contains(p.PodIP, ".") {
+		name := strings.Replace(p.PodIP, ".", "-", -1)
 		return dnsutil.Join(name, p.GetNamespace(), Pod, zone)
 	}
 
-	name := strings.Replace(p.Status.PodIP, ":", "-", -1)
+	name := strings.Replace(p.PodIP, ":", "-", -1)
 	return dnsutil.Join(name, p.GetNamespace(), Pod, zone)
 }
 
