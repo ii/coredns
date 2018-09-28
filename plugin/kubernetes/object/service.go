@@ -16,7 +16,7 @@ type Service struct {
 	ExternalName string
 	Ports        []api.ServicePort
 
-	*api.Service
+	*Empty
 }
 
 // ServiceKey return a string using for the index.
