@@ -379,15 +379,15 @@ func TestServeDNS(t *testing.T) {
 
 type APIConnServeTest struct{}
 
-func (APIConnServeTest) HasSynced() bool                          { return true }
-func (APIConnServeTest) Run()                                     { return }
-func (APIConnServeTest) Stop() error                              { return nil }
-func (APIConnServeTest) EpIndexReverse(string) []*api.Endpoints   { return nil }
-func (APIConnServeTest) SvcIndexReverse(string) []*object.Service { return nil }
-func (APIConnServeTest) Modified() int64                          { return time.Now().Unix() }
-func (APIConnServeTest) SetWatchChan(watch.Chan)                  {}
-func (APIConnServeTest) Watch(string) error                       { return nil }
-func (APIConnServeTest) StopWatching(string)                      {}
+func (APIConnServeTest) HasSynced() bool                           { return true }
+func (APIConnServeTest) Run()                                      { return }
+func (APIConnServeTest) Stop() error                               { return nil }
+func (APIConnServeTest) EpIndexReverse(string) []*object.Endpoints { return nil }
+func (APIConnServeTest) SvcIndexReverse(string) []*object.Service  { return nil }
+func (APIConnServeTest) Modified() int64                           { return time.Now().Unix() }
+func (APIConnServeTest) SetWatchChan(watch.Chan)                   {}
+func (APIConnServeTest) Watch(string) error                        { return nil }
+func (APIConnServeTest) StopWatching(string)                       {}
 
 func (APIConnServeTest) PodIndex(string) []*object.Pod {
 	a := []*object.Pod{
@@ -491,17 +491,17 @@ func (APIConnServeTest) ServiceList() []*object.Service {
 	return svcs
 }
 
-var epsIndex = map[string][]*api.Endpoints{
+var epsIndex = map[string][]*object.Endpoints{
 	"svc1.testns": {{
-		Subsets: []api.EndpointSubset{
+		Subsets: []object.EndpointSubset{
 			{
-				Addresses: []api.EndpointAddress{
+				Addresses: []object.EndpointAddress{
 					{
 						IP:       "172.0.0.1",
 						Hostname: "ep1a",
 					},
 				},
-				Ports: []api.EndpointPort{
+				Ports: []object.EndpointPort{
 					{
 						Port:     80,
 						Protocol: "tcp",
@@ -510,16 +510,14 @@ var epsIndex = map[string][]*api.Endpoints{
 				},
 			},
 		},
-		ObjectMeta: meta.ObjectMeta{
-			Name:      "svc1",
-			Namespace: "testns",
-		},
+		Name:      "svc1",
+		Namespace: "testns",
 	}},
 	"svcempty.testns": {{
-		Subsets: []api.EndpointSubset{
+		Subsets: []object.EndpointSubset{
 			{
 				Addresses: nil,
-				Ports: []api.EndpointPort{
+				Ports: []object.EndpointPort{
 					{
 						Port:     80,
 						Protocol: "tcp",
@@ -528,15 +526,13 @@ var epsIndex = map[string][]*api.Endpoints{
 				},
 			},
 		},
-		ObjectMeta: meta.ObjectMeta{
-			Name:      "svcempty",
-			Namespace: "testns",
-		},
+		Name:      "svcempty",
+		Namespace: "testns",
 	}},
 	"hdls1.testns": {{
-		Subsets: []api.EndpointSubset{
+		Subsets: []object.EndpointSubset{
 			{
-				Addresses: []api.EndpointAddress{
+				Addresses: []object.EndpointAddress{
 					{
 						IP: "172.0.0.2",
 					},
@@ -558,7 +554,7 @@ var epsIndex = map[string][]*api.Endpoints{
 						IP: "5678:abcd::2",
 					},
 				},
-				Ports: []api.EndpointPort{
+				Ports: []object.EndpointPort{
 					{
 						Port:     80,
 						Protocol: "tcp",
@@ -567,40 +563,35 @@ var epsIndex = map[string][]*api.Endpoints{
 				},
 			},
 		},
-		ObjectMeta: meta.ObjectMeta{
-			Name:      "hdls1",
-			Namespace: "testns",
-		},
+		Name:      "hdls1",
+		Namespace: "testns",
 	}},
 	"hdlsprtls.testns": {{
-		Subsets: []api.EndpointSubset{
+		Subsets: []object.EndpointSubset{
 			{
-				Addresses: []api.EndpointAddress{
+				Addresses: []object.EndpointAddress{
 					{
 						IP: "172.0.0.20",
 					},
 				},
-				Ports: []api.EndpointPort{},
+				Ports: []object.EndpointPort{},
 			},
 		},
-		ObjectMeta: meta.ObjectMeta{
-			Name:      "hdlsprtls",
-			Namespace: "testns",
-		},
+		Name:      "hdlsprtls",
+		Namespace: "testns",
 	}},
 }
 
-func (APIConnServeTest) EpIndex(s string) []*api.Endpoints {
+func (APIConnServeTest) EpIndex(s string) []*object.Endpoints {
 	return epsIndex[s]
 }
 
-func (APIConnServeTest) EndpointsList() []*api.Endpoints {
-	var eps []*api.Endpoints
+func (APIConnServeTest) EndpointsList() []*object.Endpoints {
+	var eps []*object.Endpoints
 	for _, ep := range epsIndex {
 		eps = append(eps, ep...)
 	}
 	return eps
-
 }
 
 func (APIConnServeTest) GetNodeByName(name string) (*api.Node, error) {

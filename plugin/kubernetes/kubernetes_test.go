@@ -50,7 +50,7 @@ func TestEndpointHostname(t *testing.T) {
 		{"10.11.12.13", "", "hello-abcde", "hello-abcde", true},
 	}
 	for _, test := range tests {
-		result := endpointHostname(api.EndpointAddress{IP: test.ip, Hostname: test.hostname, TargetRef: &api.ObjectReference{Name: test.podName}}, test.endpointNameMode)
+		result := endpointHostname(object.EndpointAddress{IP: test.ip, Hostname: test.hostname, TargetRefName: test.podName}, test.endpointNameMode)
 		if result != test.expected {
 			t.Errorf("Expected endpoint name for (ip:%v hostname:%v) to be '%v', but got '%v'", test.ip, test.hostname, test.expected, result)
 		}
@@ -59,16 +59,16 @@ func TestEndpointHostname(t *testing.T) {
 
 type APIConnServiceTest struct{}
 
-func (APIConnServiceTest) HasSynced() bool                          { return true }
-func (APIConnServiceTest) Run()                                     { return }
-func (APIConnServiceTest) Stop() error                              { return nil }
-func (APIConnServiceTest) PodIndex(string) []*object.Pod            { return nil }
-func (APIConnServiceTest) SvcIndexReverse(string) []*object.Service { return nil }
-func (APIConnServiceTest) EpIndexReverse(string) []*api.Endpoints   { return nil }
-func (APIConnServiceTest) Modified() int64                          { return 0 }
-func (APIConnServiceTest) SetWatchChan(watch.Chan)                  {}
-func (APIConnServiceTest) Watch(string) error                       { return nil }
-func (APIConnServiceTest) StopWatching(string)                      {}
+func (APIConnServiceTest) HasSynced() bool                           { return true }
+func (APIConnServiceTest) Run()                                      { return }
+func (APIConnServiceTest) Stop() error                               { return nil }
+func (APIConnServiceTest) PodIndex(string) []*object.Pod             { return nil }
+func (APIConnServiceTest) SvcIndexReverse(string) []*object.Service  { return nil }
+func (APIConnServiceTest) EpIndexReverse(string) []*object.Endpoints { return nil }
+func (APIConnServiceTest) Modified() int64                           { return 0 }
+func (APIConnServiceTest) SetWatchChan(watch.Chan)                   {}
+func (APIConnServiceTest) Watch(string) error                        { return nil }
+func (APIConnServiceTest) StopWatching(string)                       {}
 
 func (APIConnServiceTest) SvcIndex(string) []*object.Service {
 	svcs := []*object.Service{
@@ -126,20 +126,18 @@ func (APIConnServiceTest) ServiceList() []*object.Service {
 	return svcs
 }
 
-func (APIConnServiceTest) EpIndex(string) []*api.Endpoints {
-	n := "test.node.foo.bar"
-
-	eps := []*api.Endpoints{
+func (APIConnServiceTest) EpIndex(string) []*object.Endpoints {
+	eps := []*object.Endpoints{
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP:       "172.0.0.1",
 							Hostname: "ep1a",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -148,20 +146,18 @@ func (APIConnServiceTest) EpIndex(string) []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
+			Name:      "svc1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP: "172.0.0.2",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -170,20 +166,18 @@ func (APIConnServiceTest) EpIndex(string) []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "hdls1",
-				Namespace: "testns",
-			},
+			Name:      "hdls1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP: "172.0.0.3",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -192,18 +186,16 @@ func (APIConnServiceTest) EpIndex(string) []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "hdls1",
-				Namespace: "testns",
-			},
+			Name:      "hdls1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP:       "10.9.8.7",
-							NodeName: &n,
+							NodeName: "test.node.foo.bar",
 						},
 					},
 				},
@@ -213,20 +205,18 @@ func (APIConnServiceTest) EpIndex(string) []*api.Endpoints {
 	return eps
 }
 
-func (APIConnServiceTest) EndpointsList() []*api.Endpoints {
-	n := "test.node.foo.bar"
-
-	eps := []*api.Endpoints{
+func (APIConnServiceTest) EndpointsList() []*object.Endpoints {
+	eps := []*object.Endpoints{
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP:       "172.0.0.1",
 							Hostname: "ep1a",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -235,20 +225,18 @@ func (APIConnServiceTest) EndpointsList() []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
+			Name:      "svc1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP: "172.0.0.2",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -257,20 +245,18 @@ func (APIConnServiceTest) EndpointsList() []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "hdls1",
-				Namespace: "testns",
-			},
+			Name:      "hdls1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP: "172.0.0.3",
 						},
 					},
-					Ports: []api.EndpointPort{
+					Ports: []object.EndpointPort{
 						{
 							Port:     80,
 							Protocol: "tcp",
@@ -279,18 +265,16 @@ func (APIConnServiceTest) EndpointsList() []*api.Endpoints {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "hdls1",
-				Namespace: "testns",
-			},
+			Name:      "hdls1",
+			Namespace: "testns",
 		},
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP:       "10.9.8.7",
-							NodeName: &n,
+							NodeName: "test.node.foo.bar",
 						},
 					},
 				},
@@ -404,10 +388,10 @@ func TestPodFQDN(t *testing.T) {
 
 func TestEndpointFQDN(t *testing.T) {
 	fqdns := endpointFQDN(
-		&api.Endpoints{
-			Subsets: []api.EndpointSubset{
+		&object.Endpoints{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP:       "172.0.0.1",
 							Hostname: "ep1a",
@@ -418,10 +402,8 @@ func TestEndpointFQDN(t *testing.T) {
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "svc1",
-				Namespace: "testns",
-			},
+			Name:      "svc1",
+			Namespace: "testns",
 		}, "cluster.local", false)
 
 	expected := []string{

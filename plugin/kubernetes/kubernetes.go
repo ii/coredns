@@ -316,7 +316,7 @@ func podFQDN(p *object.Pod, zone string) string {
 }
 
 // endpointFQDN returns a list of k8s cluster dns spec service FQDNs for each subset in the endpoint.
-func endpointFQDN(ep *api.Endpoints, zone string, endpointNameMode bool) []string {
+func endpointFQDN(ep *object.Endpoints, zone string, endpointNameMode bool) []string {
 	var names []string
 	for _, ss := range ep.Subsets {
 		for _, addr := range ss.Addresses {
@@ -326,12 +326,12 @@ func endpointFQDN(ep *api.Endpoints, zone string, endpointNameMode bool) []strin
 	return names
 }
 
-func endpointHostname(addr api.EndpointAddress, endpointNameMode bool) string {
+func endpointHostname(addr object.EndpointAddress, endpointNameMode bool) string {
 	if addr.Hostname != "" {
 		return addr.Hostname
 	}
-	if endpointNameMode && addr.TargetRef != nil && addr.TargetRef.Name != "" {
-		return addr.TargetRef.Name
+	if endpointNameMode && addr.TargetRefName != "" {
+		return addr.TargetRefName
 	}
 	if strings.Contains(addr.IP, ".") {
 		return strings.Replace(addr.IP, ".", "-", -1)
@@ -425,8 +425,8 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 	}
 
 	var (
-		endpointsListFunc func() []*api.Endpoints
-		endpointsList     []*api.Endpoints
+		endpointsListFunc func() []*object.Endpoints
+		endpointsList     []*object.Endpoints
 		serviceList       []*object.Service
 	)
 
@@ -442,11 +442,11 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 
 	if wildcard(r.service) || wildcard(r.namespace) {
 		serviceList = k.APIConn.ServiceList()
-		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EndpointsList() }
+		endpointsListFunc = func() []*object.Endpoints { return k.APIConn.EndpointsList() }
 	} else {
 		idx := object.ServiceKey(r.service, r.namespace)
 		serviceList = k.APIConn.SvcIndex(idx)
-		endpointsListFunc = func() []*api.Endpoints { return k.APIConn.EpIndex(idx) }
+		endpointsListFunc = func() []*object.Endpoints { return k.APIConn.EpIndex(idx) }
 	}
 
 	for _, svc := range serviceList {
@@ -480,7 +480,7 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 				endpointsList = endpointsListFunc()
 			}
 			for _, ep := range endpointsList {
-				if ep.ObjectMeta.Name != svc.Name || ep.ObjectMeta.Namespace != svc.Namespace {
+				if ep.Name != svc.Name || ep.Namespace != svc.Namespace {
 					continue
 				}
 
@@ -492,11 +492,6 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 							if !match(r.endpoint, endpointHostname(addr, k.endpointNameMode)) {
 								continue
 							}
-						}
-
-						if len(eps.Ports) == 0 {
-							// add a sentinel port (-1) entry so we create records for services without any declared ports
-							eps.Ports = []api.EndpointPort{api.EndpointPort{Port: -1}}
 						}
 
 						for _, p := range eps.Ports {
@@ -529,10 +524,6 @@ func (k *Kubernetes) findServices(r recordRequest, zone string) (services []msg.
 		}
 
 		// ClusterIP service
-		if len(svc.Ports) == 0 {
-			// add a sentinel port (-1) entry so we create records for services without any declared ports
-			svc.Ports = []api.ServicePort{api.ServicePort{Port: -1}}
-		}
 		for _, p := range svc.Ports {
 			if !(match(r.port, p.Name) && match(r.protocol, string(p.Protocol))) {
 				continue

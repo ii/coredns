@@ -7,7 +7,6 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/watch"
 
 	api "k8s.io/api/core/v1"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type APIConnTest struct{}
@@ -18,8 +17,8 @@ func (APIConnTest) Stop() error                              { return nil }
 func (APIConnTest) PodIndex(string) []*object.Pod            { return nil }
 func (APIConnTest) SvcIndex(string) []*object.Service        { return nil }
 func (APIConnTest) SvcIndexReverse(string) []*object.Service { return nil }
-func (APIConnTest) EpIndex(string) []*api.Endpoints          { return nil }
-func (APIConnTest) EndpointsList() []*api.Endpoints          { return nil }
+func (APIConnTest) EpIndex(string) []*object.Endpoints       { return nil }
+func (APIConnTest) EndpointsList() []*object.Endpoints       { return nil }
 func (APIConnTest) Modified() int64                          { return 0 }
 func (APIConnTest) SetWatchChan(watch.Chan)                  {}
 func (APIConnTest) Watch(string) error                       { return nil }
@@ -36,22 +35,20 @@ func (APIConnTest) ServiceList() []*object.Service {
 	return svcs
 }
 
-func (APIConnTest) EpIndexReverse(string) []*api.Endpoints {
-	eps := []*api.Endpoints{
+func (APIConnTest) EpIndexReverse(string) []*object.Endpoints {
+	eps := []*object.Endpoints{
 		{
-			Subsets: []api.EndpointSubset{
+			Subsets: []object.EndpointSubset{
 				{
-					Addresses: []api.EndpointAddress{
+					Addresses: []object.EndpointAddress{
 						{
 							IP: "127.0.0.1",
 						},
 					},
 				},
 			},
-			ObjectMeta: meta.ObjectMeta{
-				Name:      "dns-service",
-				Namespace: "kube-system",
-			},
+			Name:      "dns-service",
+			Namespace: "kube-system",
 		},
 	}
 	return eps

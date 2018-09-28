@@ -32,9 +32,9 @@ type dnsController interface {
 	SvcIndex(string) []*object.Service
 	SvcIndexReverse(string) []*object.Service
 	PodIndex(string) []*object.Pod
-	EpIndex(string) []*api.Endpoints
-	EpIndexReverse(string) []*api.Endpoints
-	EndpointsList() []*api.Endpoints
+	EpIndex(string) []*object.Endpoints
+	EpIndexReverse(string) []*object.Endpoints
+	EndpointsList() []*object.Endpoints
 
 	GetNodeByName(string) (*api.Node, error)
 	GetNamespaceByName(string) (*api.Namespace, error)
@@ -137,7 +137,7 @@ func newdnsController(kubeClient kubernetes.Interface, opts dnsControlOpts) *dns
 	}
 
 	if opts.initEndpointsCache {
-		dns.epLister, dns.epController = cache.NewIndexerInformer(
+		dns.epLister, dns.epController = object.NewIndexerInformer(
 			&cache.ListWatch{
 				ListFunc:  endpointsListFunc(dns.client, api.NamespaceAll, dns.selector),
 				WatchFunc: endpointsWatchFunc(dns.client, api.NamespaceAll, dns.selector),
@@ -145,7 +145,8 @@ func newdnsController(kubeClient kubernetes.Interface, opts dnsControlOpts) *dns
 			&api.Endpoints{},
 			opts.resyncPeriod,
 			cache.ResourceEventHandlerFuncs{AddFunc: dns.Add, UpdateFunc: dns.Update, DeleteFunc: dns.Delete},
-			cache.Indexers{epNameNamespaceIndex: epNameNamespaceIndexFunc, epIPIndex: epIPIndexFunc})
+			cache.Indexers{epNameNamespaceIndex: epNameNamespaceIndexFunc, epIPIndex: epIPIndexFunc},
+			object.ToEndpoints)
 	}
 
 	dns.nsLister, dns.nsController = cache.NewInformer(
@@ -183,19 +184,20 @@ func svcNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
 }
 
 func epNameNamespaceIndexFunc(obj interface{}) ([]string, error) {
-	s, ok := obj.(*api.Endpoints)
+	s, ok := obj.(*object.Endpoints)
 	if !ok {
 		return nil, errObj
 	}
-	return []string{s.ObjectMeta.Name + "." + s.ObjectMeta.Namespace}, nil
+	return []string{s.Index}, nil
 }
 
 func epIPIndexFunc(obj interface{}) ([]string, error) {
-	ep, ok := obj.(*api.Endpoints)
+	ep, ok := obj.(*object.Endpoints)
 	if !ok {
 		return nil, errObj
 	}
 	var idx []string
+	// TODO: put this in the object
 	for _, eps := range ep.Subsets {
 		for _, addr := range eps.Addresses {
 			idx = append(idx, addr.IP)
@@ -406,7 +408,7 @@ func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*object.Service) {
 	return svcs
 }
 
-func (dns *dnsControl) EpIndex(idx string) (ep []*api.Endpoints) {
+func (dns *dnsControl) EpIndex(idx string) (ep []*object.Endpoints) {
 	if dns.epLister == nil {
 		return nil
 	}
@@ -415,7 +417,7 @@ func (dns *dnsControl) EpIndex(idx string) (ep []*api.Endpoints) {
 		return nil
 	}
 	for _, o := range os {
-		e, ok := o.(*api.Endpoints)
+		e, ok := o.(*object.Endpoints)
 		if !ok {
 			continue
 		}
@@ -424,7 +426,7 @@ func (dns *dnsControl) EpIndex(idx string) (ep []*api.Endpoints) {
 	return ep
 }
 
-func (dns *dnsControl) EpIndexReverse(ip string) (ep []*api.Endpoints) {
+func (dns *dnsControl) EpIndexReverse(ip string) (ep []*object.Endpoints) {
 	if dns.svcLister == nil {
 		return nil
 	}
@@ -433,7 +435,7 @@ func (dns *dnsControl) EpIndexReverse(ip string) (ep []*api.Endpoints) {
 		return nil
 	}
 	for _, o := range os {
-		e, ok := o.(*api.Endpoints)
+		e, ok := o.(*object.Endpoints)
 		if !ok {
 			continue
 		}
@@ -442,13 +444,13 @@ func (dns *dnsControl) EpIndexReverse(ip string) (ep []*api.Endpoints) {
 	return ep
 }
 
-func (dns *dnsControl) EndpointsList() (eps []*api.Endpoints) {
+func (dns *dnsControl) EndpointsList() (eps []*object.Endpoints) {
 	if dns.epLister == nil {
 		return nil
 	}
 	os := dns.epLister.List()
 	for _, o := range os {
-		ep, ok := o.(*api.Endpoints)
+		ep, ok := o.(*object.Endpoints)
 		if !ok {
 			continue
 		}
@@ -510,7 +512,7 @@ func (dns *dnsControl) sendPodUpdates(p *object.Pod) {
 	}
 }
 
-func (dns *dnsControl) sendEndpointsUpdates(ep *api.Endpoints) {
+func (dns *dnsControl) sendEndpointsUpdates(ep *object.Endpoints) {
 	for _, zone := range dns.zones {
 		names := append(endpointFQDN(ep, zone, dns.endpointNameMode), serviceFQDN(ep, zone))
 		for _, name := range names {
@@ -527,14 +529,14 @@ func (dns *dnsControl) sendEndpointsUpdates(ep *api.Endpoints) {
 // an endpoint.  So, here we create a new Endpoints struct, and populate it with only the endpoints that have changed.
 // This new Endpoints object is later used to generate the list of endpoint FQDNs to send to the client.
 // This function computes this literally by combining the sets (in a and not in b) union (in b and not in a).
-func endpointsSubsetDiffs(a, b *api.Endpoints) *api.Endpoints {
-	c := b.DeepCopy()
-	c.Subsets = []api.EndpointSubset{}
+func endpointsSubsetDiffs(a, b *object.Endpoints) *object.Endpoints {
+	c := b //.DeepCopy()
+	c.Subsets = []object.EndpointSubset{}
 
 	// In the following loop, the first iteration computes (in a but not in b).
 	// The second iteration then adds (in b but not in a)
 	// The end result is an Endpoints that only contains the subsets (endpoints) that are different between a and b.
-	for _, abba := range [][]*api.Endpoints{{a, b}, {b, a}} {
+	for _, abba := range [][]*object.Endpoints{{a, b}, {b, a}} {
 		a := abba[0]
 		b := abba[1]
 	left:
@@ -564,13 +566,13 @@ func (dns *dnsControl) sendUpdates(oldObj, newObj interface{}) {
 	case *object.Service:
 		dns.updateModifed()
 		dns.sendServiceUpdates(ob)
-	case *api.Endpoints:
+	case *object.Endpoints:
 		if newObj == nil || oldObj == nil {
 			dns.updateModifed()
 			dns.sendEndpointsUpdates(ob)
 			return
 		}
-		p := oldObj.(*api.Endpoints)
+		p := oldObj.(*object.Endpoints)
 		// endpoint updates can come frequently, make sure it's a change we care about
 		if endpointsEquivalent(p, ob) {
 			return
@@ -592,7 +594,7 @@ func (dns *dnsControl) Update(oldObj, newObj interface{}) { dns.sendUpdates(oldO
 // subsetsEquivalent checks if two endpoint subsets are significantly equivalent
 // I.e. that they have the same ready addresses, host names, ports (including protocol
 // and service names for SRV)
-func subsetsEquivalent(sa, sb api.EndpointSubset) bool {
+func subsetsEquivalent(sa, sb object.EndpointSubset) bool {
 	if len(sa.Addresses) != len(sb.Addresses) {
 		return false
 	}
@@ -630,7 +632,7 @@ func subsetsEquivalent(sa, sb api.EndpointSubset) bool {
 
 // endpointsEquivalent checks if the update to an endpoint is something
 // that matters to us or if they are effectively equivalent.
-func endpointsEquivalent(a, b *api.Endpoints) bool {
+func endpointsEquivalent(a, b *object.Endpoints) bool {
 
 	if len(a.Subsets) != len(b.Subsets) {
 		return false
