@@ -16,7 +16,7 @@ type Service struct {
 	ExternalName string
 	Ports        []api.ServicePort
 
-	*Empty
+	*api.Service
 }
 
 // ServiceKey return a string using for the index.
@@ -30,7 +30,7 @@ func ToService(obj interface{}) interface{} {
 	}
 
 	s := &Service{
-		Version:      svc.ObjectMeta.GetResourceVersion(),
+		Version:      svc.GetResourceVersion(),
 		Name:         svc.GetName(),
 		Namespace:    svc.GetNamespace(),
 		Index:        ServiceKey(svc.GetName(), svc.GetNamespace()),

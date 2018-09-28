@@ -26,7 +26,7 @@ func ToPod(obj interface{}) interface{} {
 	}
 
 	p := &Pod{
-		Version:   pod.ObjectMeta.GetResourceVersion(),
+		Version:   pod.GetResourceVersion(),
 		PodIP:     pod.Status.PodIP,
 		Namespace: pod.GetNamespace(),
 		Name:      pod.GetName(),

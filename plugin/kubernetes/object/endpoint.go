@@ -49,7 +49,7 @@ func ToEndpoints(obj interface{}) interface{} {
 	}
 
 	e := &Endpoints{
-		Version:   end.ObjectMeta.GetResourceVersion(),
+		Version:   end.GetResourceVersion(),
 		Name:      end.GetName(),
 		Namespace: end.GetNamespace(),
 		Index:     EndpointsKey(end.GetName(), end.GetNamespace()),
