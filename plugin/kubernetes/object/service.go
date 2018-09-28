@@ -7,6 +7,7 @@ import (
 
 // Service is a stripped down api.Service with only the items we need for CoreDNS.
 type Service struct {
+	Version      string
 	Name         string
 	Namespace    string
 	Index        string
@@ -29,6 +30,7 @@ func ToService(obj interface{}) interface{} {
 	}
 
 	s := &Service{
+		Version:      svc.ObjectMeta.GetResourceVersion(),
 		Name:         svc.GetName(),
 		Namespace:    svc.GetNamespace(),
 		Index:        ServiceKey(svc.GetName(), svc.GetNamespace()),
@@ -58,3 +60,9 @@ func (s *Service) GetName() string { return s.Name }
 
 // SetName implements the metav1.Object interface.
 func (s *Service) SetName(name string) {}
+
+// GetResourceVersion implements the metav1.Object interface.
+func (s *Service) GetResourceVersion() string { return s.Version }
+
+// SetResourceVersion implements the metav1.Object interface.
+func (s *Service) SetResourceVersion(version string) {}

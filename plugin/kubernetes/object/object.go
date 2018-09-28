@@ -31,12 +31,6 @@ func (e *Empty) GetUID() types.UID { return "" }
 // SetUID implements the metav1.Object interface.
 func (e *Empty) SetUID(uid types.UID) {}
 
-// GetResourceVersion implements the metav1.Object interface.
-func (e *Empty) GetResourceVersion() string { return "" }
-
-// SetResourceVersion implements the metav1.Object interface.
-func (e *Empty) SetResourceVersion(version string) {}
-
 // GetGeneration implements the metav1.Object interface.
 func (e *Empty) GetGeneration() int64 { return 0 }
 

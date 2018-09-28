@@ -9,6 +9,7 @@ import (
 
 // Pod is a stripped down api.Pod with only the items we need for CoreDNS.
 type Pod struct {
+	Version           string
 	PodIP             string
 	Name              string
 	Namespace         string
@@ -24,7 +25,9 @@ func ToPod(obj interface{}) interface{} {
 		return nil
 	}
 
-	p := &Pod{PodIP: pod.Status.PodIP,
+	p := &Pod{
+		Version:   pod.ObjectMeta.GetResourceVersion(),
+		PodIP:     pod.Status.PodIP,
 		Namespace: pod.GetNamespace(),
 		Name:      pod.GetName(),
 	}
@@ -49,3 +52,9 @@ func (p *Pod) GetName() string { return p.Name }
 
 // SetName implements the metav1.Object interface.
 func (p *Pod) SetName(name string) {}
+
+// GetResourceVersion implements the metav1.Object interface.
+func (p *Pod) GetResourceVersion() string { return p.Version }
+
+// SetResourceVersion implements the metav1.Object interface.
+func (p *Pod) SetResourceVersion(version string) {}

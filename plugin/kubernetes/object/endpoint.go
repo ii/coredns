@@ -7,6 +7,7 @@ import (
 
 // Endpoints is a stripped down api.Endpoints with only the items we need for CoreDNS.
 type Endpoints struct {
+	Version   string
 	Name      string
 	Namespace string
 	Index     string
@@ -48,6 +49,7 @@ func ToEndpoints(obj interface{}) interface{} {
 	}
 
 	e := &Endpoints{
+		Version:   end.ObjectMeta.GetResourceVersion(),
 		Name:      end.GetName(),
 		Namespace: end.GetNamespace(),
 		Index:     EndpointsKey(end.GetName(), end.GetNamespace()),
@@ -91,3 +93,9 @@ func (e *Endpoints) GetName() string { return e.Name }
 
 // SetName implements the metav1.Object interface.
 func (e *Endpoints) SetName(name string) {}
+
+// GetResourceVersion implements the metav1.Object interface.
+func (e *Endpoints) GetResourceVersion() string { return e.Version }
+
+// SetResourceVersion implements the metav1.Object interface.
+func (e *Endpoints) SetResourceVersion(version string) {}
