@@ -38,10 +38,13 @@ func ToService(obj interface{}) interface{} {
 		Type:         svc.Spec.Type,
 		ExternalName: svc.Spec.ExternalName,
 	}
-	copy(s.Ports, svc.Spec.Ports)
 
-	if len(s.Ports) == 0 {
+	ports := len(svc.Spec.Ports)
+	if ports == 0 {
 		s.Ports = []api.ServicePort{{Port: -1}}
+	} else {
+		s.Ports = make([]api.ServicePort, ports)
+		copy(s.Ports, svc.Spec.Ports)
 	}
 
 	return s
