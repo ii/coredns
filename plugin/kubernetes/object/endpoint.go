@@ -15,11 +15,14 @@ type Endpoints struct {
 	*Empty
 }
 
+// EndpointSubset is a group of addresses with a common set of ports. The
+// expanded set of endpoints is the Cartesian product of Addresses x Ports.
 type EndpointSubset struct {
 	Addresses []EndpointAddress
 	Ports     []EndpointPort
 }
 
+// EndpointAddress is a tuple that describes single IP address.
 type EndpointAddress struct {
 	IP            string
 	Hostname      string
@@ -27,15 +30,17 @@ type EndpointAddress struct {
 	TargetRefName string
 }
 
+// EndpointPort is a tuple that describes a single port.
 type EndpointPort struct {
 	Port     int32
 	Name     string
 	Protocol string
 }
 
+// EndpointsKey return a string using for the index.
 func EndpointsKey(name, namespace string) string { return name + "." + namespace }
 
-// ToEndpint converts an api.Service to a *Service.
+// ToEndpoints converts an api.Service to a *Service.
 func ToEndpoints(obj interface{}) interface{} {
 	end, ok := obj.(*api.Endpoints)
 	if !ok {

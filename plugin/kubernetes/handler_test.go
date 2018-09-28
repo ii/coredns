@@ -574,7 +574,7 @@ var epsIndex = map[string][]*object.Endpoints{
 						IP: "172.0.0.20",
 					},
 				},
-				Ports: []object.EndpointPort{},
+				Ports: []object.EndpointPort{{Port: -1}},
 			},
 		},
 		Name:      "hdlsprtls",
