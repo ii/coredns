@@ -1,10 +1,6 @@
 package object
 
 import (
-	"hash/fnv"
-	"io"
-	"strconv"
-
 	api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -15,7 +11,6 @@ type Endpoints struct {
 	Name      string
 	Namespace string
 	Index     string
-	IndexIP   string
 	Subsets   []EndpointSubset
 
 	*Empty
@@ -59,7 +54,6 @@ func ToEndpoints(obj interface{}) interface{} {
 		Namespace: end.GetNamespace(),
 		Index:     EndpointsKey(end.GetName(), end.GetNamespace()),
 	}
-
 	for _, eps := range end.Subsets {
 		sub := EndpointSubset{}
 		for _, a := range eps.Addresses {
@@ -83,16 +77,6 @@ func ToEndpoints(obj interface{}) interface{} {
 		e.Subsets = append(e.Subsets, sub)
 	}
 
-	// Range again to get IndexIP, can possibly be done in the above loop.
-	fnv := fnv.New64()
-
-	for _, eps := range end.Subsets {
-		for _, a := range eps.Addresses {
-			io.WriteString(fnv, a.IP)
-		}
-	}
-	e.IndexIP = strconv.FormatUint(fnv.Sum64(), 10)
-
 	return e
 }
 
@@ -103,7 +87,6 @@ func (e *Endpoints) CopyWithoutSubsets() *Endpoints {
 		Name:      e.Name,
 		Namespace: e.Namespace,
 		Index:     e.Index,
-		IndexIP:   e.IndexIP,
 	}
 	return e1
 }
@@ -117,7 +100,6 @@ func (e *Endpoints) DeepCopyObject() runtime.Object {
 		Name:      e.Name,
 		Namespace: e.Namespace,
 		Index:     e.Index,
-		IndexIP:   e.IndexIP,
 	}
 	for _, eps := range e.Subsets {
 		sub := EndpointSubset{}
