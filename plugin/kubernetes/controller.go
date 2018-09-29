@@ -196,14 +196,7 @@ func epIPIndexFunc(obj interface{}) ([]string, error) {
 	if !ok {
 		return nil, errObj
 	}
-	var idx []string
-	// TODO: put this in the object?
-	for _, eps := range ep.Subsets {
-		for _, addr := range eps.Addresses {
-			idx = append(idx, addr.IP)
-		}
-	}
-	return idx, nil
+	return []string{ep.IndexIP}, nil
 }
 
 func serviceListFunc(c kubernetes.Interface, ns string, s labels.Selector) func(meta.ListOptions) (runtime.Object, error) {
