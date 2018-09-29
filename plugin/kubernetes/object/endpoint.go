@@ -11,6 +11,7 @@ type Endpoints struct {
 	Name      string
 	Namespace string
 	Index     string
+	IndexIP   []string
 	Subsets   []EndpointSubset
 
 	*Empty
@@ -77,6 +78,12 @@ func ToEndpoints(obj interface{}) interface{} {
 		e.Subsets = append(e.Subsets, sub)
 	}
 
+	for _, eps := range end.Subsets {
+		for _, a := range eps.Addresses {
+			e.IndexIP = append(e.IndexIP, a.IP)
+		}
+	}
+
 	return e
 }
 
@@ -87,6 +94,7 @@ func (e *Endpoints) CopyWithoutSubsets() *Endpoints {
 		Name:      e.Name,
 		Namespace: e.Namespace,
 		Index:     e.Index,
+		IndexIP:   e.IndexIP,
 	}
 	return e1
 }
@@ -100,7 +108,10 @@ func (e *Endpoints) DeepCopyObject() runtime.Object {
 		Name:      e.Name,
 		Namespace: e.Namespace,
 		Index:     e.Index,
+		IndexIP:   make([]string, len(e.IndexIP)),
 	}
+	copy(e1.IndexIP, e.IndexIP)
+
 	for _, eps := range e.Subsets {
 		sub := EndpointSubset{}
 		for _, a := range eps.Addresses {
