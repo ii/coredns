@@ -21,6 +21,8 @@ func (k *Kubernetes) StopWatching(qname string) {
 	k.APIConn.StopWatching(qname)
 }
 
+var _ watch.Watchable = &Kubernetes{}
+
 func (dns *dnsControl) sendServiceUpdates(s *object.Service) {
 	for i := range dns.zones {
 		name := serviceFQDN(s, dns.zones[i])

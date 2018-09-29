@@ -6,16 +6,7 @@ import (
 	"testing"
 
 	"github.com/coredns/coredns/plugin/kubernetes/object"
-	"github.com/coredns/coredns/plugin/pkg/watch"
 )
-
-func TestIsWatchable(t *testing.T) {
-	k := &Kubernetes{}
-	var i interface{} = k
-	if _, ok := i.(watch.Watchable); !ok {
-		t.Error("Kubernetes should implement watch.Watchable and does not")
-	}
-}
 
 func endpointSubsets(addrs ...string) (eps []object.EndpointSubset) {
 	for _, ap := range addrs {
