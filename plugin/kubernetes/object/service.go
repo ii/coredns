@@ -52,6 +52,22 @@ func ToService(obj interface{}) interface{} {
 
 var _ runtime.Object = &Service{}
 
+// DeepCopyObject implements the ObjectKind interface.
+func (s *Service) DeepCopyObject() runtime.Object {
+	s1 := &Service{
+		Version:      s.Version,
+		Name:         s.Name,
+		Namespace:    s.Namespace,
+		Index:        s.Index,
+		ClusterIP:    s.ClusterIP,
+		Type:         s.Type,
+		ExternalName: s.ExternalName,
+		Ports:        make([]api.ServicePort, len(s.Ports)),
+	}
+	copy(s1.Ports, s.Ports)
+	return s1
+}
+
 // GetNamespace implements the metav1.Object interface.
 func (s *Service) GetNamespace() string { return s.Namespace }
 

@@ -41,6 +41,18 @@ func ToPod(obj interface{}) interface{} {
 
 var _ runtime.Object = &Pod{}
 
+// DeepCopyObject implements the ObjectKind interface.
+func (p *Pod) DeepCopyObject() runtime.Object {
+	p1 := &Pod{
+		Version:           p.Version,
+		PodIP:             p.PodIP,
+		Namespace:         p.Namespace,
+		Name:              p.Name,
+		DeletionTimestamp: p.DeletionTimestamp,
+	}
+	return p1
+}
+
 // GetNamespace implements the metav1.Object interface.
 func (p *Pod) GetNamespace() string { return p.Namespace }
 

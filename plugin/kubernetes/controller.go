@@ -29,12 +29,12 @@ const (
 
 type dnsController interface {
 	ServiceList() []*object.Service
+	EndpointsList() []*object.Endpoints
 	SvcIndex(string) []*object.Service
 	SvcIndexReverse(string) []*object.Service
 	PodIndex(string) []*object.Pod
 	EpIndex(string) []*object.Endpoints
 	EpIndexReverse(string) []*object.Endpoints
-	EndpointsList() []*object.Endpoints
 
 	GetNodeByName(string) (*api.Node, error)
 	GetNamespaceByName(string) (*api.Namespace, error)
@@ -197,7 +197,7 @@ func epIPIndexFunc(obj interface{}) ([]string, error) {
 		return nil, errObj
 	}
 	var idx []string
-	// TODO: put this in the object
+	// TODO: put this in the object?
 	for _, eps := range ep.Subsets {
 		for _, addr := range eps.Addresses {
 			idx = append(idx, addr.IP)
@@ -353,6 +353,18 @@ func (dns *dnsControl) ServiceList() (svcs []*object.Service) {
 	return svcs
 }
 
+func (dns *dnsControl) EndpointsList() (eps []*object.Endpoints) {
+	os := dns.epLister.List()
+	for _, o := range os {
+		ep, ok := o.(*object.Endpoints)
+		if !ok {
+			continue
+		}
+		eps = append(eps, ep)
+	}
+	return eps
+}
+
 func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
 	os, err := dns.podLister.ByIndex(podIPIndex, ip)
 	if err != nil {
@@ -429,18 +441,6 @@ func (dns *dnsControl) EpIndexReverse(ip string) (ep []*object.Endpoints) {
 	return ep
 }
 
-func (dns *dnsControl) EndpointsList() (eps []*object.Endpoints) {
-	os := dns.epLister.List()
-	for _, o := range os {
-		ep, ok := o.(*object.Endpoints)
-		if !ok {
-			continue
-		}
-		eps = append(eps, ep)
-	}
-	return eps
-}
-
 // GetNodeByName return the node by name. If nothing is found an error is
 // returned. This query causes a roundtrip to the k8s API server, so use
 // sparingly. Currently this is only used for Federation.
@@ -449,8 +449,7 @@ func (dns *dnsControl) GetNodeByName(name string) (*api.Node, error) {
 	return v1node, err
 }
 
-// GetNamespaceByName returns the namespace by name. If nothing is found an
-// error is returned.
+// GetNamespaceByName returns the namespace by name. If nothing is found an error is returned.
 func (dns *dnsControl) GetNamespaceByName(name string) (*api.Namespace, error) {
 	os := dns.nsLister.List()
 	for _, o := range os {
@@ -474,162 +473,6 @@ func (dns *dnsControl) Modified() int64 {
 func (dns *dnsControl) updateModifed() {
 	unix := time.Now().Unix()
 	atomic.StoreInt64(&dns.modified, unix)
-}
-
-func (dns *dnsControl) sendServiceUpdates(s *object.Service) {
-	for i := range dns.zones {
-		name := serviceFQDN(s, dns.zones[i])
-		if _, ok := dns.watched[name]; ok {
-			dns.watchChan <- name
-		}
-	}
-}
-
-func (dns *dnsControl) sendPodUpdates(p *object.Pod) {
-	for i := range dns.zones {
-		name := podFQDN(p, dns.zones[i])
-		if _, ok := dns.watched[name]; ok {
-			dns.watchChan <- name
-		}
-	}
-}
-
-func (dns *dnsControl) sendEndpointsUpdates(ep *object.Endpoints) {
-	for _, zone := range dns.zones {
-		names := append(endpointFQDN(ep, zone, dns.endpointNameMode), serviceFQDN(ep, zone))
-		for _, name := range names {
-			if _, ok := dns.watched[name]; ok {
-				dns.watchChan <- name
-			}
-		}
-	}
-}
-
-// endpointsSubsetDiffs returns an Endpoints struct containing the Subsets that have changed between a and b.
-// When we notify clients of changed endpoints we only want to notify them of endpoints that have changed.
-// The Endpoints API object holds more than one endpoint, held in a list of Subsets.  Each Subset refers to
-// an endpoint.  So, here we create a new Endpoints struct, and populate it with only the endpoints that have changed.
-// This new Endpoints object is later used to generate the list of endpoint FQDNs to send to the client.
-// This function computes this literally by combining the sets (in a and not in b) union (in b and not in a).
-func endpointsSubsetDiffs(a, b *object.Endpoints) *object.Endpoints {
-	c := b //.DeepCopy()
-	c.Subsets = []object.EndpointSubset{}
-
-	// In the following loop, the first iteration computes (in a but not in b).
-	// The second iteration then adds (in b but not in a)
-	// The end result is an Endpoints that only contains the subsets (endpoints) that are different between a and b.
-	for _, abba := range [][]*object.Endpoints{{a, b}, {b, a}} {
-		a := abba[0]
-		b := abba[1]
-	left:
-		for _, as := range a.Subsets {
-			for _, bs := range b.Subsets {
-				if subsetsEquivalent(as, bs) {
-					continue left
-				}
-			}
-			c.Subsets = append(c.Subsets, as)
-		}
-	}
-	return c
-}
-
-// sendUpdates sends a notification to the server if a watch is enabled for the qname.
-func (dns *dnsControl) sendUpdates(oldObj, newObj interface{}) {
-	// If both objects have the same resource version, they are identical.
-	if newObj != nil && oldObj != nil && (oldObj.(meta.Object).GetResourceVersion() == newObj.(meta.Object).GetResourceVersion()) {
-		return
-	}
-	obj := newObj
-	if obj == nil {
-		obj = oldObj
-	}
-	switch ob := obj.(type) {
-	case *object.Service:
-		dns.updateModifed()
-		dns.sendServiceUpdates(ob)
-	case *object.Endpoints:
-		if newObj == nil || oldObj == nil {
-			dns.updateModifed()
-			dns.sendEndpointsUpdates(ob)
-			return
-		}
-		p := oldObj.(*object.Endpoints)
-		// endpoint updates can come frequently, make sure it's a change we care about
-		if endpointsEquivalent(p, ob) {
-			return
-		}
-		dns.updateModifed()
-		dns.sendEndpointsUpdates(endpointsSubsetDiffs(p, ob))
-	case *object.Pod:
-		dns.updateModifed()
-		dns.sendPodUpdates(ob)
-	default:
-		log.Warningf("Updates for %T not supported.", ob)
-	}
-}
-
-func (dns *dnsControl) Add(obj interface{})               { dns.sendUpdates(nil, obj) }
-func (dns *dnsControl) Delete(obj interface{})            { dns.sendUpdates(obj, nil) }
-func (dns *dnsControl) Update(oldObj, newObj interface{}) { dns.sendUpdates(oldObj, newObj) }
-
-// subsetsEquivalent checks if two endpoint subsets are significantly equivalent
-// I.e. that they have the same ready addresses, host names, ports (including protocol
-// and service names for SRV)
-func subsetsEquivalent(sa, sb object.EndpointSubset) bool {
-	if len(sa.Addresses) != len(sb.Addresses) {
-		return false
-	}
-	if len(sa.Ports) != len(sb.Ports) {
-		return false
-	}
-
-	// in Addresses and Ports, we should be able to rely on
-	// these being sorted and able to be compared
-	// they are supposed to be in a canonical format
-	for addr, aaddr := range sa.Addresses {
-		baddr := sb.Addresses[addr]
-		if aaddr.IP != baddr.IP {
-			return false
-		}
-		if aaddr.Hostname != baddr.Hostname {
-			return false
-		}
-	}
-
-	for port, aport := range sa.Ports {
-		bport := sb.Ports[port]
-		if aport.Name != bport.Name {
-			return false
-		}
-		if aport.Port != bport.Port {
-			return false
-		}
-		if aport.Protocol != bport.Protocol {
-			return false
-		}
-	}
-	return true
-}
-
-// endpointsEquivalent checks if the update to an endpoint is something
-// that matters to us or if they are effectively equivalent.
-func endpointsEquivalent(a, b *object.Endpoints) bool {
-
-	if len(a.Subsets) != len(b.Subsets) {
-		return false
-	}
-
-	// we should be able to rely on
-	// these being sorted and able to be compared
-	// they are supposed to be in a canonical format
-	for i, sa := range a.Subsets {
-		sb := b.Subsets[i]
-		if !subsetsEquivalent(sa, sb) {
-			return false
-		}
-	}
-	return true
 }
 
 var errObj = errors.New("obj was not of the correct type")

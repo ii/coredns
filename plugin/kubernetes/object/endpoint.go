@@ -80,7 +80,41 @@ func ToEndpoints(obj interface{}) interface{} {
 	return e
 }
 
+// CopyWithoutSubsets copies e, without the subsets.
+func (e *Endpoints) CopyWithoutSubsets() *Endpoints {
+	e1 := &Endpoints{
+		Version:   e.Version,
+		Name:      e.Name,
+		Namespace: e.Namespace,
+		Index:     e.Index,
+	}
+	return e1
+}
+
 var _ runtime.Object = &Endpoints{}
+
+// DeepCopyObject implements the ObjectKind interface.
+func (e *Endpoints) DeepCopyObject() runtime.Object {
+	e1 := &Endpoints{
+		Version:   e.Version,
+		Name:      e.Name,
+		Namespace: e.Namespace,
+		Index:     e.Index,
+	}
+	for _, eps := range e.Subsets {
+		sub := EndpointSubset{}
+		for _, a := range eps.Addresses {
+			ea := EndpointAddress{IP: a.IP, Hostname: a.Hostname, NodeName: a.NodeName, TargetRefName: a.TargetRefName}
+			sub.Addresses = append(sub.Addresses, ea)
+		}
+		for _, p := range eps.Ports {
+			ep := EndpointPort{Port: p.Port, Name: p.Name, Protocol: p.Protocol}
+			sub.Ports = append(sub.Ports, ep)
+		}
+		e1.Subsets = append(e.Subsets, sub)
+	}
+	return e1
+}
 
 // GetNamespace implements the metav1.Object interface.
 func (e *Endpoints) GetNamespace() string { return e.Namespace }
