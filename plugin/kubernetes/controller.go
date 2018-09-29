@@ -354,9 +354,6 @@ func (dns *dnsControl) ServiceList() (svcs []*object.Service) {
 }
 
 func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
-	if dns.podLister == nil {
-		return nil
-	}
 	os, err := dns.podLister.ByIndex(podIPIndex, ip)
 	if err != nil {
 		return nil
@@ -372,9 +369,6 @@ func (dns *dnsControl) PodIndex(ip string) (pods []*object.Pod) {
 }
 
 func (dns *dnsControl) SvcIndex(idx string) (svcs []*object.Service) {
-	if dns.svcLister == nil {
-		return nil
-	}
 	os, err := dns.svcLister.ByIndex(svcNameNamespaceIndex, idx)
 	if err != nil {
 		return nil
@@ -390,9 +384,6 @@ func (dns *dnsControl) SvcIndex(idx string) (svcs []*object.Service) {
 }
 
 func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*object.Service) {
-	if dns.svcLister == nil {
-		return nil
-	}
 	os, err := dns.svcLister.ByIndex(svcIPIndex, ip)
 	if err != nil {
 		return nil
@@ -409,9 +400,6 @@ func (dns *dnsControl) SvcIndexReverse(ip string) (svcs []*object.Service) {
 }
 
 func (dns *dnsControl) EpIndex(idx string) (ep []*object.Endpoints) {
-	if dns.epLister == nil {
-		return nil
-	}
 	os, err := dns.epLister.ByIndex(epNameNamespaceIndex, idx)
 	if err != nil {
 		return nil
@@ -427,9 +415,6 @@ func (dns *dnsControl) EpIndex(idx string) (ep []*object.Endpoints) {
 }
 
 func (dns *dnsControl) EpIndexReverse(ip string) (ep []*object.Endpoints) {
-	if dns.svcLister == nil {
-		return nil
-	}
 	os, err := dns.epLister.ByIndex(epIPIndex, ip)
 	if err != nil {
 		return nil
@@ -445,9 +430,6 @@ func (dns *dnsControl) EpIndexReverse(ip string) (ep []*object.Endpoints) {
 }
 
 func (dns *dnsControl) EndpointsList() (eps []*object.Endpoints) {
-	if dns.epLister == nil {
-		return nil
-	}
 	os := dns.epLister.List()
 	for _, o := range os {
 		ep, ok := o.(*object.Endpoints)
