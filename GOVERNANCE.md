@@ -4,25 +4,29 @@
 
 The CoreDNS community adheres to the following principles:
 
-- Open: CoreDNS is open source, advertised on [our website](https://coredns.io/community)
+- Open: CoreDNS is open source, advertised on [our website](https://coredns.io/community).
 - Welcoming and respectful: See [Code of
   Conduct](https://github.com/coredns/coredns/blob/master/CODE-OF-CONDUCT.md).
 - Transparent and accessible: Work and collaboration are done in public.
 - Merit: Ideas and contributions are accepted according to their technical merit and alignment with
   project objectives, scope, and design principles.
 
-## Benevolent Dictator for Life
+## Project Lead
 
-The CoreDNS project has a benevolent dictator for life.
+The CoreDNS project has a project lead.
 
-A [Benevolent dictator for life](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) is
+A project lead in CoreDNS is
 a single person that has a final say in any decision concerning the CoreDNS project.
 
-The benevolent dictator for life can volunteer to step down and appoint a new "dictator for life".
+The term of the project lead is two years, with no term limit restriction.
 
-The current "benevolent dictator for life" is identified in the [top level OWNERS
-file](https://github.com/coredns/coredns/OWNERS) with the string `benevolent dictator for life`
-behind the name.
+The project lead is elected by CoreDNS maintainers
+according to an individual's technical merit to CoreDNS project.
+
+The current "project lead" is identified in the [top level OWNERS
+file](https://github.com/coredns/coredns/blob/master/OWNERS) with the string
+`project lead` and the term behind the name.
+
 
 ## Expectations from Maintainers
 
@@ -55,6 +59,39 @@ step down.
 The CoreDNS organization will never forcefully remove a current Maintainer, unless a maintainer
 fails to meet the principles of CoreDNS community,
 or adhere to the [Code of Conduct](https://github.com/coredns/coredns/blob/master/CODE-OF-CONDUCT.md).
+
+## Changes in Project Lead
+
+Changes in project lead or term is initiated by opening a github PR.
+
+Anyone from CoreDNS community can vote on the PR with either +1 or -1.
+
+Only the following votes are binding:
+1) Any maintainer that has been listed in the top-level [OWNERS](OWNERS) file before the PR is opened.
+2) Any maintainer from an organization may cast the vote for that organization. However, no organization
+should have more binding votes than 1/5 of the total number of maintainers defined in 1).
+
+The PR should be kept open for no less than 4 weeks. The PR can only be merged after the end of the
+last project lead's term, with more +1 than -1 in the binding votes.
+
+When there are conflicting PRs about changes in project lead, the PR with the most binding +1 votes is merged.
+
+The project lead can volunteer to step down.
+
+## Decision making process
+
+Decisions are build on consensus between maintainers.
+Proposals and ideas can either be submitted for agreement via a github issue or PR,
+or by sending an email to `maintainer@coredns.io`.
+
+In general, we prefer that technical issues and maintainer membership are amicably worked out between the persons involved.
+If a dispute cannot be decided independently, the project lead has the final say to decide an issue.
+
+Decision making process should be transparent and accessible to adhere to
+the principles of CoreDNS project.
+
+All proposals, ideas, and decisions, by maintainers or the project lead,
+should either be part of a github issue or PR, or be sent to `maintainer@coredns.io`.
 
 ## Github Project Administration
 
