@@ -4,9 +4,9 @@
 
 The CoreDNS community adheres to the following principles:
 
-- Open: CoreDNS is open source.
+- Open: CoreDNS is open source, advertised on [our website](https://coredns.io/community)
 - Welcoming and respectful: See [Code of
-  Conduct](https://github.com/coredns/coredns/CODE-OF-CONDUCT.md).
+  Conduct](https://github.com/coredns/coredns/blob/master/CODE-OF-CONDUCT.md).
 - Transparent and accessible: Work and collaboration are done in public.
 - Merit: Ideas and contributions are accepted according to their technical merit and alignment with
   project objectives, scope, and design principles.
@@ -26,26 +26,25 @@ behind the name.
 
 ## Expectations from Maintainers
 
-"Every one carries water."
+Every one carries water....
 
-Making a community work requires input/effort from every one. Maintainers should actively
+Making a community work requires input/effort from everyone. Maintainers should actively
 participate in Pull Request reviews. Maintainers are expected to respond to assigned Pull Requests
 in a *reasonable* time frame, either providing insights, or assign the Pull Requests to other
 maintainers.
 
-Every Maintainer is listed in the top-level [OWNERS](https://github.com/coredns/coredns/OWNERS)
-file, with their Github handle and an (possible obfuscated) email address. Every one in the
-`reviewers` list is a Maintainer.
+Every Maintainer is listed in the top-level [OWNERS](https://github.com/coredns/coredns/blob/master/OWNERS)
+file, with their Github handle and a possibly obfuscated email address. Everyone in the
+`approvers` list is a Maintainer.
 
 A Maintainer is also listed in a plugin specific OWNER file.
 
 A Maintainer should be a member of `maintainer@coredns.io`, although this is not a hard requirement.
-A Maintainer that hasn't been active in the CoreDNS repository for 12 months is considered inactive.
 
 ## Becoming a Maintainers
 
-On successful completion (it was merged) of a (large) pull request, any current maintainer can reach
-to the person behind the pull request and ask them if they are willing to become a CoreDNS
+On successful merge of a significant pull request, any current maintainer can reach
+to the author behind the pull request and ask them if they are willing to become a CoreDNS
 maintainer.
 
 ## Changes in Maintainership
@@ -54,7 +53,8 @@ If a Maintainer feels she/he can not fulfill the "Expectations from Maintainers"
 step down.
 
 The CoreDNS organization will never forcefully remove a current Maintainer, unless a maintainer
-fails to meet the principles of CoreDNS community.
+fails to meet the principles of CoreDNS community,
+or adhere to the [Code of Conduct](https://github.com/coredns/coredns/blob/master/CODE-OF-CONDUCT.md).
 
 ## Github Project Administration
 
@@ -62,15 +62,15 @@ The __coredns__ GitHub project maintainers team reflects the list of Maintainers
 
 ## Other Projects
 
-The CoreDNS organization is open to receive new sub-projects under its umbrella. To accept project
-into the __CoreDNS__ organization, it has to met the following criteria:
+The CoreDNS organization is open to receive new sub-projects under its umbrella. To accept a project
+into the __CoreDNS__ organization, it has to meet the following criteria:
 
-- Licensed under the terms of the Apache License v2.0.
-- Related to one or more scopes of CoreDNS ecosystem:
+- Must be licensed under the terms of the Apache License v2.0.
+- Must be related to one or more scopes of the CoreDNS ecosystem:
   - CoreDNS project artifacts (website, deployments, CI, etc ...)
   - External plugins
-  - other DNS processing related
-- Be supported by a Maintainer.
+  - Other DNS related processing
+- Must be supported by a Maintainer.
 
 The submission process starts as a Pull Request or Issue on the
 [coredns/coredns](https://github.com/coredns/coredns) repository with the required information
@@ -79,4 +79,8 @@ of CoreDNS__
 
 ## Code of Conduct
 
-CoreDNS follows the [CNCF Code of Conduct](https://github.com/coredns/coredns/CODE-OF-CONDUCT.md).
+The [CoreDNS Code of Conduct](https://github.com/coredns/coredns/blob/master/CODE-OF-CONDUCT.md) is aligned with the CNCF Code of Conduct.
+
+## Credits
+
+Sections of this documents have been borrowed from [Fluentd](https://github.com/fluent/fluentd/blob/master/GOVERNANCE.md) and [Envoy](https://github.com/envoyproxy/envoy/blob/master/GOVERNANCE.md) projects.
