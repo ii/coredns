@@ -122,6 +122,7 @@ func (s *serialErr) Error() string {
 func Parse(f io.Reader, origin, fileName string, serial int64) (*Zone, error) {
 
 	zp := dns.NewZoneParser(f, dns.Fqdn(origin), fileName)
+	zp.SetIncludeAllowed(true)
 	z := NewZone(origin, fileName)
 	seenSOA := false
 	for rr, ok := zp.Next(); ok; rr, ok = zp.Next() {
