@@ -7,7 +7,7 @@
 ## Description
 
 By just using *log* you dump all queries (and parts for the reply) on standard output. Options exist
-to tweak the output a little.
+to tweak the output a little. The timezone is used is always UTC.
 
 Note that for busy servers this will incur a performance hit.
 
@@ -59,7 +59,6 @@ The following place holders are supported:
 * `{name}`: qname of the request
 * `{class}`: qclass of the request
 * `{proto}`: protocol used (tcp or udp)
-* `{when}`: time of the query
 * `{remote}`: client's IP address, for IPv6 addresses these are enclosed in brackets: `[::1]`
 * `{size}`: request size in bytes
 * `{port}`: client's port
@@ -76,8 +75,15 @@ The following place holders are supported:
 The default Common Log Format is:
 
 ~~~ txt
-`{remote}:{port} - [{when}] {>id} "{type} {class} {name} {proto} {size} {>do} {>bufsize}" {rcode} {>rflags} {rsize} {duration}`
+`{remote}:{port} - {>id} "{type} {class} {name} {proto} {size} {>do} {>bufsize}" {rcode} {>rflags} {rsize} {duration}`
 ~~~
+
+Each of these logs will be outputted with `log.Infof`, so a typical example looks like (data/time is
+in UTC).
+
+~~~ txt
+2018/10/27 15:01:32 [INFO] [::1]:50759 - 29008 "A IN example.org. udp 41 false 4096" NOERROR qr,rd,ra,ad 68 0.037990251s
+~~~~
 
 ## Examples
 

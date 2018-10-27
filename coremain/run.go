@@ -62,7 +62,7 @@ func Run() {
 	}
 
 	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags)
+	log.SetFlags(log.Ldate | log.Ltime | log.LUTC)
 
 	if version {
 		showVersion()
