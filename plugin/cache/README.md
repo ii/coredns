@@ -24,8 +24,8 @@ cache [TTL] [ZONES...]
 * **ZONES** zones it should cache for. If empty, the zones from the configuration block are used.
 
 Each element in the cache is cached according to its TTL (with **TTL** as the max).
-A cache is divided into 256 shards, each holding up to 19 items by default - for a total size
-of 9984 items.
+A cache is divided into 256 shards, each holding up to 39 items by default - for a total size
+of 256*39 = 9984 items.
 
 If you want more control:
 
