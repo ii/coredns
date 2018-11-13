@@ -3,14 +3,12 @@ approvers:
   - chrisohaver
   - dilyevsky
   - fastest963
-  # ftur@infoblox.com
-  - fturib
+  - fturib      # ftur@infoblox.com
   - greenpau
   - grobie
   - isolus
   - johnbelamaric
-  # miek@miek.nl
-  - miekg
+  - miekg       # miek@miek.nl
   - pmoroney
   - rajansandeep
   - stp-ip
