@@ -68,6 +68,7 @@ func TestCleanupByTimer(t *testing.T) {
 	tr.Yield(c2)
 
 	time.Sleep(120 * time.Millisecond)
+	time.Sleep(30 * time.Millisecond) // jitter we defaults to 25% (impl. leaking through here)
 	c3, cached, _ := tr.Dial("udp")
 	if cached {
 		t.Error("Expected non-cached connection (c3)")
@@ -120,6 +121,8 @@ func TestPartialCleanup(t *testing.T) {
 	if c7 != c4 {
 		t.Errorf("Expected c7 == c4")
 	}
+	time.Sleep(30 * time.Millisecond) // jitter we defaults to 25% (impl. leaking through here
+
 	c8, cached, _ := tr.Dial("udp")
 	if cached {
 		t.Error("Expected non-cached connection (c8)")
