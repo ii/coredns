@@ -3,11 +3,13 @@ approvers:
   - chrisohaver
   - dilyevsky
   - fastest963
+  # ftur@infoblox.com
   - fturib
   - greenpau
   - grobie
   - isolus
   - johnbelamaric
+  # miek@miek.nl
   - miekg
   - pmoroney
   - rajansandeep
