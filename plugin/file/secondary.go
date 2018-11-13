@@ -1,8 +1,9 @@
 package file
 
 import (
-	"math/rand"
 	"time"
+
+	"github.com/coredns/coredns/plugin/pkg/jitter"
 
 	"github.com/miekg/dns"
 )
@@ -134,7 +135,7 @@ Restart:
 				break
 			}
 
-			time.Sleep(jitter(2000)) // 2s randomize
+			time.Sleep(jitter.DurationMillisecond(2000))
 
 			ok, err := z.shouldTransfer()
 			if err != nil {
@@ -158,7 +159,7 @@ Restart:
 
 		case <-refreshTicker.C:
 
-			time.Sleep(jitter(5000)) // 5s randomize
+			time.Sleep(jitter.DurationMillisecond(5000)) // 5s randomize
 
 			ok, err := z.shouldTransfer()
 			if err != nil {
@@ -184,13 +185,6 @@ Restart:
 
 		}
 	}
-}
-
-// jitter returns a random duration between [0,n) * time.Millisecond
-func jitter(n int) time.Duration {
-	r := rand.Intn(n)
-	return time.Duration(r) * time.Millisecond
-
 }
 
 // MaxSerialIncrement is the maximum difference between two serial numbers. If the difference between

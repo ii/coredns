@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/coredns/coredns/plugin/pkg/jitter"
 	"github.com/miekg/dns"
 )
 
@@ -56,6 +57,7 @@ func (t *Transport) len() int {
 // connManagers manages the persistent connection cache for UDP and TCP.
 func (t *Transport) connManager() {
 	ticker := time.NewTicker(t.expire)
+	jitt := t.expire / 4 // 25% jitter
 Wait:
 	for {
 		select {
@@ -85,16 +87,16 @@ Wait:
 
 			// no proto here, infer from config and conn
 			if _, ok := conn.Conn.(*net.UDPConn); ok {
-				t.conns["udp"] = append(t.conns["udp"], &persistConn{conn, time.Now()})
+				t.conns["udp"] = append(t.conns["udp"], &persistConn{conn, jitter.Add(time.Now(), jitt)})
 				continue Wait
 			}
 
 			if t.tlsConfig == nil {
-				t.conns["tcp"] = append(t.conns["tcp"], &persistConn{conn, time.Now()})
+				t.conns["tcp"] = append(t.conns["tcp"], &persistConn{conn, jitter.Add(time.Now(), jitt)})
 				continue Wait
 			}
 
-			t.conns["tcp-tls"] = append(t.conns["tcp-tls"], &persistConn{conn, time.Now()})
+			t.conns["tcp-tls"] = append(t.conns["tcp-tls"], &persistConn{conn, jitter.Add(time.Now(), jitt)})
 
 		case <-ticker.C:
 			t.cleanup(false)
