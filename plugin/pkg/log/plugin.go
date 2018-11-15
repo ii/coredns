@@ -15,7 +15,7 @@ type P struct {
 func NewWithPlugin(name string) P { return P{name} }
 
 func (p P) logf(level, format string, v ...interface{}) {
-	logf(level, pFormat(p.plugin)+fmt.Sprintf(format, v...))
+	log(level, pFormat(p.plugin), fmt.Sprintf(format, v...))
 }
 
 func (p P) log(level string, v ...interface{}) {
