@@ -43,7 +43,7 @@ func (p *Probe) Do(f Func) {
 			}
 			time.Sleep(interval)
 			if i%2 == 0 && i < 4 { // 4 is 2 doubles, so no need to increase anymore - this is *also* checked in double()
-				p.Double()
+				p.double()
 			}
 			p.Lock()
 			if p.inprogress == stop {
