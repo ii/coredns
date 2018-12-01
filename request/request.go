@@ -288,7 +288,6 @@ func (r *Request) Scrub(reply *dns.Msg) *dns.Msg {
 	}
 
 	if rl <= size {
-		r.SizeAndDo(reply)
 		return reply
 	}
 
@@ -324,7 +323,6 @@ func (r *Request) Scrub(reply *dns.Msg) *dns.Msg {
 		// this extra m-1 step does make it fit in the client's buffer however.
 	}
 
-	r.SizeAndDo(reply)
 	reply.Truncated = true
 	return reply
 }
