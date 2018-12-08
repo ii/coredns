@@ -28,6 +28,7 @@ import (
 	"github.com/miekg/dns"
 )
 
+// Func defines the function a plugin should implement to return set of services.
 type Func func(request.Request) ([]msg.Service, error)
 
 // Externaler defines the interface that a plugin should implement in order to be
