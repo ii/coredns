@@ -9,7 +9,7 @@
 
 CoreDNS (written in Go) chains [plugins](https://coredns.io/plugins). Each plugin performs a DNS
 function.
-
+blah
 CoreDNS is a [Cloud Native Computing Foundation](https://cncf.io) graduated project.
 
 CoreDNS is a fast and flexible DNS server. The keyword here is *flexible*: with CoreDNS you
