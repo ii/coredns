@@ -4,7 +4,7 @@
 
 The main method that gets called is `ServeDNS`. It has three parameters:
 
-* a `context.Context`;
+* a `context.Context`. The context is canceled after 501 Milliseconds.
 * `dns.ResponseWriter` that is, basically, the client's connection;
 * `*dns.Msg` the request from the client.
 

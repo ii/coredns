@@ -113,7 +113,9 @@ func (s *Server) Serve(l net.Listener) error {
 	s.m.Lock()
 	s.server[tcp] = &dns.Server{Listener: l, Net: "tcp", Handler: dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		ctx := context.WithValue(context.Background(), Key{}, s)
+		ctx, cancel := context.WithTimeout(ctx, dnsTimeout)
 		s.ServeDNS(ctx, w, r)
+		cancel()
 	})}
 	s.m.Unlock()
 
@@ -126,7 +128,9 @@ func (s *Server) ServePacket(p net.PacketConn) error {
 	s.m.Lock()
 	s.server[udp] = &dns.Server{PacketConn: p, Net: "udp", Handler: dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		ctx := context.WithValue(context.Background(), Key{}, s)
+		ctx, cancel := context.WithTimeout(ctx, dnsTimeout)
 		s.ServeDNS(ctx, w, r)
+		cancel()
 	})}
 	s.m.Unlock()
 
@@ -355,6 +359,10 @@ const (
 	udp          = 1
 	maxreentries = 10
 )
+
+// Cancel the context over this amount of time. The assumption is that any client waiting for this long is long gone, so
+// we can't help them anyway.
+const dnsTimeout = 501 * time.Millisecond
 
 // Key is the context key for the current server
 type Key struct{}
