@@ -23,14 +23,13 @@ func (s sleepPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 			m.Rcode = dns.RcodeBadTime // use BadTime to return something time related
 			w.WriteMsg(m)
 			return 0, nil
-		} else {
-			time.Sleep(20 * time.Millisecond)
-			i++
-			if i > 2 {
-				m.Rcode = dns.RcodeServerFailure
-				w.WriteMsg(m)
-				return 0, nil
-			}
+		}
+		time.Sleep(20 * time.Millisecond)
+		i++
+		if i > 2 {
+			m.Rcode = dns.RcodeServerFailure
+			w.WriteMsg(m)
+			return 0, nil
 		}
 	}
 	return 0, nil
