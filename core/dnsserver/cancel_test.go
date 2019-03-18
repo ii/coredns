@@ -19,13 +19,11 @@ func (s sleepPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 	m := new(dns.Msg)
 	m.SetReply(r)
 	for {
-		select {
-		case <-ctx.Done():
-			// use BadTime to return something time related
-			m.Rcode = dns.RcodeBadTime
+		if plugin.Done(ctx) {
+			m.Rcode = dns.RcodeBadTime // use BadTime to return something time related
 			w.WriteMsg(m)
 			return 0, nil
-		default:
+		} else {
 			time.Sleep(20 * time.Millisecond)
 			i++
 			if i > 2 {
