@@ -17,14 +17,25 @@ context was canceled due to a timeout the plugin should not write anything back 
 return a value indicating CoreDNS should not either; a zero return value should suffice for that.
 
 ~~~ txt
-cancel
+cancel [TIMEOUT]
 ~~~
+
+* **TIMEOUT** allowss setting a custom timeout. The default timeout is 5001 milliseconds (`5001 ms`)
 
 ## Examples
 
 ~~~ corefile
 . {
     cancel
+    whoami
+}
+~~~
+
+Or with a custom timeout:
+
+~~~ corefile
+. {
+    cancel 1s
     whoami
 }
 ~~~

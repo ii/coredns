@@ -38,8 +38,7 @@ func (s sleepPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 }
 
 func TestCancel(t *testing.T) {
-	timeout = 20 * time.Millisecond
-	ca := Cancel{Next: sleepPlugin{}}
+	ca := Cancel{Next: sleepPlugin{}, timeout: 20 * time.Millisecond}
 	ctx := context.Background()
 
 	w := dnstest.NewRecorder(&test.ResponseWriter{})
