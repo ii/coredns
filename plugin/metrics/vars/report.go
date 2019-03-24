@@ -10,7 +10,9 @@ import (
 	"github.com/miekg/dns"
 )
 
-// Report reports the metrics data associated with request.
+// Report reports the metrics data associated with request. This function is exported because it is also
+// called from core/dnsserver to report requests hitting the server that should not be handled and are thus
+// not sent down the plugin chain.
 func Report(ctx context.Context, req request.Request, zone, rcode string, size int, start time.Time) {
 	// Proto and Family.
 	net := req.Proto()

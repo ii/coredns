@@ -205,7 +205,7 @@ func (s *Server) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	// The default dns.Mux checks the question section size, but we have our
 	// own mux here. Check if we have a question section. If not drop them here.
 	if r == nil || len(r.Question) == 0 {
-		errorFunc(ctx, w, r, dns.RcodeServerFailure)
+		errorAndMetricsFunc(ctx, w, r, dns.RcodeServerFailure)
 		return
 	}
 
@@ -215,13 +215,13 @@ func (s *Server) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 			// need to make sure that we stay alive up here
 			if rec := recover(); rec != nil {
 				vars.Panic.Inc()
-				errorFunc(ctx, w, r, dns.RcodeServerFailure)
+				errorAndMetricsFunc(ctx, w, r, dns.RcodeServerFailure)
 			}
 		}()
 	}
 
 	if !s.classChaos && r.Question[0].Qclass != dns.ClassINET {
-		errorFunc(ctx, w, r, dns.RcodeRefused)
+		errorAndMetricsFunc(ctx, w, r, dns.RcodeRefused)
 		return
 	}
 
@@ -310,7 +310,7 @@ func (s *Server) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 	}
 
 	// Still here? Error out with REFUSED.
-	errorFunc(ctx, w, r, dns.RcodeRefused)
+	errorAndMetricsFunc(ctx, w, r, dns.RcodeRefused)
 }
 
 // OnStartupComplete lists the sites served by this server
@@ -338,6 +338,13 @@ func (s *Server) Tracer() ot.Tracer {
 
 // errorFunc responds to an DNS request with an error.
 func errorFunc(ctx context.Context, w dns.ResponseWriter, r *dns.Msg, rc int) {
+	answer := new(dns.Msg)
+	answer.SetRcode(r, rc)
+	state.SizeAndDo(answer)
+	w.WriteMsg(answer)
+}
+
+func errorAndMetricsFunc(ctx context.Context, w dns.ResponseWriter, r *dns.Msg, rc int) {
 	state := request.Request{W: w, Req: r}
 
 	answer := new(dns.Msg)
