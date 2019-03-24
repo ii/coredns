@@ -13,7 +13,6 @@ import (
 	"github.com/coredns/coredns/plugin/metrics/vars"
 	"github.com/coredns/coredns/plugin/pkg/edns"
 	"github.com/coredns/coredns/plugin/pkg/log"
-	"github.com/coredns/coredns/plugin/pkg/rcode"
 	"github.com/coredns/coredns/plugin/pkg/trace"
 	"github.com/coredns/coredns/plugin/pkg/transport"
 	"github.com/coredns/coredns/request"
@@ -344,8 +343,6 @@ func DefaultErrorFunc(ctx context.Context, w dns.ResponseWriter, r *dns.Msg, rc 
 	answer.SetRcode(r, rc)
 
 	state.SizeAndDo(answer)
-
-	vars.Report(ctx, state, vars.Dropped, rcode.ToString(rc), answer.Len(), time.Now())
 
 	w.WriteMsg(answer)
 }
