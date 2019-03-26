@@ -12,7 +12,7 @@ triggered after 5001 milliseconds.
 The 5001 number is chosen because the default timeout for DNS clients is 5 seconds, after that they
 give up.
 
-A pluging interested in the cancelation status should call `plugin.Done()` on the context. If the
+A plugin interested in the cancellation status should call `plugin.Done()` on the context. If the
 context was canceled due to a timeout the plugin should not write anything back to the client and
 return a value indicating CoreDNS should not either; a zero return value should suffice for that.
 
@@ -20,7 +20,7 @@ return a value indicating CoreDNS should not either; a zero return value should 
 cancel [TIMEOUT]
 ~~~
 
-* **TIMEOUT** allowss setting a custom timeout. The default timeout is 5001 milliseconds (`5001 ms`)
+* **TIMEOUT** allows setting a custom timeout. The default timeout is 5001 milliseconds (`5001 ms`)
 
 ## Examples
 
