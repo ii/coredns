@@ -52,7 +52,7 @@ func parse(c *caddy.Controller) (string, []string, error) {
 			authors[a] = struct{}{}
 		}
 		list := []string{}
-		for k, _ := range authors {
+		for k := range authors {
 			k = trim(k) // limit size to 255 chars
 			list = append(list, k)
 		}

@@ -43,12 +43,13 @@ func main() {
 
 	// sort it and format it
 	list := []string{}
-	for k, _ := range o {
+	for k := range o {
 		list = append(list, k)
 	}
 	sort.Strings(list)
 	golist := `package chaos
 
+// Owners are all GitHub handlers of all maintainers.
 var Owners = []string{`
 	c := ", "
 	for i, a := range list {
