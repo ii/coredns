@@ -15,7 +15,7 @@ some polish and simplications in the core server code.
 # Plugins
 
 * a new [*ready*](/plugins/ready) was added that signals a plugin is ready to receive queries. First user is the *kubernetes* plugin.
-* a new [*grpc*](/plugins/grpc) was added to implements forwarding gRPC. If you were relying on this in the [*proxy*](/explugins/proxy) plugin you can now use this one.
+* a new [*grpc*](/plugins/grpc) was added to implement forwarding gRPC. If you were relying on this in the [*proxy*](/explugins/proxy) you can migrate to this one.
 * the [*cancel*](/plugins/cancel) was added that adds a context.WithTimeout to each context.
 * the [*forward*](/plugins/forward) adds dnstap support.
 * the [*route53*](/plugins/route53) now supports wildcards.
