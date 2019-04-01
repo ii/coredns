@@ -7,10 +7,13 @@ date = "2019-03-31T09:39:07+00:00"
 author = "coredns"
 +++
 
-A new [release](https://github.com/coredns/coredns/releases/tag/v1.4.0): CoreDNS-1.5.0.
+A new [release](https://github.com/coredns/coredns/releases/tag/v1.5.0): CoreDNS-1.5.0.
 
 **Two** new plugins in this releasse: [*grpc*](/plugins/grpc), and [*ready*](/plugins/ready). And
 some polish and simplications in the core server code.
+
+The use of **TIMEOUT** and **no_reload** in [*file*](/plugins/file) and [*auto*](/plugins/auto) have
+been fully deprecated.
 
 # Plugins
 
