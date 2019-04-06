@@ -1,8 +1,5 @@
-sudo: required
-dist: trusty
-
-services:
-  - docker
+os:
+    - linux
 
 language: go
 go:
@@ -15,7 +12,7 @@ cache:
 go_import_path: github.com/coredns/coredns
 
 git:
-  depth: 3
+  depth: 1
 
 branches:
   only:
@@ -29,9 +26,7 @@ env:
 
 # In the Travis VM-based build environment, IPv6 networking is not
 # enabled by default. The sysctl operations below enable IPv6.
-# IPv6 is needed by some of the CoreDNS test cases. The VM environment
-# is needed to have access to sudo in the test environment. Sudo is
-# needed to have docker in the test environment.
+# IPv6 is needed by some of the CoreDNS test cases.
 
 before_install:
   - cat /proc/net/if_inet6
