@@ -29,4 +29,4 @@ func (a Any) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (in
 }
 
 // Name implements the Handler interface.
-func (e Any) Name() string { return "any" }
+func (a Any) Name() string { return "any" }
