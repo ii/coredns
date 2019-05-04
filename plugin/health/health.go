@@ -33,6 +33,7 @@ func (h *health) OnStartup() error {
 	if h.Addr == "" {
 		h.Addr = defAddr
 	}
+	h.stop = make(chan bool)
 
 	ln, err := net.Listen("tcp", h.Addr)
 	if err != nil {
@@ -55,8 +56,6 @@ func (h *health) OnStartup() error {
 
 	return nil
 }
-
-func (h *health) OnRestart() error { return h.OnFinalShutdown() }
 
 func (h *health) OnFinalShutdown() error {
 	if !h.nlSetup {
