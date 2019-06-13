@@ -50,8 +50,6 @@ func (x Xfr) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (in
 		ch <- &dns.Envelope{RR: records[j:]}
 	}
 
-	w.Hijack()
-	// w.Close() // Client closes connection
 	return dns.RcodeSuccess, nil
 }
 
