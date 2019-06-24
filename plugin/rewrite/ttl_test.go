@@ -93,7 +93,7 @@ func TestTtlRewrite(t *testing.T) {
 	doTtlTests(rules, t)
 }
 
-func doTtlTests(rules []Rule, t *testing.T) {
+func doTTLTests(rules []Rule, t *testing.T) {
 	tests := []struct {
 		from      string
 		fromType  uint16
