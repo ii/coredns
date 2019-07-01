@@ -58,7 +58,7 @@ sign DBFILE [ZONES...] {
 Sign the `example.org` zone contained in the file `db.example.org` and write to result to
 `/var/lib/db.example.org.signed` to let the *file* plugin pick it up and serve it.
 
-~~~ corefile
+~~~
 example.org {
     file /var/lib/coredns/db.example.org.signed
     sign db.example.org {
@@ -79,6 +79,7 @@ Or use a single zone file for multiple zones, note that the **ZONES** are repeat
 ~~~
 
 This is the same configuration, but the zones are put in the server block:
+
 ~~~
 example.org example.net {
     file var/lib/coredns/db.example.org.signed
