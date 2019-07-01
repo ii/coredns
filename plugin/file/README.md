@@ -6,27 +6,10 @@
 
 ## Description
 
-The *file* plugin is used for an "old-style" DNS server. It serves from a preloaded file that exists
-on disk.
-
-If the zone file contains signatures (i.e., is signed using DNSSEC), correct DNSSEC answers are
-returned. Only NSEC is supported! If you use this setup *you* are responsible for re-signing the
+The file plugin is used for an "old-style" DNS server. It serves from a preloaded file that exists
+on disk. If the zone file contains signatures (i.e., is signed using DNSSEC), correct DNSSEC answers
+are returned. Only NSEC is supported! If you use this setup *you* are responsible for re-signing the
 zonefile.
-
-However the plugin can also automatically resign the zone for you in this setup you need to create
-a CSK key (multiple ones are supported) and an output directory where CoreDNS can write the resigned
-zone. Thus CoreDNS will:
-
-* Resign the zone with the CSK (the ZSK/KZK split is *not* supported) starting every Thursday at
-  15:00 UTC.
-* Create signatures that have an inception of -3H and expiration of +3W for every key given.
-* Add replace *all* CDS with the keys given.
-* Update the SOA's serial number to the Unix epoch of when the signing happens. This will overwrite
-  the previous serial number.
-
-Keys are named (following BIND9): `K<name>+<alg>+<id>.key` and `K<name>+<alg>+<id>.private`. The keys
-must not be included in your zone; they will be added by CoreDNS when the zone is signed. These keys
-can be generated with `coredns-keygen` or BIND9's `dnssec-keygen`.
 
 ## Syntax
 
@@ -46,7 +29,6 @@ file DBFILE [ZONES... ] {
     transfer to ADDRESS...
     reload DURATION
     upstream
-    dnssec KEYDIR [DIR]
 }
 ~~~
 
@@ -60,12 +42,6 @@ file DBFILE [ZONES... ] {
 * `upstream` resolve external names found (think CNAMEs) pointing to external names. This is only
   really useful when CoreDNS is configured as a proxy; for normal authoritative serving you don't
   need *or* want to use this. CoreDNS will resolve CNAMEs against itself.
-* `directory` specifies the directory where CoreDNS should save zones that are being signed. If not
-  given this defaults to `/var/lib/coredns`. This setting is only used if `dnssec` is given.
-* `dnssec` enables DNSSEC zone signing for all zones specified. **KEYDIR** is used to read the keys
-  from. The signed zones are saved to **DIR** from the `directory` option, which defaults to
-  `/var/lib/coredns` when not given. The zones are saved under the name `Z<name>.signed.` (the `Z`
-  is added to not hide the root zone).
 
 ## Examples
 
@@ -119,7 +95,3 @@ example.org {
     file db.example.org
 }
 ~~~
-
-## Also See
-
-The DNSSEC RFC: RFC 4033, RFC 4034 and RFC 4035, coredns-keygen(1) and dnssec-keygen(8).
