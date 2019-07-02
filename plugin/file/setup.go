@@ -137,9 +137,9 @@ func fileParse(c *caddy.Controller) (Zones, error) {
 		if reload == 0 {
 			// reload hasn't been set make this a fatal error
 			return Zones{}, plugin.Error("file", openErr)
-		} else {
-			log.Warningf("Failed to open %q: trying again in %s", openErr, reload)
 		}
+		log.Warningf("Failed to open %q: trying again in %s", openErr, reload)
+
 	}
 	return Zones{Z: z, Names: names}, nil
 }
