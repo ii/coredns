@@ -48,7 +48,7 @@ file DBFILE [ZONES... ] {
 Load the `example.org` zone from `example.org.signed` and allow transfers to the internet, but send
 notifies to 10.240.1.1
 
-~~~ corefile
+~~~ txt
 example.org {
     file example.org.signed {
         transfer to *
@@ -59,7 +59,7 @@ example.org {
 
 Or use a single zone file for multiple zones:
 
-~~~ corefile
+~~~ txt
 . {
     file example.org.signed example.org example.net {
         transfer to *
@@ -71,7 +71,7 @@ Or use a single zone file for multiple zones:
 Note that if you have a configuration like the following you may run into a problem of the origin
 not being correctly recognized:
 
-~~~ corefile
+~~~ txt
 . {
     file db.example.org
 }
@@ -82,7 +82,7 @@ which, in this case, is the root zone. Any contents of `db.example.org` will the
 origin set; this may or may not do what you want.
 It's better to be explicit here and specify the correct origin. This can be done in two ways:
 
-~~~ corefile
+~~~ txt
 . {
     file db.example.org example.org
 }
@@ -90,7 +90,7 @@ It's better to be explicit here and specify the correct origin. This can be done
 
 Or
 
-~~~ corefile
+~~~ txt
 example.org {
     file db.example.org
 }
