@@ -14,10 +14,10 @@ Small bugfixes and a change to Caddy's important path.
 
 # Plugins
 
-* For all plugins the `upstream` directive was removed from the documentation; it's still accepted
-  but is a noop.
-* The [*template*](/plugins/template) now supports meta data.
-* The [*file*](/plugins/file) closes the connection after an AXFR. It also loads secondary zones
+* For all plugins that use the `upstream` directive it use removed from the documentation; it's still accepted
+  but is a noop. Currently these plugins use CoreDNS to resolve external queries.
+* The [*template*](/plugins/template) plugin now supports meta data.
+* The [*file*](/plugins/file) plugin closes the connection after an AXFR. It also loads secondary zones
   lazily on startup.
 
 ## Brought to You By
