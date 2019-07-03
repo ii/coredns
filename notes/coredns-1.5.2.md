@@ -16,22 +16,24 @@ Small bugfixes and a change to Caddy's important path.
 
 * For all plugins the `upstream` directive was removed from the documentation; it's still accepted
   but is a noop.
+* The [*template*](/plugins/template) now supports meta data.
 * The [*file*](/plugins/file) closes the connection after an AXFR. It also loads secondary zones
   lazily on startup.
 
 ## Brought to You By
 
 bcebere,
+John Belamaric,
 JINMEI Tatuya,
 Miek Gieben,
 Timoses,
 Yong Tang.
 
-
 ## Noteworthy Changes
 
 * plugin/file: close correctlty after AXFR (https://github.com/coredns/coredns/pull/2943)
 * plugin/file: load secondary zones lazily on startup (https://github.com/coredns/coredns/pull/2944)
+* plugin/template: support metadata (https://github.com/coredns/coredns/pull/2958)
 * build: Update Caddy to 1.0.1, and update import path (https://github.com/coredns/coredns/pull/2961)
 * plugins: set upstream unconditionally (https://github.com/coredns/coredns/pull/2956)
 * tls: hardening (https://github.com/coredns/coredns/pull/2938)
