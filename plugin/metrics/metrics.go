@@ -58,17 +58,6 @@ func New(addr string) *Metrics {
 	return met
 }
 
-// MustRegister wraps m.Reg.MustRegister.
-func (m *Metrics) MustRegister(c prometheus.Collector) {
-	err := m.Reg.Register(c)
-	if err != nil {
-		// ignore any duplicate error, but fatal on any other kind of error
-		if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
-			log.Fatalf("Cannot register metrics collector: %s", err)
-		}
-	}
-}
-
 // AddZone adds zone z to m.
 func (m *Metrics) AddZone(z string) {
 	m.zoneMu.Lock()
