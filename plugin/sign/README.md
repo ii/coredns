@@ -9,19 +9,18 @@
 The *sign* plugin is used to sign (see RFC 6781) zones. It works in conjunction with the *file* or
 *auto* plugins; this plugin **signs** the zones, *auto* and *file* **serve** the zones.
 
-Only NSEC is supported when signing, *sign* does not support NSEC3.
+Only NSEC is supported, *sign* does not support NSEC3.
 
 For this plugin to work at least one Common Signing Key, (see coredns-keygen(1)) is needed. This key
 (or keys) will be used to sign the entire zone. *Sign* does not support the ZSK/KSK split, nor will
 it do key rollovers - it just signs.
 
-It will:
+*Sign* will:
 
-* Resign the zone with the CSK (the ZSK/KZK split is *not* supported) starting every Thursday at
-  15:00 UTC.
+* (Re)-sign the zone with the CSK(s) every Thursday at 15:00 UTC (+/- generious jitter).
 * Create signatures that have an inception of -3H and expiration of +3W for every key given.
   (This needs to be the same as the *dnssec* plugin - double check)
-* Add replace *all* CDS records with the ones derived from the given keys.
+* Add replace *all* apex CDS records with the ones derived from the given keys.
 * Update the SOA's serial number to the *Unix epoch* of when the signing happens. This will overwrite
   the previous serial number.
 
@@ -29,10 +28,11 @@ Keys are named (following BIND9): `K<name>+<alg>+<id>.key` and `K<name>+<alg>+<i
 The keys **must not** be included in your zone; they will be added by *sign*. These keys can be
 generated with `coredns-keygen` or BIND9's `dnssec-keygen`.
 
-The generated zone is put in a file named `db.<name>.signed`.
+The generated zone is written out in a file named `db.<name>.signed`.
 
 When CoreDNS starts up (or is reloaded) a quick check is done to see if the zone needs to be
-resigned; this happens... (check *dnssec* plugin). Check SOA sig and decide to resign.
+resigned; this happens... (check *dnssec* plugin) by checking SOA's RRSIG expiration time. If
+within 2 weeks, the zone will be resigned.
 
 The keys can be reused on multiple zones, for this to work you need to symlink them together.
 
@@ -42,6 +42,7 @@ The keys can be reused on multiple zones, for this to work you need to symlink t
 sign DBFILE [ZONES...] {
     keys KEYDIR
     directory DIR
+    jitter 5d
 }
 ~~~
 
@@ -53,6 +54,8 @@ sign DBFILE [ZONES...] {
   from. The signed zones are saved to **DIR** from the `directory` option.
 * `directory` specifies the directory where CoreDNS should save zones that are being signed. If not
   given this defaults to `/var/lib/coredns`. The zones are saved under the name `db.<name>.signed`.
+* `jitter` will be applied to the sign date of 15:00 UTC Thursday, so avoid a stampeeding hurd of
+  zones waiting to be signed.
 
 ## Examples
 
