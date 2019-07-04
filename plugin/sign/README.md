@@ -20,9 +20,9 @@ It will:
 * Resign the zone with the CSK (the ZSK/KZK split is *not* supported) starting every Thursday at
   15:00 UTC.
 * Create signatures that have an inception of -3H and expiration of +3W for every key given.
-  (This needs to be the same as the *dnssec* plugin).
-* Add replace *all* CDS with the keys given.
-* Update the SOA's serial number to the Unix epoch of when the signing happens. This will overwrite
+  (This needs to be the same as the *dnssec* plugin - double check)
+* Add replace *all* CDS records with the ones derived from the given keys.
+* Update the SOA's serial number to the *Unix epoch* of when the signing happens. This will overwrite
   the previous serial number.
 
 Keys are named (following BIND9): `K<name>+<alg>+<id>.key` and `K<name>+<alg>+<id>.private`.
@@ -32,7 +32,9 @@ generated with `coredns-keygen` or BIND9's `dnssec-keygen`.
 The generated zone is put in a file named `db.<name>.signed`.
 
 When CoreDNS starts up (or is reloaded) a quick check is done to see if the zone needs to be
-resigned; this happens... (check *dnssec* plugin).
+resigned; this happens... (check *dnssec* plugin). Check SOA sig and decide to resign.
+
+The keys can be reused on multiple zones, for this to work you need to symlink them together.
 
 ## Syntax
 
@@ -45,13 +47,12 @@ sign DBFILE [ZONES...] {
 
 * **DBFILE** the database file to read and parse. If the path is relative, the path from the *root*
   directive will be prepended to it.
-* **ZONES** zones it should be authoritative for. If empty, the zones from the configuration block
-    are used.
+* **ZONES** zones it should be sign for. If empty, the zones from the configuration block
+  are used.
+* `keys` specifiec the **KEYDIR** directory to read the keys
+  from. The signed zones are saved to **DIR** from the `directory` option.
 * `directory` specifies the directory where CoreDNS should save zones that are being signed. If not
-  given this defaults to `/var/lib/coredns`. This setting is only used if `dnssec` is given.
-* `keys` enables DNSSEC zone signing for all zones specified. **KEYDIR** is used to read the keys
-  from. The signed zones are saved to **DIR** from the `directory` option, which defaults to
-  `/var/lib/coredns` when not given. The zones are saved under the name `db.<name>.signed`.
+  given this defaults to `/var/lib/coredns`. The zones are saved under the name `db.<name>.signed`.
 
 ## Examples
 
@@ -68,21 +69,25 @@ example.org {
 ~~~
 
 Or use a single zone file for multiple zones, note that the **ZONES** are repeated for both plugins.
+Also note this outputs *multiple* signed output files.
 
 ~~~
 . {
-    file var/lib/coredns/db.example.org.signed example.org example.net
+    file /var/lib/coredns/db.example.org.signed example.org
+    file /var/lib/coredns/db.example.net example.net
     sign db.example.org example.org example.net {
         keys /etc/coredns/keys
     }
 }
 ~~~
 
-This is the same configuration, but the zones are put in the server block:
+This is the same configuration, but the zones are put in the server block, but note that you still
+need to specify what file is served for what zone in the *flie* plugin:
 
 ~~~
 example.org example.net {
-    file var/lib/coredns/db.example.org.signed
+    file var/lib/coredns/db.example.org.signed example.org
+    file var/lib/coredns/db.example.net.signed example.net
     sign db.example.org {
         keys /etc/coredns/keys
     }
@@ -91,6 +96,5 @@ example.org example.net {
 
 ## Also See
 
-The DNSSEC RFCs: RFC 4033, RFC 4034 and RFC 4035. And the BCP on DNSSEC, RFC 6781.
-Further more the manual pages coredns-keygen(1) and dnssec-keygen(8). And check the *file* plugin's
-documentation.
+The DNSSEC RFCs: RFC 4033, RFC 4034 and RFC 4035. And the BCP on DNSSEC, RFC 6781. Further more the
+manual pages coredns-keygen(1) and dnssec-keygen(8). And the *file* plugin's documentation.
