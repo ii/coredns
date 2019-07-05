@@ -6,8 +6,12 @@
 
 ## Description
 
-The *sign* plugin is used to sign (see RFC 6781) zones. It works in conjunction with the *file* or
-*auto* plugins; this plugin **signs** the zones, *auto* and *file* **serve** the zones.
+The *sign* plugin is used to sign (see RFC 6781) zones. In this process DNSSEC resource records are
+added. Some of these records have a expiration date, so the signing process must be repeated every
+so often, otherwise the zone's data will be BAD (RFC 4035, Section 5.5).
+
+It works in conjunction with the *file* or *auto* plugins; this plugin **signs** the zones, *auto*
+and *file* **serve** the zones.
 
 Only NSEC is supported, *sign* does not support NSEC3.
 
@@ -40,7 +44,7 @@ The keys can be reused on multiple zones, for this to work you need to symlink t
 
 ~~~
 sign DBFILE [ZONES...] {
-    keys KEYDIR
+    keys file|directory KEY|DIR...
     directory DIR
     jitter 5d
 }
@@ -55,7 +59,7 @@ sign DBFILE [ZONES...] {
 * `directory` specifies the directory where CoreDNS should save zones that are being signed. If not
   given this defaults to `/var/lib/coredns`. The zones are saved under the name `db.<name>.signed`.
 * `jitter` will be applied to the sign date of 15:00 UTC Thursday, so avoid a stampeeding hurd of
-  zones waiting to be signed.
+  zones waiting to be signed. This default to 5 days.
 
 ## Examples
 
@@ -66,7 +70,7 @@ Sign the `example.org` zone contained in the file `db.example.org` and write to 
 example.org {
     file /var/lib/coredns/db.example.org.signed
     sign db.example.org {
-        keys /etc/coredns/keys
+        key directory /etc/coredns/keys
     }
 }
 ~~~
