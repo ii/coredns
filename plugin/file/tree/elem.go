@@ -45,11 +45,10 @@ func (e *Elem) Name() string {
 	if e.name != "" {
 		return e.name
 	}
-	for _, rrs := range e.m {
-		e.name = rrs[0].Header().Name
-		return e.name
+	if len(e.m) == 0 {
+		return ""
 	}
-	return ""
+	return e.m[0].rrs[0].Header().Name
 }
 
 // Empty returns true is e does not contain any RRs, i.e. is an
