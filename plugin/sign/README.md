@@ -83,7 +83,7 @@ Also note this outputs *multiple* signed output files.
     file /var/lib/coredns/db.example.org.signed example.org
     file /var/lib/coredns/db.example.net example.net
     sign db.example.org example.org example.net {
-        keys /etc/coredns/keys
+        keys directory /etc/coredns/keys
     }
 }
 ~~~
