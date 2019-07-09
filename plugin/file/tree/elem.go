@@ -18,7 +18,7 @@ func newElem(rr dns.RR) *Elem {
 // Types returns the RRs with type qtype from e.
 func (e *Elem) Types(qtype uint16) []dns.RR { return e.m[qtype] }
 
-// Types returns the RRs with type qtype from e. The ownername returned is set to qname.
+// TypesForWildcard returns the RRs with type qtype from e. The ownername returned is set to qname.
 func (e *Elem) TypesForWildcard(qtype uint16, qname string) []dns.RR {
 	rrs := e.m[qtype]
 
