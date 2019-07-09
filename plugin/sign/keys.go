@@ -29,7 +29,11 @@ func readKeyPair(public, private string) (Pair, error) {
 		return Pair{}, err
 	}
 	if _, ok := dnskey.(*dns.DNSKEY); !ok {
-		return Pair{}, fmt.Errorf("file %s, doesn't parse as a DNSKEY: %d", public, dnskey.Header().Rrtype)
+		return Pair{}, fmt.Errorf("RR in %q is not a DNSKEY: %d", public, dnskey.Header().Rrtype)
+	}
+	ksk := dnskey.(*dns.DNSKEY).Flags&(1<<8) == (1<<8) && dnskey.(*dns.DNSKEY).Flags&1 == 1
+	if !ksk {
+		return Pair{}, fmt.Errorf("DNSKEY in %q, DNSKEY is not a CSK/KSK", public)
 	}
 
 	rp, err := os.Open(private)

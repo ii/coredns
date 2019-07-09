@@ -23,7 +23,8 @@ it do key rollovers - it just signs.
 
 * (Re)-sign the zone with the CSK(s) every Thursday at 15:00 UTC (+/- generous jitter).
 * Create signatures that have an inception of -3H and expiration of +3W for every key given.
-* Add or replace *all* apex CDS records with the ones derived from the given keys.
+* Add or replace *all* apex CDS/CDNSKEY records with the ones derived from the given keys. For each
+  key two CDS are created one with SHA1 and another with SHA256.
 * Update the SOA's serial number to the *Unix epoch* of when the signing happens. This will
   overwrite the previous serial number.
 

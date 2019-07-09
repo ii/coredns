@@ -5,7 +5,7 @@ import "testing"
 func TestSign(t *testing.T) {
 	s := &Sign{}
 	s.dbfile = "db.miek.nl"
-	pair, err := readKeyPair("Kmiek.nl.+013+25248.key", "Kmiek.nl.+013+25248.private")
+	pair, err := readKeyPair("Kmiek.nl.+013+59725.key", "Kmiek.nl.+013+59725.private")
 	if err != nil {
 		t.Fatal(err)
 	}
