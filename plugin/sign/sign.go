@@ -26,6 +26,9 @@ func (s Sign) Sign(origin string) error {
 	if err != nil {
 		return err
 	}
+	// sign it
+
+	// print it
 	z.Tree.Do(func(e *tree.Elem) bool {
 		for _, r := range e.All() {
 			fmt.Println(r.String())

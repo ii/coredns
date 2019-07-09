@@ -9,6 +9,7 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	s.keys = []Pair{pair}
 
 	s.Sign("miek.nl.")
 }
