@@ -103,3 +103,7 @@ example.org example.net {
 
 The DNSSEC RFCs: RFC 4033, RFC 4034 and RFC 4035. And the BCP on DNSSEC, RFC 6781. Further more the
 manual pages coredns-keygen(1) and dnssec-keygen(8). And the *file* plugin's documentation.
+
+## Bugs
+
+Glue resource records for delegations is not detected and as such *is signed*.
