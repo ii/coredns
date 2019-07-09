@@ -6,14 +6,14 @@
 
 ## Description
 
-The *sign* plugin is used to sign (see RFC 6781) zones. In this process DNSSEC resource records are
-added. Some of these records have a expiration date, so the signing process must be repeated every
-so often, otherwise the zone's data will be BAD (RFC 4035, Section 5.5).
-
-It works in conjunction with the *file* or *auto* plugins; this plugin **signs** the zones, *auto*
-and *file* **serve** the zones.
+The *sign* plugin is used to sign (see RFC 6781) zones. In this process DNSSEC resource records
+are added. The signatures have a expiration date, so the signing process must be repeated every so
+often, otherwise the zone's data will go BAD (RFC 4035, Section 5.5).
 
 Only NSEC is supported, *sign* does not support NSEC3.
+
+It works in conjunction with the *file* and *auto* plugins; this plugin **signs** the zones, *auto*
+and *file* **serve** the zones.
 
 For this plugin to work at least one Common Signing Key, (see coredns-keygen(1)) is needed. This key
 (or keys) will be used to sign the entire zone. *Sign* does not support the ZSK/KSK split, nor will
@@ -21,24 +21,22 @@ it do key rollovers - it just signs.
 
 *Sign* will:
 
-* (Re)-sign the zone with the CSK(s) every Thursday at 15:00 UTC (+/- generious jitter).
+* (Re)-sign the zone with the CSK(s) every Thursday at 15:00 UTC (+/- generous jitter).
 * Create signatures that have an inception of -3H and expiration of +3W for every key given.
-  (This needs to be the same as the *dnssec* plugin - double check)
-* Add replace *all* apex CDS records with the ones derived from the given keys.
-* Update the SOA's serial number to the *Unix epoch* of when the signing happens. This will overwrite
-  the previous serial number.
+* Add or replace *all* apex CDS records with the ones derived from the given keys.
+* Update the SOA's serial number to the *Unix epoch* of when the signing happens. This will
+  overwrite the previous serial number.
 
 Keys are named (following BIND9): `K<name>+<alg>+<id>.key` and `K<name>+<alg>+<id>.private`.
 The keys **must not** be included in your zone; they will be added by *sign*. These keys can be
-generated with `coredns-keygen` or BIND9's `dnssec-keygen`.
+generated with `coredns-keygen` or BIND9's `dnssec-keygen`. You don't have to adhere to this naming
+scheme, but then you need to name your keys explicitly, see the `keys` directive.
 
 The generated zone is written out in a file named `db.<name>.signed`.
 
 When CoreDNS starts up (or is reloaded) a quick check is done to see if the zone needs to be
-resigned; this happens... (check *dnssec* plugin) by checking SOA's RRSIG expiration time. If
-within 2 weeks, the zone will be resigned.
-
-The keys can be reused on multiple zones, for this to work you need to symlink them together.
+resigned; this happens by checking SOA's RRSIG expiration time. If within 2 weeks, the zone will be
+resigned.
 
 ## Syntax
 
@@ -54,11 +52,11 @@ sign DBFILE [ZONES...] {
   directive will be prepended to it.
 * **ZONES** zones it should be sign for. If empty, the zones from the configuration block
   are used.
-* `keys` specifiec the **KEYDIR** directory to read the keys
-  from. The signed zones are saved to **DIR** from the `directory` option.
-* `directory` specifies the directory where CoreDNS should save zones that are being signed. If not
+* `keys` specifies the keys to sign the zone. If `file` is used the **KEY** is used as is. If
+  `directory` is used, *sign* will look in **DIR** for `K<name>+<alg>+<id>` files.
+* `directory` specifies the **DIR** where CoreDNS should save zones that have been signed. If not
   given this defaults to `/var/lib/coredns`. The zones are saved under the name `db.<name>.signed`.
-* `jitter` will be applied to the sign date of 15:00 UTC Thursday, so avoid a stampeeding hurd of
+* `jitter` will be applied to the sign date of 15:00 UTC Thursday, so avoid a stampeding herd of
   zones waiting to be signed. This default to 5 days.
 
 ## Examples
@@ -96,7 +94,7 @@ example.org example.net {
     file var/lib/coredns/db.example.org.signed example.org
     file var/lib/coredns/db.example.net.signed example.net
     sign db.example.org {
-        keys /etc/coredns/keys
+        key directory /etc/coredns/keys
     }
 }
 ~~~
