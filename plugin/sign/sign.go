@@ -16,6 +16,13 @@ type Sign struct {
 	dbfile     string
 }
 
+func signFunc(e *tree.Elem) bool {
+	for qtype, rrs := range e.m {
+		println(qtype)
+	}
+	return false
+}
+
 func (s Sign) Sign(origin string) error {
 	rd, err := os.Open(s.dbfile)
 	if err != nil {
@@ -27,6 +34,7 @@ func (s Sign) Sign(origin string) error {
 		return err
 	}
 	// sign it
+	z.Tree.Do(signFunc)
 
 	// print it
 	z.Tree.Do(func(e *tree.Elem) bool {
