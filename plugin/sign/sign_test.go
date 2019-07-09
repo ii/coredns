@@ -3,6 +3,12 @@ package sign
 import "testing"
 
 func TestSign(t *testing.T) {
-	s := &Sign{nil, 0, 0, "db.miek.nl"}
+	s := &Sign{}
+	s.dbfile = "db.miek.nl"
+	pair, err := readKeyPair("Kmiek.nl.+013+25248.key", "Kmiek.nl.+013+25248.private")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	s.Sign("miek.nl.")
 }

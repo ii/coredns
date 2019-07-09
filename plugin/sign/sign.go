@@ -7,12 +7,10 @@ import (
 
 	"github.com/coredns/coredns/plugin/file"
 	"github.com/coredns/coredns/plugin/file/tree"
-
-	"github.com/miekg/dns"
 )
 
 type Sign struct {
-	dnskeys    []*dns.DNSKEY
+	keys       []Pair
 	expiration time.Duration
 	inception  time.Duration
 	dbfile     string
