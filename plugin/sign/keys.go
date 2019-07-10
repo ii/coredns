@@ -2,6 +2,7 @@ package sign
 
 import (
 	"crypto"
+	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +13,7 @@ import (
 type Pair struct {
 	Public  *dns.DNSKEY
 	Tag     uint16
-	Private crypto.PrivateKey
+	Private crypto.Signer
 }
 
 // readKeyPair read the public and private key from disk.
@@ -36,6 +37,7 @@ func readKeyPair(public, private string) (Pair, error) {
 	if !ksk {
 		return Pair{}, fmt.Errorf("DNSKEY in %q, DNSKEY is not a CSK/KSK", public)
 	}
+	// TODO: alg check here as well.
 
 	rp, err := os.Open(private)
 	if err != nil {
@@ -45,8 +47,12 @@ func readKeyPair(public, private string) (Pair, error) {
 	if err != nil {
 		return Pair{}, err
 	}
+	signer, ok := privkey.(*ecdsa.PrivateKey)
+	if !ok {
+		return Pair{}, fmt.Errorf("Private key in %q, does not have ECDSA as the Algorithm", private)
+	}
 
-	return Pair{Public: dnskey.(*dns.DNSKEY), Tag: dnskey.(*dns.DNSKEY).KeyTag(), Private: privkey}, nil
+	return Pair{Public: dnskey.(*dns.DNSKEY), Tag: dnskey.(*dns.DNSKEY).KeyTag(), Private: signer}, nil
 }
 
 // more needed, find keypars for zone names in a directory; pick them up and parse them.
