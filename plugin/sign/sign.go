@@ -36,12 +36,28 @@ func (s Sign) Sign(origin string) error {
 	if err != nil {
 		return err
 	}
-	for _, key := range s.keys {
-		ds1 := key.Public.ToDS(dns.SHA1)
-		ds2 := key.Public.ToDS(dns.SHA256)
-		println(ds1.ToCDS().String())
-		println(ds2.ToCDS().String())
-		println(key.Public.ToCDNSKEY().String())
+	// use SOA TTL?
+
+	incep, expir := lifetime(time.Now().UTC())
+	// CDS, CDNSKEY records.
+	cds := []dns.RR{}
+	cdnskeys := []dns.RR{}
+	for _, pair := range s.keys {
+		cds = append(cds, pair.Public.ToDS(dns.SHA1))
+		cds = append(cds, pair.Public.ToDS(dns.SHA256))
+		cdnskeys = append(cdnskeys, pair.Public.ToCDNSKEY())
+	}
+	for _, pair := range s.keys {
+		rrsig, err := pair.signRRs(cds, origin, 3600, incep, expir)
+		if err != nil {
+			return err
+		}
+		println(rrsig.String())
+		rrsig, err = pair.signRRs(cdnskeys, origin, 3600, incep, expir)
+		if err != nil {
+			return err
+		}
+		println(rrsig.String())
 	}
 
 	// sign it
