@@ -75,7 +75,8 @@ example.org {
 ~~~
 
 Or use a single zone file for multiple zones, note that the **ZONES** are repeated for both plugins.
-Also note this outputs *multiple* signed output files.
+Also note this outputs *multiple* signed output files. Here we use the default output directory
+`/var/lib/coredns`.
 
 ~~~
 . {
