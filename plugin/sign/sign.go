@@ -13,16 +13,28 @@ import (
 
 type Sign struct {
 	keys       []Pair
-	expiration time.Duration
-	inception  time.Duration
+	expiration uint32
+	inception  uint32
+	ttl        uint32
 	dbfile     string
+	origin     string
 }
 
 func (s Sign) signFunc(e *tree.Elem) bool {
 	for qtype, rrs := range e.M() {
-		println(qtype)
-		println(rrs[0].String())
+		if qtype == dns.TypeRRSIG {
+			// delete
+			continue
+		}
+		for _, pair := range s.keys {
+			rrsig, err := pair.signRRs(rrs, s.origin, 3600, s.inception, s.expiration)
+			if err != nil {
+				return true
+			}
+			e.Insert(rrsig)
+		}
 	}
+
 	return false
 }
 
@@ -38,26 +50,12 @@ func (s Sign) Sign(origin string) error {
 	}
 	// use SOA TTL?
 
-	incep, expir := lifetime(time.Now().UTC())
-	// CDS, CDNSKEY records.
-	cds := []dns.RR{}
-	cdnskeys := []dns.RR{}
+	s.inception, s.expiration = lifetime(time.Now().UTC())
+	s.origin = origin
 	for _, pair := range s.keys {
-		cds = append(cds, pair.Public.ToDS(dns.SHA1))
-		cds = append(cds, pair.Public.ToDS(dns.SHA256))
-		cdnskeys = append(cdnskeys, pair.Public.ToCDNSKEY())
-	}
-	for _, pair := range s.keys {
-		rrsig, err := pair.signRRs(cds, origin, 3600, incep, expir)
-		if err != nil {
-			return err
-		}
-		println(rrsig.String())
-		rrsig, err = pair.signRRs(cdnskeys, origin, 3600, incep, expir)
-		if err != nil {
-			return err
-		}
-		println(rrsig.String())
+		z.Insert(pair.Public.ToDS(dns.SHA1))
+		z.Insert(pair.Public.ToDS(dns.SHA256))
+		z.Insert(pair.Public.ToCDNSKEY())
 	}
 
 	// sign it
