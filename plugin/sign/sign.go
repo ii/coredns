@@ -57,3 +57,11 @@ func (s Sign) Sign(origin string) error {
 
 	return nil
 }
+
+func lifetime(now time.Time) (uint32, uint32) {
+	incep := uint32(now.Add(-3 * time.Hour).Unix()) // -(2+1) hours, be sure to catch daylight saving time and such
+	expir := uint32(now.Add(threeWeeks).Unix())     // sign for 21 days
+	return incep, expir
+}
+
+const threeWeeks = 3 * 7 * 24 * time.Hour

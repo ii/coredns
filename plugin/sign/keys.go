@@ -11,6 +11,7 @@ import (
 
 type Pair struct {
 	Public  *dns.DNSKEY
+	Tag     uint16
 	Private crypto.PrivateKey
 }
 
@@ -45,7 +46,7 @@ func readKeyPair(public, private string) (Pair, error) {
 		return Pair{}, err
 	}
 
-	return Pair{Public: dnskey.(*dns.DNSKEY), Private: privkey}, nil
+	return Pair{Public: dnskey.(*dns.DNSKEY), Tag: dnskey.(*dns.DNSKEY).KeyTag(), Private: privkey}, nil
 }
 
 // more needed, find keypars for zone names in a directory; pick them up and parse them.
