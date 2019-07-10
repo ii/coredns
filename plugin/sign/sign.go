@@ -23,7 +23,7 @@ func (s Sign) signFunc(e *tree.Elem) bool {
 	// all types that should not be signed, have been dropped when reading the zone
 	for _, rrs := range e.M() {
 		for _, pair := range s.keys {
-			rrsig, err := pair.signRRs(rrs, s.origin, 3600, s.inception, s.expiration)
+			rrsig, err := pair.signRRs(rrs, s.origin, s.ttl, s.inception, s.expiration)
 			if err != nil {
 				return true
 			}
@@ -44,20 +44,43 @@ func (s Sign) Sign(origin string) error {
 	if err != nil {
 		return err
 	}
-	// use SOA TTL?
 
 	s.inception, s.expiration = lifetime(time.Now().UTC())
 	s.origin = origin
+
+	s.ttl = z.Apex.SOA.Header().Ttl
+	z.Apex.SOA.Serial = uint32(time.Now().Unix())
+
 	for _, pair := range s.keys {
 		z.Insert(pair.Public.ToDS(dns.SHA1))
 		z.Insert(pair.Public.ToDS(dns.SHA256))
 		z.Insert(pair.Public.ToCDNSKEY())
 	}
+	for _, pair := range s.keys {
+		rrsig, err := pair.signRRs([]dns.RR{z.Apex.SOA}, s.origin, s.ttl, s.inception, s.expiration)
+		if err != nil {
+			return err
+		}
+		z.Insert(rrsig)
+		rrsig, err = pair.signRRs(z.Apex.NS, s.origin, s.ttl, s.inception, s.expiration)
+		if err != nil {
+			return err
+		}
+		z.Insert(rrsig)
+	}
 
-	// sign it
 	z.Tree.Do(s.signFunc)
 
-	// print it
+	fmt.Println(z.Apex.SOA.String())
+	for _, rr := range z.Apex.SIGSOA {
+		fmt.Println(rr.String())
+	}
+	for _, rr := range z.Apex.NS {
+		fmt.Println(rr.String())
+	}
+	for _, rr := range z.Apex.SIGNS {
+		fmt.Println(rr.String())
+	}
 	z.Tree.Do(func(e *tree.Elem) bool {
 		for _, r := range e.All() {
 			fmt.Println(r.String())

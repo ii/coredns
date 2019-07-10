@@ -39,10 +39,13 @@ func parse(f io.Reader, origin, fileName string) (*file.Zone, error) {
 		}
 
 		switch rr.(type) {
-		case *dns.SOA:
-			seenSOA = true
 		case *dns.RRSIG, *dns.DNSKEY, *dns.CDNSKEY, *dns.CDS:
 			// drop
+		case *dns.SOA:
+			seenSOA = true
+			if err := z.Insert(rr); err != nil {
+				return nil, err
+			}
 		default:
 			if err := z.Insert(rr); err != nil {
 				return nil, err
