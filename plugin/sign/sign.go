@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/coredns/coredns/plugin/file"
 	"github.com/coredns/coredns/plugin/file/tree"
 
 	"github.com/miekg/dns"
@@ -21,11 +20,8 @@ type Sign struct {
 }
 
 func (s Sign) signFunc(e *tree.Elem) bool {
-	for qtype, rrs := range e.M() {
-		if qtype == dns.TypeRRSIG {
-			// delete
-			continue
-		}
+	// all types that should not be signed, have been dropped when reading the zone
+	for _, rrs := range e.M() {
 		for _, pair := range s.keys {
 			rrsig, err := pair.signRRs(rrs, s.origin, 3600, s.inception, s.expiration)
 			if err != nil {
@@ -44,7 +40,7 @@ func (s Sign) Sign(origin string) error {
 		return err
 	}
 
-	z, err := file.Parse(rd, origin, s.dbfile, 0)
+	z, err := parse(rd, origin, s.dbfile)
 	if err != nil {
 		return err
 	}
